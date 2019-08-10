@@ -1,0 +1,60 @@
+<h1>PÜMMEEEEL!</h1>
+
+<script>
+  window.addEventListener("beforeunload", function(e) {
+    e.preventDefault();
+    e.returnValue = "abcd";
+    sendJson('/logout', {clientId});
+    alert("Wirklich Seite verlassen?");
+  //  return 'Are you sure you want to leave?';
+  });
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+
+  async function register() {
+    let response = sendJson("/login", {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 3000);
+
+  function getMessages() {
+    sendJson('/message-queue', {
+      clientId
+    }).then(r => {
+      console.log("MESSAGES", r);
+    });
+  }
+
+  function sendBroadcast(obj) {
+    sendJson('/broadcast', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+</script>
