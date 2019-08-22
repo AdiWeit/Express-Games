@@ -1,0 +1,841 @@
+<canvas id="textur" width="1566" height="744" style="touch-action: none"></canvas>
+
+
+<script>
+
+  window.onbeforeunload = function() {
+    console.log("Leave Website");
+    sendJson('/stratego/logout', {
+      clientId
+    });
+    return 'Are you sure you want to leave?';
+  };
+
+var pictureLinks = {bomb: "http://adi.nicolaiweitkemper.de/Bilder/bomb.png", redFlag: "http://adi.nicolaiweitkemper.de/Bilder/redFlag.png", blueFlag: "http://adi.nicolaiweitkemper.de/Bilder/blueFlag.png"}
+var Bild = new Image();
+var canvas = document.getElementById('textur').getContext('2d'); //Dimension
+var roundStatus = ["none"];
+var koordinaten = [];
+var myId;
+var opponentId;
+var idsBleibt = [];
+var typed = "";
+//var playerMe = -1;
+var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "yellow"]}
+var colors = colorsModes.normal
+var playerMoved = [false];
+var xMaus = 0;
+var yMaus = 0;
+var hinzufügenX = 0;
+var hinzufügenY = 0;
+var player = [{number: 0, anzahl: 1}, {number: 1, anzahl: 1},{number: 2, anzahl: 8},{number: 3, anzahl: 5},{number: 4, anzahl: 4},{number: 5, anzahl: 4},{number: 6, anzahl: 4},{number: 7, anzahl: 3},{number: 8, anzahl: 2},{number: 9, anzahl: 1}, {number: 10, anzahl: 1}, {number: 11, anzahl: 6}];
+var spielfeld = [];
+    spielfeld[0] = [["land", 5]];
+    spielfeld[1] = [["land", 5]];
+    spielfeld[2] = [["land", 4], ["water", 1]];
+    spielfeld[3] = [["land", 4], ["water", 1]];
+    spielfeld[4] = [["land", 5]];
+
+// 1/4 (type, wie oft von links nach rechts)
+var AblageListe = [];
+    AblageListe[0] = [];
+var zählerListe = [];
+
+// Ausschreiben
+for (var i = 0; i < spielfeld.length; i++) {
+  AblageListe[0][i] = [];
+  for (var i1 = 0; i1 < spielfeld[i].length; i1++) {
+    for (var i2 = 0; i2 < spielfeld[i][i1][1]; i2++) {
+      AblageListe[0][i][AblageListe[0][i].length] = {type: spielfeld[i][i1][0], player: false};
+      // AblageListe[0][i].push(spielfeld[i][i1][0]);
+    }
+  }
+}
+// Spieglung nach unten
+for (var i = spielfeld.length - 1; i > -1; i--) {
+  AblageListe[0].push(AblageListe[0][i]);
+}
+spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
+// Spieglung nach rechts
+for (var i = 0; i < spielfeld.length - 5; i++) {
+//  console.log(AblageListe[0]);
+  for (var i1 = spielfeld[i].length - 1; i1 > -1; i1--) {
+    AblageListe[0][i].push(spielfeld[i][i1]);
+  }
+}
+console.log(AblageListe[0]);
+spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+  // sendJson('/logout', {
+  //   clientId
+  // });
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/stratego/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 3000);
+
+  function getMessages() {
+    sendJson('/stratego/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) {
+        console.log("MESSAGES", messages);
+      }
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/stratego/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+
+  // listen to patches coming from the server
+  room.setOnMessageListener(function(message) {
+    if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
+    if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
+    if (message.type == "onLeave") idsBleibt = [];
+    if (message.type == "playerMoved" && myId == ids[1]) {
+      playerMoved = [true, message.data[0], message.data[1]];
+      canvas.fillStyle = colors[1];
+      canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
+    }
+    if (message.type == "spielerIds")    {
+       ids = message.data;
+      if (idsBleibt.length == 0)  idsBleibt = JSON.parse(JSON.stringify(ids));
+  //    if (playerMe == 1) myId = idsBleibt[0]
+  //    if (playerMe == 2) myId = idsBleibt[1]
+    }
+    if (message.type == "spielfeldBottom") {
+      for (var i = 0; i < spielfeld.length; i++) {
+        for (var i1 = 6; i1 < spielfeld.length; i1++) {
+          spielfeld[i][i1] = message.data[i][i1];
+        }
+      }
+    }
+    if (message.type == "spielfeldTop") {
+      for (var i = 0; i < spielfeld.length; i++) {
+      for (var i1 = 0; i1 < 4; i1++) {
+        spielfeld[i][i1] = message.data[i][i1];
+      }
+    }
+    }
+    if (message.type == "spielfeld")  {
+      if (!(myId == message.idSender))  spielfeld = message.data;
+  //    if (!(roundStatus[0] == "showRewardsAttack"))  Layout(false);
+      }
+    if (message.type == "roundStatus"/* && myId == ids[1]*/) {
+      // for (var i = 0; i < message.data.length; i++) {
+      //   roundStatus[i] = message.data[i];
+      // }
+    //  Layout(false);
+    roundStatus = message.data;
+    }
+    if (message.type == "showNumber"/* && myId == ids[1]*/) {
+      if (myId == ids[1])  canvas.fillStyle = "red";
+      else canvas.fillStyle = colors[1];
+      canvas.fillRect(477 + 70*message.data.oldSpot[0], 17 + 70*message.data.oldSpot[1], 60, 60);
+      showIcon(message.data.oldSpot, message.data.numberOldSpot);
+      if (myId == ids[1])  canvas.fillStyle = colors[1];
+      else  canvas.fillStyle = "red";
+      canvas.fillRect(477 + 70*message.data.newSpot[0], 17 + 70*message.data.newSpot[1], 60, 60);
+      showIcon(message.data.newSpot, message.data.numberNewSpot);
+    }
+    if (!(roundStatus[0] == "showRewardsAttack") && !(roundStatus[0] == "movePlayer") && !(roundStatus[0] == "playerMoved"))  Layout(false)
+  });
+
+// for Test
+roundStatus[0] = "placePlayer";
+// myId = "Test";
+// idsBleibt = ["Test", "abc"];
+// ids = ["Test", "abc"];
+
+function Layout(sync) {
+  canvas.fillStyle = "#FA9B0D";
+  // background colour: #FA9B0D
+  canvas.fillRect(0, 0, document.getElementById('textur').width, document.getElementById('textur').height);
+  AblageListe[2] = {"land": /*"#BC750A" "green"*/colors[0], "water": "#0CD6E1"}; // colours ground types
+  AblageListe[1] = [];
+  if (!(roundStatus[0] == "placePlayer")) {
+    AblageListe[3] = [[{number: 0, anzahl: 0}, {number: 1, anzahl: 0},{number: 2, anzahl: 0},{number: 3, anzahl: 0},{number: 4, anzahl: 0},{number: 5, anzahl: 0},{number: 6, anzahl: 0},{number: 7, anzahl: 0},{number: 8, anzahl: 0},{number: 9, anzahl: 0}, {number: 10, anzahl: 0}, {number: 11, anzahl: 0}], [{number: 0, anzahl: 0}, {number: 1, anzahl: 0},{number: 2, anzahl: 0},{number: 3, anzahl: 0},{number: 4, anzahl: 0},{number: 5, anzahl: 0},{number: 6, anzahl: 0},{number: 7, anzahl: 0},{number: 8, anzahl: 0},{number: 9, anzahl: 0}, {number: 10, anzahl: 0}, {number: 11, anzahl: 0}]];
+  }
+  for (var i1 = 0; i1 < spielfeld.length; i1++) {
+    for (var i = 0; i < spielfeld.length; i++) {
+      if (roundStatus[0] == "movePlayer" && i == roundStatus[1][0] && i1 == roundStatus[1][1]) {
+        canvas.fillStyle = "#FC2600";
+        canvas.fillRect(477 + 70*roundStatus[1][0] - 10, 17 + 70*roundStatus[1][1] - 10, 80, 80);
+      }
+    canvas.fillStyle = AblageListe[2][spielfeld[i][i1].type];
+    if (!(spielfeld[i][i1].player == false)) {
+      if (spielfeld[i][i1].player.id == myId/* || (roundStatus[0] == "movePlayer" && roundStatus[1][0] == i && roundStatus[1][1] == i1)*/) {
+      if (roundStatus[0] == "showRewardsAttack" && roundStatus[1][0] == i && roundStatus[1][1] == i1) {
+        canvas.fillStyle = "#FC2600";
+      }
+      else {
+        canvas.fillStyle = "blue";
+      }
+      AblageListe[1].push([i, i1]);
+      setTimeout(function () {
+        if (AblageListe[1].length > 0/* && (spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number == 0 || spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number == 11)*/) {
+          // setTimeout(function () {
+          //   if (loadPicture == false) {
+          //   Layout(true)true);
+          // }
+          // }, 100);
+          showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
+        AblageListe[1].shift();
+    }
+    }, 10);
+  }
+    else canvas.fillStyle = "#FC2600";
+  }
+    else if (!(spielfeld[i][i1].player == false))  canvas.fillStyle = "#FC2600";
+    canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+    if (!(roundStatus[0] == "placePlayer") && !(spielfeld[i][i1].player == false) && spielfeld[i][i1].player.id == myId) {
+      AblageListe[3][0][spielfeld[i][i1].player.number].anzahl++;
+    }
+    else if (!(roundStatus[0] == "placePlayer") && !(spielfeld[i][i1].player == false)) {
+      AblageListe[3][1][spielfeld[i][i1].player.number].anzahl++;
+    }
+  }
+  }
+  if (playerMoved[0] == true) {
+    canvas.fillStyle = colors[1];
+    canvas.fillRect(477 + 70*playerMoved[1], 17 + 70*playerMoved[2], 60, 60);
+  }
+  koordinaten[2] = 0;
+  if (!(roundStatus[0] == "placePlayer")) player = AblageListe[3][0];
+  showStats();
+  koordinaten[2] = 1290;
+  if (!(roundStatus[0] == "placePlayer")) player = AblageListe[3][1];
+  if (!(roundStatus[0] == "placePlayer")) showStats();
+  if (sync == true && !(roundStatus[0] == "showRewardsAttack")) {
+    syncData();
+  }
+}
+
+function showIcon(coordinates, number) {
+  Bild = new Image();
+  if (number == 0) {
+  if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId)  Bild.src = pictureLinks["blueFlag"];
+  else Bild.src = pictureLinks["redFlag"];
+    canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
+  }
+  else if (number == 11) {
+    Bild.src = pictureLinks["bomb"];
+    canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
+  }
+  else {
+    canvas.fillStyle = "white";
+    canvas.font = "37px Georgia";
+    canvas.fillText(number, 477 + 70*coordinates[0] + 22, 17 + 70*coordinates[1] + 40);
+  }
+}
+
+function syncData() {
+  room.send({
+    message: {
+      "type": "spielfeld",
+      "data": spielfeld,
+      "idSender": myId
+    }
+  });
+}
+
+function showStats() {
+  koordinaten[1] = 37;
+  koordinaten[0] = 17;
+  canvas.fillStyle = "white";
+  canvas.font = "47px Georgia";
+  if (!(roundStatus[0] == "placePlayer")) {
+    canvas.fillText("your remainings", 17, 37);
+    canvas.font = "43px Georgia";
+    canvas.fillText("opponents remainings", 1177, 37);
+    if (ids[0] == myId) canvas.fillStyle = '#3ADF00';
+    else canvas.fillStyle = 'red';
+    canvas.beginPath();
+    canvas.arc(373, 34, 30, 0, Math.PI * 2, false);
+    canvas.fill();
+    canvas.fillStyle = "white";
+  }
+  else {
+    canvas.fillText("remaining to place", 17, 37);
+    player.push({number: "delete", anzahl: 1});
+  }
+
+  canvas.font = "43px Georgia";
+  canvas.fillText("starken Kontrast", 170, 179);
+  if (colors[0] == "#BC750A")  canvas.fillText("aktivieren", 170, 230);
+  else canvas.fillText("deaktivieren", 170, 230);
+  if (!(myId == undefined) && myId == idsBleibt[0]) canvas.fillText("your side: bottom", 157, 97);
+  else if (!(myId == undefined)) canvas.fillText("your side: top", 157, 97);
+//  ( && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)
+  canvas.font = "37px Georgia";
+  for (var i = 0; i < player.length; i++) {
+    for (var i1 = 0; player[i].anzahl < 1 && !(i == player.length); i++) {
+      koordinaten[1] += 94;
+      if (i == 6) {
+        koordinaten[0] += 77;
+        koordinaten[1] = 37;
+      }
+    }
+    if (!(roundStatus[1] == undefined) && i == roundStatus[1])  canvas.fillStyle = "#FC2600";
+    else canvas.fillStyle = "white";
+  if (i == 0) {
+    canvas.fillText("flag", koordinaten[0] + koordinaten[2], koordinaten[1] + 50)
+  }
+  else if (i == 10) {
+    canvas.fillText(i, koordinaten[0] + koordinaten[2], koordinaten[1] + 50)
+  }
+  else if (i == 11) {
+    canvas.fillText("bomb", koordinaten[0] + koordinaten[2] - 13, koordinaten[1] + 50)
+  }
+  else if (i == 12) {
+    canvas.fillText("delete", koordinaten[0] + koordinaten[2] - 13, koordinaten[1] + 50)
+  }
+  else {
+    canvas.fillText(i, koordinaten[0] + koordinaten[2] + 13, koordinaten[1] + 50)
+  }
+  koordinaten[1] += 37;
+  if (!(i == 12)) canvas.fillText(player[i].anzahl + "X", koordinaten[0] + koordinaten[2], koordinaten[1] + 50)
+  koordinaten[1] += 57;
+  if (i == 6) {
+    koordinaten[0] += 77;
+    koordinaten[1]= 37;
+  }
+}
+player.pop();
+}
+
+function attack() {
+  spielfeld[roundStatus[3][0]][roundStatus[3][1]].player = false; playerMoved[0] = false;//roundStatus[0] = "ingame";
+  canvas.fillStyle = colors[0];
+  canvas.fillRect(477 + 70*roundStatus[3][0], 17 + 70*roundStatus[3][1], 60, 60);
+  if (roundStatus[2][0] == 11 && roundStatus[2][1] == 3) {
+    console.log("won");
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = 3;
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+  }
+  else if (roundStatus[2][0] == 1 && roundStatus[2][1] == 10) {
+    console.log("lost");
+    console.log("roundStatus[4][1]: " + roundStatus[4][1]);
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][1]));
+  }
+  else if (roundStatus[2][1] == 1 && roundStatus[2][0] == 10) {
+    console.log("won");
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = 1;
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+  }
+  else if (roundStatus[2][0] < roundStatus[2][1]) {
+    console.log("won");
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = JSON.parse(JSON.stringify(roundStatus[2][1]));
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+  }
+  else if (roundStatus[2][0] > roundStatus[2][1]) {
+    console.log("lost");
+    console.log("roundStatus[4][0]: " + roundStatus[4][1]);
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][1]));
+  }
+  else {
+    console.log("draw");
+    canvas.fillRect(477 + 70*roundStatus[1][0], 17 + 70*roundStatus[1][1], 60, 60);
+    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false; playerMoved[0] = false;
+  }
+  roundStatus[0] = "ingame";
+  Layout(false);
+  if (myId == idsBleibt[0]) {
+    room.send({
+      message: "Spielerwechsel"
+    });
+    ids = "inProgress";
+  }
+}
+
+document.onkeydown = function(event) {
+  AblageListe[3] = [event.keyCode, event.key];
+  // ev.touches[0]["pageX"] + mausxScroll) + " - " + (ev.touches[0]["pageY"] + mausyScroll
+//  if (gerät == "PC" || (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && (swipeCoordinates.includes(swipeCoordinates[0] -300) || swipeCoordinates.includes(swipeCoordinates[0] +300) || swipeCoordinates.includes(swipeCoordinates[1] -300) || swipeCoordinates.includes(swipeCoordinates[1] +300))))    folgenKeyDown();
+    folgenKeyDown();
+}
+
+function folgenKeyDown() {
+//  swipeCoordinates = [];
+  typed += AblageListe[3][1]
+  setTimeout(function () {
+    typed = "";
+  }, 2000);
+  if (roundStatus[0] == "showRewardsAttack" && gerät == "PC" && (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && AblageListe[3] == roundStatus[2][0])) {
+    attack();
+  }
+    if (AblageListe[3][0] == 13 && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number == 2) FinishRound();
+    if (typed.includes("10")) {
+      roundStatus[1] = 10;
+      console.log(roundStatus[1]);
+    }
+    if (roundStatus[0] == "placePlayer" && AblageListe[3][0] > 48 && AblageListe[3][0] < 58 && player[AblageListe[3][0] - 48].anzahl > 0) {
+      roundStatus[1] = AblageListe[3][0] - 48;
+      console.log(roundStatus[1]);
+    }
+    if (roundStatus[0] == "placePlayer" && AblageListe[3][0] == 66 && player[11].anzahl > 0) {
+      roundStatus[1] = 11;
+    }
+    if (roundStatus[0] == "placePlayer" && AblageListe[3][0] == 68) {
+      roundStatus[1] = 12;
+    }
+    if (roundStatus[0] == "placePlayer" && AblageListe[3][0] == 70 && player[0].anzahl > 0) {
+      roundStatus[1] = 0;
+    }
+    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 37 && roundStatus[1][0] - 1 > -1 && spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId))) {  // left
+      // attack
+      if (!(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false)) {
+        roundStatus[2] = JSON.parse(JSON.stringify([spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number]));
+        roundStatus[4] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id));
+        console.log(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]]);
+      //  spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]]);
+        console.log(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.number);
+        spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.number = JSON.parse(JSON.stringify(roundStatus[2][0]));
+        console.log(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.number);
+        roundStatus[0] = "showRewardsAttack";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[1][0]--;
+        Layout(true);
+        room.send({
+          message: {
+            "type": "roundStatus",
+            "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
+          }
+        });
+        room.send({
+          message: {
+            type: "showNumber",
+          data: {
+            oldSpot: roundStatus[3],
+            newSpot: roundStatus[1],
+            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+          }
+        }
+        });
+      }
+      else {
+        spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        roundStatus[0] = "finished";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[3][0]--;
+      }
+    }
+    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 38 && roundStatus[1][1] - 1 > -1 && spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId))) {  // up
+      // attack
+      if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false)) {
+        roundStatus[2] = [spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number];
+        roundStatus[4] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id));
+      //  spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.number = JSON.parse(JSON.stringify(roundStatus[2][0]));
+        roundStatus[0] = "showRewardsAttack";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[1][1]--;
+        Layout(true);
+        room.send({
+          message: {
+            "type": "roundStatus",
+            "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
+          }
+        });
+        room.send({
+          message: {
+            type: "showNumber",
+          data: {
+            oldSpot: roundStatus[3],
+            newSpot: roundStatus[1],
+            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+          }
+        }
+        });
+      }
+      else {
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1]);
+        spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1]);
+        roundStatus[0] = "finished";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[3][1]--;
+      }
+    }
+    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 39 && roundStatus[1][0] - 1 < spielfeld.length && spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId))) {  // right
+      // attack
+      if ( !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false)) {
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+        roundStatus[2] = [spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number];
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+        roundStatus[4] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id));
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+      //  spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.number);
+        spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.number = JSON.parse(JSON.stringify(roundStatus[2][0]));
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.number);
+        roundStatus[0] = "showRewardsAttack";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[1][0]++;
+        Layout(true);
+        room.send({
+          message: {
+            "type": "roundStatus",
+            "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
+          }
+        });
+        room.send({
+          message: {
+            type: "showNumber",
+          data: {
+            oldSpot: roundStatus[3],
+            newSpot: roundStatus[1],
+            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+          }
+        }
+        });
+        Layout(true);
+      }
+      else {
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+        spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
+        roundStatus[0] = "finished";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[3][0]++;
+      }
+    }
+    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 40 && roundStatus[1][1] + 1 < spielfeld.length && spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId))) {  // down
+      // attack
+      if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false)) {
+        roundStatus[2] = [spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number];
+        roundStatus[4] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id));
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
+      //  spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.number);
+        spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.number = JSON.parse(JSON.stringify(roundStatus[2][0]));
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.number);
+        roundStatus[0] = "showRewardsAttack";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[1][1]++;
+        Layout(true);
+        room.send({
+          message: {
+            "type": "roundStatus",
+            "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
+          }
+        });
+        room.send({
+          message: {
+            type: "showNumber",
+          data: {
+            oldSpot: roundStatus[3],
+            newSpot: roundStatus[1],
+            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+          }
+        }
+        });
+        Layout(true);
+      }
+      else {
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
+        spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
+        console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
+        roundStatus[0] = "finished";
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[3][1]++;
+      }
+    }
+    if (roundStatus[0] == "finished" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2) {
+      if ((isNaN(roundStatus[2][0])))  roundStatus[2] = [AblageListe[3][0]];
+      if (!(isNaN(roundStatus[2][0]))) roundStatus[2][1] = JSON.parse(JSON.stringify(roundStatus[2][0]));
+      roundStatus[2][0] = AblageListe[3][0];
+    }
+    AblageListe[3] = {37: 39, 38: 40, 39: 37, 40: 38}
+    if (roundStatus[0] == "finished" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && !(roundStatus[2][0] == roundStatus[2][1] || roundStatus[2][0] == AblageListe[3][roundStatus[2][1]])) {
+      console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player);
+      spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = JSON.parse(JSON.stringify(spielfeld[roundStatus[3][0]][roundStatus[3][1]].player));
+      console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player);
+      console.log(spielfeld[roundStatus[3][0]][roundStatus[3][1]].player);
+      spielfeld[roundStatus[3][0]][roundStatus[3][1]].player = false; playerMoved[0] = false;
+      canvas.fillStyle = colors[0];
+      canvas.fillRect(477 + 70*roundStatus[3][0], 17 + 70*roundStatus[3][1], 60, 60);
+      console.log(spielfeld[roundStatus[3][0]][roundStatus[3][1]].player);
+      roundStatus[0] = "finishedPlayer2";
+      roundStatus[2] = JSON.parse(JSON.stringify(roundStatus[1]));
+      roundStatus[1] = JSON.parse(JSON.stringify(roundStatus[3]));
+      roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[2]));
+      setTimeout(function () {
+        roundStatus[2] = JSON.parse(JSON.stringify(roundStatus[1]));
+        roundStatus[1] = JSON.parse(JSON.stringify(roundStatus[3]));
+        roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[2]));
+      }, 100);
+    }
+    else if (roundStatus[0] == "finished" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2) {
+      roundStatus[0] = "movePlayer";
+      console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player);
+      spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false; playerMoved[0] = false;
+      canvas.fillStyle = colors[0];
+      canvas.fillRect(477 + 70*roundStatus[1][0], 17 + 70*roundStatus[1][1], 60, 60);
+      console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player);
+      roundStatus[1] = JSON.parse(JSON.stringify(roundStatus[3]));
+      Layout(true);
+    }
+    if ((roundStatus[0] == "finishedPlayer2" && spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number == 2) || (roundStatus[0] == "finished" && !(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2)))  FinishRound();
+  if (roundStatus[0] == "placePlayer") {
+  //  player = AblageListe[3][0];
+    koordinaten[2] = 0;
+    showStats();
+  }
+}
+  function FinishRound() {
+    if (roundStatus[0] == "finished") spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false;
+    Layout(true)/*;syncData()*/;roundStatus[0] = "ingame";
+    room.send({
+      message: {
+      type: "playerMoved",
+      data: roundStatus[3]
+    }
+    });
+  room.send({
+    message: "Spielerwechsel"
+  });
+  ids = "inProgress";
+}
+  window.addEventListener('mousedown', function() {
+    checkClickedField();
+    if (roundStatus[0] == "movePlayer" && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2 && roundStatus[1][0] == AblageListe[0][0] && roundStatus[1][1] == AblageListe[0][1]) FinishRound();
+    if (!(roundStatus[1] == 12)) {
+    if (roundStatus[0] == "placePlayer" && !(AblageListe[0] == "none") && !(roundStatus[1] == undefined) && player[roundStatus[1]].anzahl > 0 && ((myId == idsBleibt[0] && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)) && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false) {
+      spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = {id: myId, number: roundStatus[1]}
+      player[roundStatus[1]].anzahl--;
+      Layout(false);
+    /*  syncData();*/
+      AblageListe[3] = 0;
+      for (var i = 0; i < player.length; i++) {
+        if (player[i].anzahl < 1) AblageListe[3]++;
+      }
+      setTimeout(function () {
+        if (AblageListe[3] == player.length && confirm("Sind sie mit ihrer Aufstellung zufrienden und wollen die Runde starten?")) {
+          roundStatus[0] = "ingame";
+          if (idsBleibt[0] == myId) {  // bottom
+            room.send({
+              message: {
+                "type": "spielfeldBottom",
+                "data": spielfeld
+              }
+            });
+          }
+          else {  // Top
+            room.send({
+              message: {
+                "type": "spielfeldTop",
+                "data": spielfeld
+              }
+            });
+          }
+
+        }
+      }, 500);
+    }
+  }
+  else if (!(AblageListe[0] == "none") && !(spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false)) {
+
+    player[spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number].anzahl++;
+
+
+    spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = false;
+    Layout(false);
+  }
+    if ((roundStatus[0] == "ingame" || (roundStatus[0] == "movePlayer" && !(spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2))) && !(AblageListe[0] == "none") && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.id == myId && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number > 0 && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number < 11 && ids[0] == myId) {
+      roundStatus[1] = AblageListe[0];
+      roundStatus[2] = "NaN";
+      roundStatus[0] = "movePlayer";
+      Layout(true);
+    }
+    if (roundStatus[0] == "showRewardsAttack") {
+      attack();
+    }
+
+    // click player to place
+    koordinaten[1] = 37;
+    koordinaten[0] = 17;
+  for (var i = 0; i < player.length + 1; i++) {
+    if (xMaus > koordinaten[0] - 1 && xMaus < koordinaten[0] + 38 && yMaus > koordinaten[1] + 50 - 27 && yMaus < koordinaten[1] + 105 && roundStatus[0] == "placePlayer") {
+      console.log(i);
+      roundStatus[1] = i;
+    }
+    koordinaten[1] += 37;
+  //  canvas.fillText(player[i].anzahl + "X", koordinaten[0], koordinaten[1] + 50)
+  //  canvas.fillText("flag", koordinaten[0], koordinaten[1] + 50)
+    koordinaten[1] += 57;
+    if (i == 6) {
+      koordinaten[0] += 77;
+      koordinaten[1]= 37;
+    }
+    }
+    if (roundStatus[0] == "placePlayer") {
+    //  player = AblageListe[3][0];
+      koordinaten[2] = 0;
+      showStats();
+    }
+    if (xMaus > 178 && xMaus < 465 && yMaus > 154 && yMaus < 248) {
+      if (colors[0] == "green") colors = colorsModes.normal
+      else colors = colorsModes.special
+      Layout(false);
+      localStorage.setItem("colors", JSON.stringify(colors));
+    }
+    // if (roundStatus[0] == "movePlayer" && spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number == 2) {
+    //   FinishRound();
+    // }
+  });
+
+  if (!(JSON.parse(localStorage.getItem("colors")) == null))  colors = JSON.parse(localStorage.getItem("colors"));
+function checkClickedField() {
+  AblageListe[0] = "none";
+  for (var i = 0; i < spielfeld.length; i++) {
+    for (var i1 = 0; i1 < spielfeld.length; i1++) {
+      if (xMaus > 476 + 70*i && xMaus < 476 + 70*i + 60 && yMaus > 17 + 70*i1 && yMaus < 17 + 70*i1 + 60) {
+        console.log(1 + " - " + i1);
+        AblageListe[0] = [i, i1];
+      }
+  }
+  }
+}
+
+
+var f = function() {
+  var eventHandler = function(event) {
+    //    console.log(window.scrollX + " - " + window.scrollY);
+    hinzufügenX = window.scrollX;
+    hinzufügenY = window.scrollY;
+//    Layout(true);
+  };
+  window.addEventListener('scroll', eventHandler, false)
+};
+// canvas.fillRect(1330, 520, 200 + 18, 60);
+window.addEventListener('DOMContentLoaded', f, false)
+function readMouseMove(e) {
+  xMaus = e.clientX + hinzufügenX;
+  yMaus = e.clientY + hinzufügenY;
+  //  console.log(xMaus + " - " + yMaus);
+}
+document.onmousemove = readMouseMove
+
+// Tranzparentz: canvas.fillStyle = "rgba(0, 0, 210, 0.7)"; (blue)
+
+// Handy swipe direction:
+
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+// var swipeCoordinatesX = [];
+// var swipeCoordinatesY = [];
+var xDown = null;
+var yDown = null;
+
+function getTouches(evt) {
+return evt.touches ||             // browser API
+       evt.originalEvent.touches; // jQuery
+}
+
+function handleTouchStart(evt) {
+  const firstTouch = getTouches(evt)[0];
+  xDown = firstTouch.clientX;
+  yDown = firstTouch.clientY;
+};
+
+function handleTouchMove(evt) {
+  var xUp = evt.touches[0].clientX;
+  var yUp = evt.touches[0].clientY;
+  var xDiff = xDown - xUp;
+  var yDiff = yDown - yUp;
+   swipeCoordinates = [evt.touches[0].clientX, evt.touches[0].clientY];
+  if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+      if ( xDiff > 0 ) {
+          /* left swipe */
+          AblageListe[3] = [37, "none"];
+      } else {
+          /* right swipe */
+          AblageListe[3] = [39, "none"];
+      }
+  } else {
+      if ( yDiff > 0 ) {
+          /* up swipe */
+          AblageListe[3] = [38, "none"];
+      } else {
+          /* down swipe */
+          AblageListe[3] = [40, "none"];
+      }
+  }
+  if (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && !((Math.round(swipeCoordinates[0])/10 + "").includes(".")) || !((Math.round(swipeCoordinates[1])/10 + "").includes("."))) {
+    folgenKeyDown();
+  }
+ if (gerät == "Handy" && !(roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2)) {
+    folgenKeyDown();
+  }
+};
+
+if (navigator.userAgent.match(/Android/i) ||
+  navigator.userAgent.match(/webOS/i) ||
+  navigator.userAgent.match(/iPhone/i) ||
+  navigator.userAgent.match(/iPad/i) ||
+  navigator.userAgent.match(/iPod/i) ||
+  navigator.userAgent.match(/BlackBerry/i) ||
+  navigator.userAgent.match(/Windows Phone/i)
+) {
+  gerät = "Handy"
+  console.log("Handy");
+} else {
+  gerät = "PC"
+  console.log("PC");
+}
+
+</script>

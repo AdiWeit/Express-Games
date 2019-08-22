@@ -1,0 +1,808 @@
+<meta charset="utf-8">
+<canvas id="textur" width="2069" height="688"></canvas>
+
+<script>
+  var textur = document.getElementById('textur');
+  var canvas = textur.getContext('2d'); //Dimension
+  var Bild = new Image();
+  var markierungen;
+  var tipp = "";
+  var weiterraten = "";
+  var zählerZustand = 1;
+  var Sperren = [true];
+  Sperren[2] = false;
+  var Kartenteilungsstopp = false;
+  var fertigCheck;
+  var Zustand = ["NOPE"];
+  var SpielerAnfrage = [];
+  var karteGezogen = "";
+  var NameSpieler = [];
+  var nameGegner = "";
+  var NameBleibt = [];
+  var kartenZiehen = [
+    [0, "black", false],
+    [0, "white", false],
+    [1, "black", false],
+    [1, "white", false],
+    [2, "black", false],
+    [2, "white", false],
+    [3, "black", false],
+    [3, "white", false],
+    [4, "black", false],
+    [4, "white", false],
+    [5, "black", false],
+    [5, "white", false],
+    [6, "black", false],
+    [6, "white", false],
+    [7, "black", false],
+    [7, "white", false],
+    [8, "black", false],
+    [8, "white", false],
+    [9, "black", false],
+    [9, "white", false],
+    [10, "black", false],
+    [10, "white", false],
+    [11, "black", false],
+    [11, "white", false]
+  ];
+  var zähler = kartenZiehen.length,
+    j, Ablage;
+  var zählerListe = [0, 0];
+  var zählerLayout = 0;
+  var x = 170;
+  var y = 30;
+  var koordinatenSpieler1 = [45, 470, 80, 570, 0, 0, 0, 0]
+  var AblageList = [];
+  //var TutorialText = ['Das wich- tig- ste ist, dass es 2 ver- schie- de- ne Be- rei- che gibt. Um fort- zu- fahren, auf die Flä- che des Tex- tes kli- cken, oder En- ter drü- cken. ', "Im- mer wenn An- dro- ma- che an- greift und ei- ne grü- ne Ein- heit als Geg- ner hat, er- höht sich ihr An- griffs- wert um 1 bis zum En- de des An- grif- fes. ", "Im- mer wenn du Eu- ry- di- ke wegen ih- rer Scha- dens- mar- ker ab- le- gen müs- stest, kannst du 1 Hand- karte ab- wer- fen, um alle Marker von ihr zu ent- fernen und sie auf einen freien Platz zu ver- schie- ben. "]
+  var fertigerText = "";
+  var AnfrageCheck;
+  var RemachCheck;
+  var RematchAnfrage = [];
+  // 1. und 2. : Koord. Stein 3. und 4. : Koord. Text 3. und 4. : X und Y Maus
+  // Y war = 30, 130
+  // X war ; 170, 205
+  // document.getElementById("BedienungAmPC").style.display = "none";
+  // document.getElementById("BRematch").style.display = "none";
+  // document.getElementById("Spielregeln").style.display = "none";
+  // document.getElementById("textCheckboxBedinungAmPC").style.display = "none";
+  // document.getElementById("textCheckboxSpielregeln").style.display = "none";
+  while (--zähler > 0) {
+    j = Math.floor(Math.random() * (zähler + 1));
+    Ablage = kartenZiehen[j];
+    kartenZiehen[j] = kartenZiehen[zähler];
+    kartenZiehen[zähler] = Ablage;
+  }
+
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+  // sendJson('/logout', {
+  //   clientId
+  // });
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/davincicode/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 3000);
+
+  function getMessages() {
+    sendJson('/davincicode/message-queue', {
+      clientId
+    }).then(messages => {
+      console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/davincicode/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  window.onbeforeunload = function() {
+    console.log("Leave Website");
+    sendJson('/davincicode/logout', {
+      clientId
+    });
+    return 'Are you sure you want to leave?';
+  };
+  room.setOnMessageListener(function(message) {
+    if (message.type == "KartenSpieler1") kartenSpieler1 = message.data;
+    if (message.type == "KartenSpieler2") kartenSpieler2 = message.data;
+    if (message.type == "KartenZiehen") {
+      kartenZiehen = message.data;
+      if (NameSpieler[0] == name) {
+        console.log("KartenZiehen");
+        if (kartenZiehen.length > 0) {
+          console.log(kartenZiehen[0]);
+          zähler = 0;
+
+          if (name == NameBleibt[0]) {
+            kartenSpieler1[kartenSpieler1.length] = kartenZiehen[0];
+          } else {
+            kartenSpieler2[kartenSpieler2.length] = kartenZiehen[0];
+          }
+          sort();
+        }
+      }
+      else {
+        sort();
+      }
+      if (NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
+        tipp = true
+      }
+      LayoutIch();
+    }
+
+    if (message.type == "name") {
+      name = message.data;
+      LayoutIch();
+    }
+    if (message.type == "Reihenfolge") {
+      NameSpieler = message.data;
+      NameBleibt = JSON.parse(JSON.stringify(NameSpieler));
+      if (name == NameBleibt[0]) {
+        nameGegner = NameBleibt[1]
+      } else {
+        nameGegner = NameBleibt[0]
+      }
+    }
+    if (message.type == "KarteTipp" && NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
+      console.log("LayoutFalscherTippGegner");
+      tipp = true;
+      Sperren[2] = true;
+      canvas.fillStyle = 'orange';
+      canvas.beginPath();
+      canvas.arc(30 + koordinatenSpieler1[6], 50, 15, 0, Math.PI * 2, false);
+      canvas.fill();
+        canvas.fillStyle = "blue"
+        canvas.fillRect((45 + message.data * 170) - 15, 470 - 15, 130, 180)
+        //canvas.fillStyle = kartenSpieler1[message.data][1];
+        //canvas.fillRect((45 + message.data*170),470,100,150)
+        AblageList[1] = message.data
+        if (name == NameBleibt[0]) {
+          canvas.fillStyle = kartenSpieler1[message.data][1];
+          canvas.fillRect((45 + message.data * 170), 470, 100, 150)
+          if (kartenSpieler1[message.data][1] == "black") {
+            canvas.fillStyle = "white";
+          } else {
+            canvas.fillStyle = "black";
+          }
+        } else {
+          canvas.fillStyle = kartenSpieler2[message.data][1];
+          canvas.fillRect((45 + message.data * 170), 470, 100, 150)
+          if (kartenSpieler2[message.data][1] == "black") {
+            canvas.fillStyle = "white";
+          } else {
+            canvas.fillStyle = "black";
+          }
+        }
+    }
+    if (message.type == "tipp" && Zustand[Zustand.length - 1] == "verfehlt" && NameSpieler[0] == name) {
+        canvas.font = "75pxGeorgia";
+        if (message.data.length == 2) {
+          canvas.fillText(message.data, 45 + AblageList[1] * 170 + 15, 570);
+        } else {
+          canvas.fillText(message.data, 45 + AblageList[1] * 170 + 33, 570);
+        }
+
+        setTimeout(function() {
+          Sperren[2] = false;
+        }, 1000);
+        setTimeout(function () {
+          LayoutIch();
+            LayoutIch();
+            tipp = false;
+        }, 2735);
+    }
+    if (message.type == "Zustand" && Zustand.length < message.data.length) {
+      result = message.data;
+      if (Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" == false && Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg" == false) {
+        if (result[result.length - 1] == "1 gewonnen") {
+          //     Bild = new Image();
+          if (name == NameBleibt[0]) {
+            console.log("Du hast gewonnen!!!");
+            canvas.fillStyle = "green";
+            canvas.fillRect(0, 0, 1847, 973)
+            Bild.src = 'http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg'
+
+          } else {
+            console.log("Du hast verloren!!!");
+            canvas.fillStyle = "red";
+            canvas.fillRect(0, 0, 1847, 973)
+            Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+          }
+          canvas.drawImage(Bild, 260, 0);
+          Sperren[2] = true;
+        } else if (result[result.length - 1] == "2 gewonnen") {
+          if (name == NameBleibt[0]) {
+            canvas.fillStyle = "red";
+            canvas.fillRect(0, 0, 1847, 973)
+            console.log("Du hast verloren!!!");
+            Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+          } else {
+            console.log("Du hast gewonnen!!!");
+            canvas.fillStyle = "green";
+            canvas.fillRect(0, 0, 1847, 973)
+            Bild.src = 'http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg'
+          }
+          canvas.drawImage(Bild, 260, 0);
+          Sperren[2] = true;
+        }
+      } else {
+        if (Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg") {
+          canvas.fillStyle = "green";
+        } else {
+          canvas.fillStyle = "red";
+        }
+        if (result[result.length - 1] == "1 gewonnen" || result[result.length - 1] == "2 gewonnen") {
+          canvas.fillRect(0, 0, 1847, 973)
+          canvas.drawImage(Bild, 260, 0);
+        }
+      }
+
+
+      NameSpieler[2] = NameSpieler[0];
+      NameSpieler[0] = NameSpieler[1];
+      NameSpieler[1] = NameSpieler[2];
+      NameSpieler.pop();
+      Zustand = [result];
+      Zustand = Zustand.toString().split(',');
+      zähler = 1;
+    }
+
+
+  });
+
+
+
+  var kartenSpieler1 = [];
+  var kartenSpieler2 = [];
+  var indices = [];
+  var lengthSpielerAnfrage = 0;
+  var SpielerCheck = [false, true, true];
+  // Anfrage gestellt, nicht in Runde, nicht beim Beenden
+  //var name = prompt("Wie heißen sie? Diese Information ist nötig, um (online) spielen zu können.")
+  var gerät = "";
+  detectmob();
+
+  function detectmob() {
+    if (navigator.userAgent.match(/Android/i) ||
+      navigator.userAgent.match(/webOS/i) ||
+      navigator.userAgent.match(/iPhone/i) ||
+      navigator.userAgent.match(/iPad/i) ||
+      navigator.userAgent.match(/iPod/i) ||
+      navigator.userAgent.match(/BlackBerry/i) ||
+      navigator.userAgent.match(/Windows Phone/i)
+    ) {
+      gerät = "Handy"
+      console.log("Handy");
+    } else {
+      gerät = "PC"
+      console.log("PC");
+    }
+  }
+
+
+  var spielerCheck = setInterval(spielerCheck, 600)
+  var DranCheck;
+
+  function Ampel() {
+    if (Sperren[2] == false) {
+      if (koordinatenSpieler1[6] == undefined) {
+        koordinatenSpieler1[6] = 0;
+      }
+      canvas.fillStyle = "brown"
+      canvas.fillRect(0, 100, 2069, 100)
+      if (NameSpieler[0] == name) {
+        canvas.fillStyle = '#3ADF00';
+        canvas.beginPath();
+        canvas.arc(30 + koordinatenSpieler1[6], 150, 15, 0, Math.PI * 2, false);
+        canvas.fill();
+      } else {
+        canvas.fillStyle = 'red';
+        canvas.beginPath();
+        canvas.arc(30 + koordinatenSpieler1[6], 150, 15, 0, Math.PI * 2, false);
+        canvas.fill();
+      }
+    }
+  }
+
+  function LayoutFalscherTippGegner() {
+    console.log("LayoutFalscherTippGegner");
+    Sperren[2] = true;
+    canvas.fillStyle = 'orange';
+    canvas.beginPath();
+    canvas.arc(30 + koordinatenSpieler1[6], 50, 15, 0, Math.PI * 2, false);
+    canvas.fill();
+    dbGet("davincicode", "KarteTipp" + NameBleibt[0] + NameBleibt[1], function(result) {
+      canvas.fillStyle = "blue"
+      canvas.fillRect((45 + result * 170) - 15, 470 - 15, 130, 180)
+      //canvas.fillStyle = kartenSpieler1[result][1];
+      //canvas.fillRect((45 + result*170),470,100,150)
+      AblageList[1] = result
+      if (name == NameBleibt[0]) {
+        canvas.fillStyle = kartenSpieler1[result][1];
+        canvas.fillRect((45 + result * 170), 470, 100, 150)
+        if (kartenSpieler1[result][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+      } else {
+        canvas.fillStyle = kartenSpieler2[result][1];
+        canvas.fillRect((45 + result * 170), 470, 100, 150)
+        if (kartenSpieler2[result][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+      }
+
+      dbGet("davincicode", "tipp" + NameBleibt[0] + NameBleibt[1], function(result) {
+        canvas.font = "75pxGeorgia";
+        if (result.length == 2) {
+          canvas.fillText(result, 45 + AblageList[1] * 170 + 15, 570);
+        } else {
+          canvas.fillText(result, 45 + AblageList[1] * 170 + 33, 570);
+        }
+
+        setTimeout(function() {
+          Sperren[2] = false;
+        }, 1000);
+      });
+    });
+  }
+
+  function LayoutIch() {
+    console.log("LayoutIch");
+    if (Zustand[0] == "Tutorial" == false) {
+      canvas.fillStyle = "brown"; //Farbe
+      canvas.fillRect(0, 0, 2069, 754)
+    }
+    zählerLayout++;
+    canvas.fillStyle = "Black"
+    canvas.font = "20px Georgia";
+    canvas.fillText(zählerLayout, 390, 54);
+    if (NameBleibt[0] == name) {
+      while (zähler < kartenSpieler1.length) {
+        if (kartenSpieler1[zähler][2] == "true" || kartenSpieler1[zähler][2] == true) {
+          canvas.fillStyle = "red"; //Farbe
+        } else {
+          canvas.fillStyle = "green"; //Farbe
+        }
+        if (kartenZiehen[0] == kartenSpieler1[zähler]) {
+          if (!(tipp == true)) kartenZiehen.shift();
+          canvas.fillStyle = "orange"
+          karteGezogen = zähler;
+        }
+        canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
+        canvas.fillStyle = kartenSpieler1[zähler][1]
+        canvas.fillRect(koordinatenSpieler1[0], koordinatenSpieler1[1], 100, 150)
+        if (kartenSpieler1[zähler][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+        canvas.font = "75px Georgia";
+        if ((kartenSpieler1[zähler][0] + "").length == 2) {
+          canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2] - 23, koordinatenSpieler1[3]);
+        } else {
+          canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2], koordinatenSpieler1[3]);
+        }
+        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
+        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
+        zähler++;
+      }
+
+    } else { //Spieler2 Anfang LayoutIch
+      while (zähler < kartenSpieler2.length) {
+        if (kartenSpieler2[zähler][2] == "true" || kartenSpieler2[zähler][2] == true) {
+          canvas.fillStyle = "red"; //Farbe
+        } else {
+          canvas.fillStyle = "green"; //Farbe
+        }
+        if (kartenZiehen[0] == kartenSpieler2[zähler]) {
+          if (!(tipp == true)) kartenZiehen.shift();
+          canvas.fillStyle = "orange"
+          karteGezogen = zähler;
+        }
+        canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
+        canvas.fillStyle = kartenSpieler2[zähler][1];
+        canvas.fillRect(koordinatenSpieler1[0], koordinatenSpieler1[1], 100, 150)
+        if (kartenSpieler2[zähler][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+        canvas.font = "75px Georgia";
+        if ((kartenSpieler2[zähler][0] + "").length == 2) {
+          canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2] - 23, koordinatenSpieler1[3]);
+        } else {
+          canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2], koordinatenSpieler1[3]);
+        }
+        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
+        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
+        zähler++;
+      }
+
+    }
+    koordinatenSpieler1 = [45, 470, 80, 570];
+    zähler = 0;
+    Ablage = true;
+    zähler = 0;
+    if (Zustand[0] == "Tutorial" == false) {
+      LayoutGegner();
+    }
+    /*if (kartenSpieler1 == "" || kartenSpieler2 == "") {
+      setTimeout(function () {
+        VarReset();
+          Kartenerteilung();
+      }, 5000);
+    }
+    */
+    Ampel();
+  }
+
+  function LayoutGegner() {
+    console.log("LayoutGegner");
+    if (NameBleibt[0] == name) {
+      while (zähler < kartenSpieler2.length) {
+
+        if (kartenSpieler2[zähler][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+        canvas.fillRect(koordinatenSpieler1[0] - 15, 220 - 15, 130, 180)
+
+        canvas.fillStyle = kartenSpieler2[zähler][1]
+        canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
+
+        if (kartenSpieler2[zähler][2] == true || kartenSpieler2[zähler][2] == "true") {
+
+          if (kartenSpieler2[zähler][1] == "black") {
+            canvas.fillStyle = "white";
+          } else {
+            canvas.fillStyle = "black";
+          }
+          canvas.font = "75px Georgia";
+          if (kartenSpieler2[zähler][0].length == 2) {
+            canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2] - 23, 323);
+          } else {
+            canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2], 323);
+          }
+        }
+        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
+        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
+        zähler++;
+      }
+
+    } else {
+
+      while (zähler < kartenSpieler1.length) {
+        if (kartenSpieler1[zähler][1] == "black") {
+          canvas.fillStyle = "white";
+        } else {
+          canvas.fillStyle = "black";
+        }
+        canvas.fillRect(koordinatenSpieler1[0] - 15, 220 - 15, 130, 180)
+
+        canvas.fillStyle = kartenSpieler1[zähler][1]
+        canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
+
+        if (kartenSpieler1[zähler][2] == true || kartenSpieler1[zähler][2] == "true") {
+
+          if (kartenSpieler1[zähler][1] == "black") {
+            canvas.fillStyle = "white";
+          } else {
+            canvas.fillStyle = "black";
+          }
+          canvas.font = "75px Georgia";
+          if (kartenSpieler1[zähler][0].length == 2) {
+            canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2] - 23, 323);
+          } else {
+            canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2], 323);
+          }
+        }
+        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
+        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
+        zähler++;
+      }
+    }
+    koordinatenSpieler1 = [45, 470, 80, 570];
+    zähler = 0;
+    /*if (Kartenteilungsstopp == false) {
+    Kartenteilungsstopp = true;
+    Kartenerteilung();
+  }
+else {
+*/
+    Ablage = true;
+    Sperren[0] = true;
+    //}
+  }
+
+  function readMouseMove(e) {
+    koordinatenSpieler1[4] = e.clientX;
+    koordinatenSpieler1[5] = e.clientY;
+    //  console.log(e.clientX);
+  }
+  document.onmousemove = readMouseMove
+
+  window.addEventListener('mousedown', function() {
+    if (NameSpieler[0] == name) {
+      Sperren[0] = false;
+      console.log(koordinatenSpieler1[4] + " - " + koordinatenSpieler1[5]);
+      if (koordinatenSpieler1[6] == undefined) {
+        koordinatenSpieler1[6] = 0;
+      }
+      if (NameBleibt[0] == name) {
+        while (zähler < kartenSpieler2.length && Ablage == true) {
+          if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 400) {
+            AblageList[2] = Zustand.length;
+            console.log(zähler);
+            tipp = prompt("Was für einen Wert tippen sie für diesen Stein? Bitte Zahl (von 0-11) eingeben")
+            Ablage = false;
+            AblageList[1] = zähler;
+            if (tipp == null == false) {
+              if (tipp == kartenSpieler2[zähler][0]) {
+                console.log("richtig!");
+                kartenSpieler2[zähler][2] = true;
+                LayoutGegner();
+                setTimeout(function() {
+                      if (!(confirm("Möchten sie weiterraten?"))) {
+                    Zustand[Zustand.length] = "getroffen"
+                    Spielerwechsel();
+                  }
+                }, 700);
+              } else {
+                Zustand[Zustand.length] = "verfehlt"
+                kartenSpieler1[karteGezogen][2] = true;
+                Sperren[0] = false;
+                Spielerwechsel();
+              }
+            }
+          }
+          koordinatenSpieler1[0] += 170;
+          koordinatenSpieler1[2] += 170;
+          if (Ablage == true) {
+            zähler++;
+          }
+        }
+        Ablage = true;
+        koordinatenSpieler1 = [45, 470, 80, 570]
+        zähler = 0;
+      } else {
+        while (zähler < kartenSpieler1.length && Ablage == true) {
+          if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 220 + 180) {
+            AblageList[2] = Zustand.length;
+            console.log(zähler);
+            tipp = prompt("Was für einen Wert tippen sie für diesen Stein? Und welche Farbe? Bitte die Zahl eingeben!")
+            Ablage = false;
+            AblageList[1] = zähler;
+            if (tipp == null == false) {
+
+              if (tipp == kartenSpieler1[zähler][0] && kartenSpieler1[zähler][2] == false) {
+                console.log("richtig!")
+                kartenSpieler1[zähler][2] = true;
+                LayoutGegner();
+                setTimeout(function() {
+                  if (!(confirm("Möchten sie weiterraten?"))) {
+                    Zustand[Zustand.length] = "getroffen"
+                    Spielerwechsel();
+                  }
+                }, 700);
+              } else {
+                Zustand[Zustand.length] = "verfehlt"
+                kartenSpieler2[karteGezogen][2] = true;
+                Sperren[0] = false;
+                Spielerwechsel();
+              }
+            }
+          }
+          koordinatenSpieler1[0] += 170;
+          koordinatenSpieler1[2] += 170;
+          if (Ablage == true) {
+            zähler++;
+          }
+        }
+        Ablage = true;
+        koordinatenSpieler1 = [45, 470, 80, 570];
+        zähler = 0;
+      }
+    }
+  });
+
+  function Spielerwechsel() {
+    gewonnenCheck();
+    SpielerwechselSet();
+    zähler = 0;
+    LayoutIch();
+    LayoutIch();
+    zählerZustand++;
+    Sperren[0] = true;
+    NameSpieler[2] = NameSpieler[0];
+    NameSpieler[0] = NameSpieler[1];
+    NameSpieler[1] = NameSpieler[2];
+    NameSpieler.pop();
+    setTimeout(function() {
+      Sperren[0] = true;
+    }, 300);
+
+  }
+
+  function SpielerwechselSet() {
+    // ZuVarSpieler1();
+    // dbSet("davincicode", "KartenSpieler1" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
+    //   ZuVarSpieler2();
+    //   dbSet("davincicode", "KartenSpieler2" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
+    //   zuVarKartenZiehen();
+    //   dbSet("davincicode", "KartenZiehen" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
+    //     dbSet("davincicode", "NameSpieler" , NameSpieler);
+    //     dbSet("davincicode", "tipp" + NameBleibt[0] + NameBleibt[1], tipp);
+    //     dbSet("davincicode", "KarteTipp" + NameBleibt[0] + NameBleibt[1], AblageList[1]);
+    room.send({
+      message: {
+        "type": "KartenSpieler1",
+        "data": kartenSpieler1
+      }
+    });
+    room.send({
+      message: {
+        "type": "KartenSpieler2",
+        "data": kartenSpieler2
+      }
+    });
+    setTimeout(function () {
+      room.send({
+        message: {
+          "type": "KartenZiehen",
+          "data": kartenZiehen
+        }
+      });
+    }, 3000);
+    // room.send({
+    //   message: {
+    //     "type": "Reihenfolge",
+    //     "data": NameSpieler
+    //   }
+    // });
+    setTimeout(function () {
+      room.send({
+        message: {
+          "type": "KarteTipp",
+          "data": AblageList[1]
+        }
+      });
+    room.send({
+      message: {
+        "type": "tipp",
+        "data": tipp
+      }
+    });
+    }, 300);
+    room.send({
+      message: {
+        "type": "Zustand",
+        "data": Zustand
+      }
+    });
+  }
+
+  function gewonnenCheck() {
+    while (zähler < kartenSpieler1.length) {
+      if (kartenSpieler1[zähler][2] == "true" || kartenSpieler1[zähler][2] == true) {
+        zählerListe[1]++;
+      }
+      zähler++;
+    }
+    if (zählerListe[1] == kartenSpieler1.length) {
+      Zustand[Zustand.length] = "2 gewonnen"
+    }
+    zähler = 0;
+    zählerListe[1] = 0;
+
+    while (zähler < kartenSpieler2.length) {
+      if (kartenSpieler2[zähler][2] == "true" || kartenSpieler2[zähler][2] == true) {
+        zählerListe[1]++;
+      }
+      zähler++;
+    }
+    if (zählerListe[1] == kartenSpieler2.length) {
+      Zustand[Zustand.length] = "1 gewonnen"
+    }
+  }
+
+  function sort() {
+    console.log("sort");
+  zähler = 0;
+  while (zähler < kartenSpieler1.length) {
+    if (kartenSpieler1[zähler][0] < 10) {
+      kartenSpieler1[zähler][0] = "0" + kartenSpieler1[zähler][0]
+    }
+    kartenSpieler1[zähler][0] += ""
+    zähler++;
+  }
+  zähler = 0;
+  while (zähler < kartenSpieler2.length) {
+    if (kartenSpieler2[zähler][0] < 10) {
+      kartenSpieler2[zähler][0] = "0" + kartenSpieler2[zähler][0]
+    }
+    else {
+      kartenSpieler2[zähler][0] += ""
+    }
+    zähler++;
+  }
+  kartenSpieler1.sort();
+  kartenSpieler2.sort();
+  zähler = 0;
+  while (zähler < kartenSpieler1.length) {
+    if (kartenSpieler1[zähler][0] < 10) {
+      kartenSpieler1[zähler][0] = kartenSpieler1[zähler][0][1];
+    }
+    zähler++;
+  }
+  zähler = 0;
+  while (zähler < kartenSpieler2.length) {
+    if (kartenSpieler2[zähler][0] < 10) {
+      kartenSpieler2[zähler][0] = kartenSpieler2[zähler][0][1];
+    }
+    zähler++;
+  }
+  zähler = 0;
+  }
+
+
+  //Koordinaten Scrolling
+  var f = function() {
+
+    var eventHandler = function(event) {
+      console.log(window.scrollX + " - " + window.scrollY);
+      koordinatenSpieler1[6] = window.scrollX;
+      koordinatenSpieler1[6] = window.scrollX;
+    };
+    window.addEventListener('scroll', eventHandler, false)
+    koordinatenSpieler1[6] = 0;
+
+  };
+  window.addEventListener('DOMContentLoaded', f, false)
+</script>
