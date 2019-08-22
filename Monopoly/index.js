@@ -68,13 +68,27 @@ app.post('/message', function(req, res) {
 
 function addBroadcast(obj) {
   for (let clientId in messageQueue) {
-    messageQueue[clientId].push(obj);
+  //   console.log("clientId: " + clientId);
+  //   console.log(messageQueue);
+  // //  console.log(Object.keys(messageQueue).includes(clientId));
+  //   console.log();
+    if (messageQueue[clientId] == undefined) {
+//      console.log("nicht gepusht weil leave");
+    }
+    else {
+      messageQueue[clientId].push(obj);
+    }
   }
 }
 
 function addMessage(clientId, obj) {
   console.log("sending message to ", clientId);
-  messageQueue[clientId].push(obj);
+  if (messageQueue[clientId] == undefined) {
+  //  console.log("nicht gepusht weil leave");
+  }
+  else {
+    messageQueue[clientId].push(obj);
+  }
 }
 
 module.exports = app;

@@ -44,7 +44,7 @@ class monopolyKartenspiel {
     }
     this.spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
-    if (this.player1 && this.player2) {
+    if (this.player1 && this.player2 && this.spielerOnline > 1) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
       this.broadcast({
@@ -257,9 +257,9 @@ class monopolyKartenspiel {
       while (zählerListe[0] < this.spielerOnline) {
 
         while (kartenSpieler[zählerListe[0]].length < 5) {
-          if (kartenZiehen[0] == 3) {
-            console.log(3)
-          }
+          // if (kartenZiehen[0] == 3) {
+          //   console.log(3)
+          // }
           kartenSpieler[zählerListe[0]][kartenSpieler[zählerListe[0]].length] = kartenZiehen[0];
           kartenZiehen.shift();
         }
@@ -343,9 +343,11 @@ class monopolyKartenspiel {
       } */
     //  }
     console.log(this.spielerOnline + " - " + this.player1 + "/" + this.player2 + "/" + this.player3 + "/" + this.player4 + "/");
-    this.send(this.player1.client, {
-      "type": "reloadPage"
-    });
+    if ((this.spielerOnline == NaN)) {
+      this.send(this.player1.client, {
+        "type": "reloadPage"
+      });
+    }
     console.log("spielerOnline: " + this.spielerOnline);
   }
 
@@ -391,7 +393,7 @@ class monopolyKartenspiel {
       if (AblageListe[0][data.message.sender] > 2) this.broadcast(data.message.sender + " hat gewonnen!!!")
     }
     if (data.message.type == "Gebot" || data.message.type == "namenSpieler") {
-      console.log("Empfänger" + data.message.Empfänger)
+    //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
       if (data.message.Empfänger == 1) this.send(this.player2.client, data.message);
       if (data.message.Empfänger == 2 /*&& this.player3.client == undefined == false*/ ) this.send(this.player3.client, data.message);

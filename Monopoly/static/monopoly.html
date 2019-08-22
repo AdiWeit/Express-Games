@@ -8,6 +8,12 @@
 <meta charset="utf-8">
 <h2 id="aktivitätstext"></h2>
 <script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/monopoly/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
   async function sendJson(url = "/", body = {}) {
     const rawResponse = await fetch(url, {
       method: 'POST',
