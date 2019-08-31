@@ -11,7 +11,7 @@
     return 'Are you sure you want to leave?';
   };
 
-var pictureLinks = {bomb: "http://adi.nicolaiweitkemper.de/Bilder/bomb.png", redFlag: "http://adi.nicolaiweitkemper.de/Bilder/redFlag.png", blueFlag: "http://adi.nicolaiweitkemper.de/Bilder/blueFlag.png"}
+var links = {pictures: {bomb: "http://adi.nicolaiweitkemper.de/Bilder/bomb.png", redFlag: "http://adi.nicolaiweitkemper.de/Bilder/redFlag.png", blueFlag: "http://adi.nicolaiweitkemper.de/Bilder/blueFlag.png"}, sounds: {march: "http://adi.nicolaiweitkemper.de/Sounds/GERMAN%20TROOPS%20MARCH%20INTO%20RHINELAND%20-%20SOUND.mp3", swardFight: "http://soundbible.com/mp3/rage_of_blades-Blaga_Saun-1763516257.mp3", badLaugh: "http://soundbible.com/mp3/Jolly%20Laugh-SoundBible.com-874430997.mp3", crying: "http://soundbible.com/mp3/woman-crying-daniel_simon.mp3"}}
 var Bild = new Image();
 var canvas = document.getElementById('textur').getContext('2d'); //Dimension
 var roundStatus = ["none"];
@@ -20,7 +20,7 @@ var myId;
 var opponentId;
 var idsBleibt = [];
 var typed = "";
-//var playerMe = -1;
+var audio;
 var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "yellow"]}
 var colors = colorsModes.normal
 var playerMoved = [false];
@@ -142,6 +142,12 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       playerMoved = [true, message.data[0], message.data[1]];
       canvas.fillStyle = colors[1];
       canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
+      audio = new Audio(links.sounds.march);
+      audio.currentTime = 50;
+      audio.play();
+      setTimeout(function () {
+        audio.pause();
+      }, 333);
     }
     if (message.type == "spielerIds")    {
        ids = message.data;
@@ -183,6 +189,13 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       else  canvas.fillStyle = "red";
       canvas.fillRect(477 + 70*message.data.newSpot[0], 17 + 70*message.data.newSpot[1], 60, 60);
       showIcon(message.data.newSpot, message.data.numberNewSpot);
+      audio = new Audio(links.sounds.swardFight);
+      audio.currentTime = 0;
+      audio.volume = 0.5;
+      audio.play();
+      setTimeout(function () {
+        audio.pause();
+      }, 1033);
     }
     if (!(roundStatus[0] == "showRewardsAttack") && !(roundStatus[0] == "movePlayer") && !(roundStatus[0] == "playerMoved"))  Layout(false)
   });
@@ -260,12 +273,12 @@ function Layout(sync) {
 function showIcon(coordinates, number) {
   Bild = new Image();
   if (number == 0) {
-  if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId)  Bild.src = pictureLinks["blueFlag"];
-  else Bild.src = pictureLinks["redFlag"];
+  if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId)  Bild.src = links.pictures["blueFlag"];
+  else Bild.src = links.pictures["redFlag"];
     canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
   }
   else if (number == 11) {
-    Bild.src = pictureLinks["bomb"];
+    Bild.src = links.pictures["bomb"];
     canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
   }
   else {
@@ -358,31 +371,81 @@ function attack() {
     console.log("won");
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = 3;
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+    if (myId == roundStatus[4][0]) audio = new Audio(links.sounds.badLaugh).play();
+    else {
+      audio = new Audio(links.sounds.crying);
+      audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+    audio.pause();
+    }, 1333);
+    }
   }
   else if (roundStatus[2][0] == 1 && roundStatus[2][1] == 10) {
     console.log("lost");
     console.log("roundStatus[4][1]: " + roundStatus[4][1]);
-    spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][1]));
+    if (myId == roundStatus[4][1]) audio = new Audio(links.sounds.badLaugh).play();
+    else {
+      audio = new Audio(links.sounds.crying);
+      audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+    audio.pause();
+    }, 1333);
+    }
   }
   else if (roundStatus[2][1] == 1 && roundStatus[2][0] == 10) {
     console.log("won");
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = 1;
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+    if (myId == roundStatus[4][0]) audio = new Audio(links.sounds.badLaugh).play();
+    else {
+      audio = new Audio(links.sounds.crying);
+      audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+    audio.pause();
+    }, 1333);
+    }
   }
   else if (roundStatus[2][0] < roundStatus[2][1]) {
     console.log("won");
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number = JSON.parse(JSON.stringify(roundStatus[2][1]));
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][0]));
+    if (myId == roundStatus[4][0]) audio = new Audio(links.sounds.badLaugh).play();
+    else {
+      audio = new Audio(links.sounds.crying);
+      audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+    audio.pause();
+    }, 1333);
+    }
   }
   else if (roundStatus[2][0] > roundStatus[2][1]) {
     console.log("lost");
     console.log("roundStatus[4][0]: " + roundStatus[4][1]);
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.id = JSON.parse(JSON.stringify(roundStatus[4][1]));
+    if (myId == roundStatus[4][1]) audio = new Audio(links.sounds.badLaugh).play();
+    else {
+      audio = new Audio(links.sounds.crying);
+      audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+    audio.pause();
+    }, 1333);
+    }
   }
   else {
     console.log("draw");
     canvas.fillRect(477 + 70*roundStatus[1][0], 17 + 70*roundStatus[1][1], 60, 60);
     spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false; playerMoved[0] = false;
+    audio = new Audio(links.sounds.crying);
+    audio.currentTime = 10;
+    audio.play();
+    setTimeout(function () {
+      audio.pause();
+    }, 1333);
   }
   roundStatus[0] = "ingame";
   Layout(false);
