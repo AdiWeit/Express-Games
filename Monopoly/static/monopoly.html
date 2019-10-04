@@ -303,6 +303,12 @@
         }
       }, 300);
       new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+      if (spielerAktuell == spielerIch) {
+      var notification = new Notification("It's your turn again! ", {
+        icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+        body: "Come back to destroy the enemy(s)!",
+      });
+    }
     }
     if (message.type == "spielerDu") spielerIch = message.data;
     if (message.type == "Bezahlen vollständig" && spielerIch == spielerAktuell) {
