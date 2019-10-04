@@ -217,13 +217,12 @@
             canvas.fillStyle = "black";
           }
         }
-    }
-    if (message.type == "tipp" && Zustand[Zustand.length - 1] == "verfehlt" && NameSpieler[0] == name) {
+
         canvas.font = "75pxGeorgia";
-        if (message.data.length == 2) {
-          canvas.fillText(message.data, 45 + AblageList[1] * 170 + 15, 570);
+        if (message.tipp.length == 2) {
+          canvas.fillText(message.tipp, 45 + AblageList[1] * 170 + 15, 570);
         } else {
-          canvas.fillText(message.data, 45 + AblageList[1] * 170 + 33, 570);
+          canvas.fillText(message.tipp, 45 + AblageList[1] * 170 + 33, 570);
         }
 
         setTimeout(function() {
@@ -345,52 +344,6 @@
         canvas.fill();
       }
     }
-  }
-
-  function LayoutFalscherTippGegner() {
-    console.log("LayoutFalscherTippGegner");
-    Sperren[2] = true;
-    canvas.fillStyle = 'orange';
-    canvas.beginPath();
-    canvas.arc(30 + koordinatenSpieler1[6], 50, 15, 0, Math.PI * 2, false);
-    canvas.fill();
-    dbGet("davincicode", "KarteTipp" + NameBleibt[0] + NameBleibt[1], function(result) {
-      canvas.fillStyle = "blue"
-      canvas.fillRect((45 + result * 170) - 15, 470 - 15, 130, 180)
-      //canvas.fillStyle = kartenSpieler1[result][1];
-      //canvas.fillRect((45 + result*170),470,100,150)
-      AblageList[1] = result
-      if (name == NameBleibt[0]) {
-        canvas.fillStyle = kartenSpieler1[result][1];
-        canvas.fillRect((45 + result * 170), 470, 100, 150)
-        if (kartenSpieler1[result][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-      } else {
-        canvas.fillStyle = kartenSpieler2[result][1];
-        canvas.fillRect((45 + result * 170), 470, 100, 150)
-        if (kartenSpieler2[result][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-      }
-
-      dbGet("davincicode", "tipp" + NameBleibt[0] + NameBleibt[1], function(result) {
-        canvas.font = "75pxGeorgia";
-        if (result.length == 2) {
-          canvas.fillText(result, 45 + AblageList[1] * 170 + 15, 570);
-        } else {
-          canvas.fillText(result, 45 + AblageList[1] * 170 + 33, 570);
-        }
-
-        setTimeout(function() {
-          Sperren[2] = false;
-        }, 1000);
-      });
-    });
   }
 
   function LayoutIch() {
@@ -683,15 +636,6 @@ else {
   }
 
   function SpielerwechselSet() {
-    // ZuVarSpieler1();
-    // dbSet("davincicode", "KartenSpieler1" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
-    //   ZuVarSpieler2();
-    //   dbSet("davincicode", "KartenSpieler2" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
-    //   zuVarKartenZiehen();
-    //   dbSet("davincicode", "KartenZiehen" + NameBleibt[0] + NameBleibt[1], AblageList[0]);
-    //     dbSet("davincicode", "NameSpieler" , NameSpieler);
-    //     dbSet("davincicode", "tipp" + NameBleibt[0] + NameBleibt[1], tipp);
-    //     dbSet("davincicode", "KarteTipp" + NameBleibt[0] + NameBleibt[1], AblageList[1]);
     room.send({
       message: {
         "type": "KartenSpieler1",
@@ -722,15 +666,16 @@ else {
       room.send({
         message: {
           "type": "KarteTipp",
-          "data": AblageList[1]
+          "data": AblageList[1],
+          tipp: tipp
         }
       });
-    room.send({
-      message: {
-        "type": "tipp",
-        "data": tipp
-      }
-    });
+    // room.send({
+    //   message: {
+    //     "type": "tipp",
+    //     "data": tipp
+    //   }
+    // });
     }, 300);
     room.send({
       message: {
