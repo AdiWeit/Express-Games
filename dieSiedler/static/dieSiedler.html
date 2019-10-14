@@ -1,0 +1,705 @@
+<canvas id="textur" width="1570" height="750" style="opacity:1"></canvas>
+
+
+<script>
+  var textur = document.getElementById('textur');
+  var canvas = textur.getContext('2d'); //Dimension
+  var Bilder = new Image();
+  var AblageListe = [];
+  AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"};
+  var zählerListe = [];
+  var spielerAktuell = -1;
+  var AnzahlSpieler = -1;
+  var koordinaten = [];
+  var xMaus = 0;
+  var yMaus = 0;
+  var hinzufügenX = 0;
+  var hinzufügenY = 0;
+  var spielerIch = -1;
+  var requests = [];
+  var selected;
+  var spielerGegner = -1;
+  function showStats(time) {
+    canvas.fillStyle = "#FA9B0D";
+    canvas.fillRect(0, 0, 10000, 10000)
+    if (selected == spielerIch) spieler[spielerIch].showStats(17, "Dein KartenMultiplikator", spieler[spielerIch].kartenMultiplikator);
+    else spieler[selected].showStats(17, "KartenMultiplikator " + "player" + (selected + 1), spieler[selected].kartenMultiplikator);
+    spieler[spielerIch].showStats(1283, "Deine Karten", spieler[spielerIch].anzahlKarten);
+    showStatsEnemy();
+    Bild = new Image();
+    Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/BaukostenTranzparent.png"
+    canvas.drawImage(Bild, 433 + 77, 137);
+    if (!(AblageListe[4] == undefined)) {
+      Bild = new Image();
+      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/siedlerKarten/SiedlerKartenTranzparent" + AblageListe[4][0] + ".png"
+      canvas.drawImage(Bild, 733 - AblageListe[4][1][0], 17 - AblageListe[4][1][1]);
+    }
+    canvas.fillStyle = "white"
+    canvas.fillRect(250 - 122, 80, 290, 60);
+    canvas.fillStyle = "blue"
+    canvas.fillRect(257 - 122, 87, 275, 45);
+    canvas.fillStyle = "white";
+    canvas.font = "27px Georgia";
+    canvas.fillText("resource change request", 260 - 122, 120);
+    showRequests();
+  //  zeigeEreigniskarten();
+    setTimeout(function () {
+      if (time < 3) showStats(time + 1);
+    }, 500);
+  }
+  function showStatsEnemy() {
+    for (var i = 0; i < AnzahlSpieler; i++) {
+    canvas.fillStyle = "white";
+    canvas.font = "47px Georgia";
+  if (spieler[i].punkte > -1)  canvas.fillText("points: " + (spieler[i].punkte + spieler[i].boniPoints), 1353 - 300 , 67 + 50*i);
+  else canvas.fillText("points: " + 0,1353 - 300, 67 + 50*i);
+    if (i == spielerIch)  {
+      Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/PfeilTranzparent.png"
+      canvas.drawImage(Bild, 1233 - 300, 27 + 50*i, 130, 80);
+    }
+  }
+  AblageListe[0] = [0];
+  for (var i = 0; i < AnzahlSpieler; i++) {
+    canvas.fillText("streets: " + spieler[i].anzahlStraßen, 1353 - 300 , 67 + 50*AnzahlSpieler + 20 + 50*i);
+      if (i == spielerIch)  {
+        Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/PfeilTranzparent.png"
+        canvas.drawImage(Bild, 1233 - 300, 27 + 50*AnzahlSpieler + 20 + 50*i, 130, 80);
+      }
+      if (spieler[i].anzahlStraßen > AblageListe[0][0]) AblageListe[0] = [spieler[i].anzahlStraßen, i];
+  }
+    spieler[0].boniPoints = 0;
+    spieler[1].boniPoints = 0;
+    spieler[2].boniPoints = 0;
+    spieler[3].boniPoints = 0;
+    if (AblageListe[0][0] > 8) {
+      Bild = new Image();
+      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/crone.png";
+      canvas.drawImage(Bild, 1205, /*27*/20 + 40*AblageListe[0][1], 70, 70);
+      spieler[AblageListe[0][1]].boniPoints += 2;
+    }
+    Bild = new Image();
+    Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/stra%C3%9FenBonus.png"
+    canvas.drawImage(Bild, 755, 333, 500, 400);
+    // https://proxy.duckduckgo.com/iu/?u=https%3A%2F%2Fkrone-neuenburg.de%2Fwp-content%2Fuploads%2F2016%2F12%2FLogo-Quadrat-2017.png&f=1&nofb=1
+  }
+  function showRequests() {
+    AblageListe[0] = requests;
+//    AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+    AblageListe[3] = {s: [92, 0], w: [0, 0], e: [184, 0], z: [92 + 46, 138], h: [46, 138]};
+    // "Stroh", "Wolle", "Erz", "Ziegelsteine", "Holz"
+    // [92, 0], [0, 0], [184, 0], [92 + 46, 138], [46, 138]
+    if (requests.length*525 + 252 > document.getElementById('textur').height) document.getElementById('textur').height += 525;
+    for (var i = 0; i < requests.length; i++) {
+      canvas.fillStyle = "white";
+      canvas.font = "55px Georgia";
+      canvas.fillText("+", 147, 300 + 525*i);
+      for (var i1 = 0; i1 < AblageListe[0][i].get.length; i1++) {
+        Bild = new Image();
+        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/siedlerKarten/SiedlerKartenTranzparent" + AblageListe[6][AblageListe[0][i].get[i1][0]] + ".png";
+        canvas.drawImage(Bild, 100*i1 + 170 + 20 - AblageListe[3][AblageListe[0][i].get[i1][0]][0], 200 + 525*i/* + 136*i1*/ - AblageListe[3][AblageListe[0][i].get[i1][0]][1]);
+        canvas.fillText("X " + AblageListe[0][i].get[i1][1],100*i1 + 199 + 20, 400 + 525*i/* + 136*i1*/);
+      }
+      canvas.fillStyle = "white";
+      canvas.font = "55px Georgia";
+      canvas.fillText("-", 147, 300 + 136*i + 200 + i*525);
+      for (var i1 = 0; i1 < AblageListe[0][i].giveAway.length; i1++) {
+        Bild = new Image();
+        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/siedlerKarten/SiedlerKartenTranzparent" + AblageListe[6][AblageListe[0][i].giveAway[i1][0]] + ".png";
+        canvas.drawImage(Bild, 100*i1 + 170 + 20 - AblageListe[3][AblageListe[0][i].giveAway[i1][0]][0], 200 + 200 + i*525/* + 136*i1*/ - AblageListe[3][AblageListe[0][i].giveAway[i1][0]][1]);
+        canvas.fillText("X " + AblageListe[0][i].giveAway[i1][1],100*i1 + 199 + 20, 400 + 200 + i*525/* + 136*i1*/);
+      }
+      Bild = new Image();
+      if (!(requests[i].playerAsked == spielerIch)) Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/greenCheckBox.png"
+      else Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/redXBox.png";
+      canvas.drawImage(Bild, 200, 630 + 525*i, 100, 100);
+    }
+  }
+  class classSpieler {
+    constructor() {
+      this.kartenMultiplikator = {"Stroh": [], "Ziegelsteine": [], "Holz": [], "Wolle": [], "Erz": []};
+      this.anzahlKarten = {"Stroh": 1, "Ziegelsteine": 1, "Holz": 1, "Wolle": 1, "Erz": 1};
+      this.punkte = -1;
+      this.anzahlStraßen = 4;
+      this.boniPoints = 0;
+    }
+    showStats(side, type, data) {
+      koordinaten[2] = 0;
+      koordinaten[1] = 37;
+      koordinaten[0] = side;
+      canvas.fillStyle = "white";
+      canvas.font = "47px Georgia";
+        canvas.fillText(type, koordinaten[0], 37);
+        canvas.font = "43px Georgia";
+        if (spielerAktuell == spielerIch) canvas.fillStyle = '#3ADF00';
+        else canvas.fillStyle = 'red';
+        canvas.beginPath();
+        canvas.arc(500, 74, 30, 0, Math.PI * 2, false);
+        canvas.fill();
+      canvas.font = "37px Georgia";
+      for (var i = 0; i < AnzahlSpieler; i++) {
+        if (i == selected) canvas.fillStyle = "red";
+        else canvas.fillStyle = "white";
+        if (!(i == spielerIch)) canvas.fillText("player " + (i+1), 10 + 140*i, 730)
+        else canvas.fillText("you", 10 + 140*i, 730)
+      }
+      canvas.fillStyle = "white";
+      for (var i = 0; i < Object.keys(data).length; i++) {
+        for (var i1 = 0; Object.keys(data).length < 1 && !(i == Object.keys(data).length); i++) {
+          koordinaten[1] += 94;
+          if (i == 6) {
+            koordinaten[0] += 77;
+            koordinaten[1] = 37;
+          }
+        }
+        // canvas.fillStyle = "white";
+      canvas.fillText(Object.keys(data)[i], koordinaten[0] + koordinaten[2] + 13, koordinaten[1] + 50)
+        if ((type == "Dein KartenMultiplikator" && (((data[Object.keys(data)[i]].includes("Siedlung")) && AblageListe[2][0] == "Stadt plazieren") || !(AblageListe[2][0] == "Stadt plazieren"))) || !(type == "Dein KartenMultiplikator")) canvas.fillText(Object.keys(data)[i], koordinaten[0] + koordinaten[2] + 13, koordinaten[1] + 50);
+      koordinaten[1] += 37;
+    if (type.includes("KartenMultiplikator") && (((data[Object.keys(data)[i]].includes("Siedlung")) && AblageListe[2][0] == "Stadt plazieren") || !(AblageListe[2][0] == "Stadt plazieren"))) canvas.fillText(data[Object.keys(data)[i]].length + "X", koordinaten[0] + koordinaten[2], koordinaten[1] + 50)
+    else if ((type == "Dein KartenMultiplikator" && ((((data[Object.keys(data)[i]].includes("Siedlung")) && AblageListe[2][0] == "Stadt plazieren") || !(AblageListe[2][0] == "Stadt plazieren"))))|| type != "Dein KartenMultiplikator") canvas.fillText(data[Object.keys(data)[i]] + "X", koordinaten[0] + koordinaten[2], koordinaten[1] + 50)
+      koordinaten[1] += 57;
+      if (i == 6) {
+        koordinaten[0] += 77;
+        koordinaten[1]= 37;
+      }
+  }
+    }
+  }
+  AblageListe[7] = ["Stroh", "Wolle", "Erz", "Ziegelsteine", "Holz", [92, 0], [0, 0], [184, 0], [92 + 46, 138], [46, 138]];
+  function pickType() {
+    AblageListe[1] = Math.round(Math.random() * (AblageListe[7].length/2 - 1));
+    AblageListe[4] = [AblageListe[7][AblageListe[1]], AblageListe[7][AblageListe[1] + AblageListe[7].length/2]];
+    room.send({
+      message: {
+      type: "typeCard",
+      data: AblageListe[4]
+    }
+    });
+    AblageListe[7].splice(AblageListe[1] + AblageListe[7].length/2, 1);
+    AblageListe[7].splice(AblageListe[1], 1);
+    if (AblageListe[7].length == 0) AblageListe[7] = ["Stroh", "Wolle", "Erz", "Ziegelsteine", "Holz", [92, 0], [0, 0], [184, 0], [92 + 46, 138], [46, 138]];
+    showStats(0)
+  }
+  var spieler = [];
+  spieler[0] = new classSpieler();
+  spieler[1] = new classSpieler();
+  spieler[2] = new classSpieler();
+  spieler[3] = new classSpieler();
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/dieSiedler/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'applicfation/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/dieSiedler/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 3000);
+
+  function getMessages() {
+    sendJson('/dieSiedler/message-queue', {
+      clientId
+    }).then(messages => {
+      console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/dieSiedler/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+  // AblageListe[0] = ["Stroh", "Wolle", "Erz", "Ziegelsteine", "Holz"];
+  // for (var i = 0; i < AblageListe[0].length; i++) {
+  //   Bild = new Image();
+  //   Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/siedlerKarten/SiedlerKartenTranzparent" + AblageListe[0][i] + ".png"
+  //   canvas.drawImage(Bild, -400, -400);
+  // }
+  AblageListe[5] = [];
+  room.setOnMessageListener(function(message) {
+//    if (message.type == "reloadPage") location.reload();
+  if (message.type == "addMonopol" && spielerIch == spielerAktuell) {AblageListe[2][1] += message.data;
+    if (message.sender == AnzahlSpieler - 1 || (spielerAktuell == AnzahlSpieler - 1 && message.sender == AnzahlSpieler - 2)) {
+      setTimeout(function () {
+//        AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+        spieler[spielerIch].anzahlKarten[AblageListe[6][message.resource]] += AblageListe[2][1];
+      }, 3333);
+    }
+  }
+  if (message.type == "Monopol" && !(spielerIch == spielerAktuell)) {
+    room.send({
+      message: {
+      type: "addMonopol",
+      data: spieler[spielerIch].anzahlKarten[AblageListe[6][message.resource]],
+      sender: spielerIch,
+      resource: message.resource
+    }
+    });
+    spieler[spielerIch].anzahlKarten[AblageListe[6][message.resource]] = 0;
+  }
+  if (message.type == "AblageListe[5]") AblageListe[5] = message.data;
+  if (message.type == "sendDataPlayer") {
+    zählerListe[1] = 0;
+    room.send({
+      message: {
+      type: "getDataPlayerRitter",
+      data: spieler[spielerIch],
+      sender: spielerIch
+    }
+    });
+  }
+  if (message.type == "getDataPlayer") {
+    for (var i = 0; i < Object.keys(message.data).length; i++) {
+      spieler[message.sender][Object.keys(message.data)[i]] = message.data[Object.keys(message.data)[i]];
+    }
+  }
+  if (message.type == "getDataPlayerRitter") {
+    for (var i = 0; i < Object.keys(message.data).length; i++) {
+      spieler[message.sender][Object.keys(message.data)[i]] = message.data[Object.keys(message.data)[i]];
+    }
+  //  spieler[message.sender] = message.data;
+    if (!(spielerIch == spielerAktuell) && zählerListe[1] == 0) {
+      room.send({
+        message: {
+        type: "getRohstoffeRitter",
+        sender: spielerIch
+      }
+      });
+      zählerListe[1]++;
+    }
+  }
+  if (message.type == "getRohstoffeRitter" /*&& message.sender == AnzahlSpieler - 1 && spielerIch == spielerAktuell*/)  {
+    if (spielerIch == spielerAktuell) {
+      anfrageRitter(false);
+    }
+  }
+  if (message.type == "getAblageListe[5]Back" && message.data[0][2] == spielerIch) {
+    for (var i = 0; i < message.data.length; i++) {
+      spieler[spielerIch].kartenMultiplikator[AblageListe[5][0]].push(AblageListe[5][1])
+    }
+  }
+  if (message.type == "ritter" && message.empfänger == spielerIch) {
+    AblageListe[0] = message.data.toString().split(",");
+//    AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+    // AblageListe[2] = ["ritter", 2];
+    if (AblageListe[5].length > 0) {
+      room.send({
+        message: {
+        type: "getAblageListe[5]Back",
+        data: AblageListe[5],
+      }
+      });
+    }
+    AblageListe[5] = [];
+    for (var i = 0; i < AblageListe[0].length; i++) {
+      // if () spieler[spielerIch].kartenMultiplikator[AblageListe[6]][[AblageListe[0][i]]]--;
+      AblageListe[5].push([AblageListe[6][message.data[i]], /*spieler[spielerIch].kartenMultiplikator[AblageListe[6][message.data[i]]],*/ spieler[spielerIch].kartenMultiplikator[AblageListe[6][message.data[i]]][spieler[spielerIch].kartenMultiplikator[AblageListe[6][message.data[i]]].length - 1], spielerIch]);
+      spieler[spielerIch].kartenMultiplikator[AblageListe[6][message.data[i]]].pop();
+    }
+    room.send({
+      message: {
+      type: "AblageListe[5]",
+      data: AblageListe[5]
+    }
+    });
+      // AblageListe[2][1]--;
+      // if (AblageListe[2][1] == 0) AblageListe[2] = ["beendet"];
+  }
+    if (message.type == "giveResources") {
+//      AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+  //    if (requests[message.data].playerAsked == spielerIch) {
+      for (var i1 = 0; i1 < requests[message.data].get.length; i1++) {
+        spieler[spielerIch].anzahlKarten[AblageListe[6][requests[message.data].get[i1][0]]] += JSON.parse(requests[message.data].get[i1][1]);
+      }
+      for (var i1 = 0; i1 < requests[message.data].giveAway.length; i1++) {
+        spieler[spielerIch].anzahlKarten[AblageListe[6][requests[message.data].giveAway[i1][0]]] -= JSON.parse(requests[message.data].giveAway[i1][1]);
+      }
+  //  }
+      requests.splice(message.data, 1);
+      showStats(0)
+    }
+    if (message.type == "requests") {
+      requests = message.data;
+      for (var i = 0; i < requests.length; i++) {
+        if (!(requests[i].playerAsked == spielerIch)) {
+          AblageListe[3] = JSON.parse(JSON.stringify(requests[i].get));
+          requests[i].get = JSON.parse(JSON.stringify(requests[i].giveAway));
+          requests[i].giveAway = JSON.parse(JSON.stringify(AblageListe[3]));
+        }
+      }
+      showStats(0)
+    }
+    if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data;
+      if (AnzahlSpieler == 2 && spielerIch == 0) spielerGegner = 1;
+      if (AnzahlSpieler == 2 && spielerIch == 1) spielerGegner = 0;
+      }
+    if (message.type == "typeCard") {
+      AblageListe[4] = message.data;
+      spieler[spielerIch].anzahlKarten[AblageListe[4][0]] = JSON.parse(spieler[spielerIch].anzahlKarten[AblageListe[4][0]]) + spieler[spielerIch].kartenMultiplikator[AblageListe[4][0]].length
+      showStats(0)
+      // setTimeout(function () {
+      //   showStats(0)
+      // }, 500);
+    }
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+  //    AblageListe[1] = 4;
+      selected = spielerIch
+      AblageListe[2] = ["Siedlung plazieren", 4];
+      setTimeout(function () {
+        showStats(0)
+        if (JSON.parse(localStorage.getItem("introduction")) == null) {
+          alert("Click on the green cyrcle to finish the round");
+          localStorage.setItem("introduction", true);
+        }
+      }, 500);
+    }
+    if (message.type == "Reihenfolge") {
+      if (AnzahlSpieler == 2 && spielerIch == 0) {
+        spielerGegner = 1;
+      } else if (AnzahlSpieler == 2) {
+        spielerGegner = 0;
+      }
+      if (!(spielerAktuell == -1) && spielerIch == 0) pickType();
+      spielerAktuell = message.data;
+      new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+      if (spielerAktuell == spielerIch) {
+      var notification = new Notification("It's your turn again! ", {
+        icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+        body: "Come back to destroy the enemy(s)!",
+      });
+    }
+    }
+
+  });
+  Notification.requestPermission();
+  function anfrageRitter(player) {
+    if (AnzahlSpieler == 2) AblageListe[0] = spielerGegner;
+    else if (player == false) {AblageListe[2][0] = "choose player"; alert("choose player for knight attack! Click on points of the player to choose!")}
+    else AblageListe[0] = player;
+    if (AnzahlSpieler == 2 || !(player == false)) {
+    AblageListe[1] = prompt("welche 2 Rohstoffe wollen sie schwächen? (Bitte Anfangsbuchstaben der Resourcen eingeben und mit Komma abtrennen! Wenn sie sich zuerst die Siedlungen und Städte der Gegner angucken wollen, klicken sie auf abbrechen! Dann wird diese Anfrage in 10 Sek. erneut gestellt.)");
+//    AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+    if (AblageListe[1] == null) {
+      setTimeout(function () {
+        anfrageRitter(false);
+      }, 10000);
+    }
+    else {
+      zählerListe[0] = 0;
+      for (var i = 0; i < 2; i++) {
+        if (isNaN(AblageListe[1]) && AblageListe[1].length == 3 && spieler[AblageListe[0]].kartenMultiplikator[AblageListe[6][AblageListe[1].toString().split(",")[i]]].length > 0) zählerListe[0]++;
+      }
+      if (zählerListe[0] == 2) {
+        AblageListe[1] = AblageListe[1].toLowerCase().toString().split(",");
+        room.send({
+          message: {
+          type: "ritter",
+          data: AblageListe[1],
+          empfänger: AblageListe[0]
+        }
+        });
+      }
+      else {
+        alert("Eingabe ungültig! Wahrscheinlich hat der Gegner den Multiplikator bei einem der Rohstoffe auf 0 stehen. Eine erneute Anfrage erscheint in 5 Sek.")
+        setTimeout(function () {
+          anfrageRitter(false);
+        }, 5000);
+      }
+    }
+  }
+  }
+  var f = function() {
+    var eventHandler = function(event) {
+      //    console.log(window.scrollX + " - " + window.scrollY);
+      hinzufügenX = window.scrollX;
+      hinzufügenY = window.scrollY;
+    };
+    window.addEventListener('scroll', eventHandler, false)
+  };
+  // canvas.fillRect(1330, 520, 200 + 18, 60);
+  window.addEventListener('DOMContentLoaded', f, false)
+  function readMouseMove(e) {
+    xMaus = e.clientX + hinzufügenX;
+    yMaus = e.clientY + hinzufügenY;
+    //  console.log(xMaus + " - " + yMaus);
+  }
+  document.onmousemove = readMouseMove
+  window.addEventListener('mousedown', function() {
+  //  checkClickedField();
+    // click player to place
+    koordinaten[1] = 37;
+    koordinaten[0] = 17;
+  for (var i = 0; i < 5; i++) {
+    if (xMaus > koordinaten[0] - 1 && xMaus < koordinaten[0] + 38 && yMaus > koordinaten[1] + 50 - 27 && yMaus < koordinaten[1] + 105) {
+      console.log(i);
+      AblageListe[3] = [,Object.keys(spieler[0].kartenMultiplikator)[i]]
+      folgenKeyDown();
+    }
+    koordinaten[1] += 37;
+  //  canvas.fillText(player[i].anzahl + "X", koordinaten[0], koordinaten[1] + 50)
+  //  canvas.fillText("flag", koordinaten[0], koordinaten[1] + 50)
+    koordinaten[1] += 57;
+    if (i == 6) {
+      koordinaten[0] += 77;
+      koordinaten[1]= 37;
+    }
+    }
+    // check BaukostenClick
+    koordinaten[0] = 0;
+    for (var i = 0; i < 4; i++) {
+      if (xMaus > 510 + 77 && xMaus < 900 + 77 && yMaus > 280 + koordinaten[0] && yMaus < 332 + koordinaten[0] && spielerAktuell == spielerIch) {
+        console.log(i);
+        if (i == 0 && spieler[spielerIch].anzahlKarten.Ziegelsteine > 0 && spieler[spielerIch].anzahlKarten.Holz > 0) {
+          spieler[spielerIch].anzahlKarten.Ziegelsteine--;
+          spieler[spielerIch].anzahlKarten.Holz--;
+          spieler[spielerIch].anzahlStraßen++;
+        }
+        if (i == 1 && spieler[spielerIch].anzahlKarten.Stroh > 0 && spieler[spielerIch].anzahlKarten.Ziegelsteine > 0 && spieler[spielerIch].anzahlKarten.Holz > 0 && spieler[spielerIch].anzahlKarten.Wolle > 0) {
+      //    AblageListe[1] = 2;
+      if (spieler[spielerIch].anzahlStraßen >= (spieler[spielerIch].kartenMultiplikator.Stroh.length + spieler[spielerIch].kartenMultiplikator.Stroh.length + spieler[spielerIch].kartenMultiplikator.Ziegelsteine.length + spieler[spielerIch].kartenMultiplikator.Wolle.length + spieler[spielerIch].kartenMultiplikator.Erz.length) + 2 && AblageListe[2][0] == "beendet") {
+        AblageListe[2] = ["Siedlung plazieren", 2];
+          spieler[spielerIch].anzahlKarten.Stroh--;
+          spieler[spielerIch].anzahlKarten.Wolle--;
+          spieler[spielerIch].anzahlKarten.Ziegelsteine--;
+          spieler[spielerIch].anzahlKarten.Holz--;
+      }
+      else alert("Sie müssen noch 1-2 Straßen bauen, bevor sie eine Siedlung bauen können. (Sie müssen mindestens doppelt so viele Staßen wie Siedlungen und Städte gebaut haben, um eine weitere Siedlung bauen zu dürfen!)")
+        }
+        if (i == 2 && spieler[spielerIch].anzahlKarten.Erz > 2 && spieler[spielerIch].anzahlKarten.Stroh > 1) {
+          AblageListe[2] = ["Stadt plazieren", 2];
+          spieler[spielerIch].anzahlKarten.Erz -= 3;
+          spieler[spielerIch].anzahlKarten.Stroh -= 2;
+          showStats(0);
+        }
+        if (i == 3 && spieler[spielerIch].anzahlKarten.Stroh > 0 && spieler[spielerIch].anzahlKarten.Wolle > 0 && spieler[spielerIch].anzahlKarten.Erz > 0) {
+          spieler[spielerIch].anzahlKarten.Stroh--;
+          spieler[spielerIch].anzahlKarten.Wolle--;
+          spieler[spielerIch].anzahlKarten.Erz--;
+          AblageListe[0] = ["1 Siegpunkt", "2 Straßen", "2 Rohstoffkarten ihrer Wahl", "Ritter, welcher den Karten Multiplikator eines Gegners 2 Rohstoffarten um 1 verringert.", "1 Monopol, welches allen Spieler von einer Rohstoffart alle Karten wegnimmt"]
+          AblageListe[1] = Math.round(Math.random() * 4);
+          alert("Sie haben " + AblageListe[0][AblageListe[1]] + " erhlten!")
+          if (AblageListe[1] == 0) spieler[spielerIch].punkte++;
+          if (AblageListe[1] == 1) spieler[spielerIch].anzahlStraßen += 2;
+          if (AblageListe[1] == 2) {
+            AblageListe[0] = prompt("Welche 2 Rohstoffe wollen sie erhalten? (bitte Anfangsbuchstabe eingeben und mit Komma abtrennen!)")
+      //      AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+            if (isNaN(AblageListe[0]) && AblageListe[0].length == 3) {spieler[spielerIch].anzahlKarten[AblageListe[6][AblageListe[0].toString().split(",")[0]]]++;spieler[spielerIch].anzahlKarten[AblageListe[6][AblageListe[0].toString().split(",")[1]]]++;}
+          }
+          if (AblageListe[1] == 3) {
+            room.send({
+              message: {
+              type: "sendDataPlayer"
+            }
+            });
+          }
+          if (AblageListe[1] == 4) {
+            AblageListe[2][1] = 0;
+            room.send({
+              message: {
+              type: "Monopol",
+              resource: prompt("welchen Rohstoff wollen sie? (Bitte Anfangsbuchstaben der Resource eingeben!)").toLowerCase()
+            }
+            });
+          }
+        }
+      }
+      koordinaten[0] += 53
+    }
+    showStats(0)
+  //  canvas.arc(500, 74, 30, 0, Math.PI * 2, false);
+    if (xMaus > 480 && xMaus < 500 + 40 && yMaus > 74 && yMaus < 74 + 40 && spielerIch == spielerAktuell) {
+      Spielerwechsel();
+      room.send({
+      message: {
+      type: "getDataPlayer",
+      data: spieler[spielerIch],
+      sender: spielerIch
+    }
+    });
+    }
+    // 257 - 122, 87, 275, 45
+    if (xMaus > 135 && xMaus < 135 + 275 && yMaus > 86 && yMaus < 86 + 44) {
+      console.log("source change request");
+      AblageListe[0] = prompt("Was für Rohstoffe möchten sie abgeben? (bitte Anfangsbuchstabe des Rohstoffs und X für die Anzahl der Rohstoffe schreiben. Zudem bitte Rohstoffe mit Komma abtrennen!").toLowerCase();
+        AblageListe[0] = AblageListe[0].toString().split(",");
+        for (var i = 0; i < AblageListe[0].length; i++) {
+          AblageListe[0][i] = AblageListe[0][i].toString().split("x");
+        }
+        AblageListe[1] = prompt("Was für Rohstoffe möchten sie als Gegenleistung erhalten? (bitte Anfangsbuchstabe des Rohstoffs und X für die Anzahl der Rohstoffe schreiben. Zudem bitte Rohstoffe mit Komma abtrennen!").toLowerCase();
+          AblageListe[1] = AblageListe[1].toString().split(",");
+          for (var i = 0; i < AblageListe[1].length; i++) {
+            AblageListe[1][i] = AblageListe[1][i].toString().split("x");
+          }
+      //    AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+          zählerListe[0] = 0;
+          for (var i = 0; i < AblageListe[0].length; i++) {
+            if (spieler[spielerIch].anzahlKarten[AblageListe[6][AblageListe[0][i][0]]] >= AblageListe[0][i][1]) zählerListe[0]++;
+          }
+          if (zählerListe[0] == AblageListe[0].length) {
+            requests.push({giveAway: AblageListe[0], get: AblageListe[1], playerAsked: spielerIch})
+            room.send({
+              message: {
+              type: "requests",
+              data: requests
+            }
+            });
+          }
+          else alert("Sie haben nicht die nötigen Rohstoffe für den Tausch!")
+    }
+    // canvas.drawImage(Bild, 250, 630, 100, 100);
+    for (var i = 0; i < requests.length; i++) {
+      if (xMaus > 250 && xMaus < 250 + 100 && yMaus > 630 + 525*i && yMaus < 630 + 525*i + 100 && requests[i].playerAsked == spielerIch) {
+        requests.splice(i, 1);
+        room.send({
+          message: {
+          type: "requests",
+          data: requests
+        }
+        });
+      }
+      else if (xMaus > 200 && xMaus < 200 + 100 && yMaus > 630 + 525*i && yMaus < 630 + 525*i + 100) {
+      //  AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+        zählerListe[0] = 0;
+        for (var i1 = 0; i1 < requests[i].giveAway.length; i1++) {
+          if (spieler[spielerIch].anzahlKarten[AblageListe[6][requests[i].giveAway[i1][0]]] >= requests[i].giveAway[i1][1]) zählerListe[0]++;
+        }
+        if (zählerListe[0] == requests[i].giveAway.length) {
+        // for (var i1 = 0; i1 < requests[i].get.length; i1++) {
+        //   spieler[spielerIch].anzahlKarten[AblageListe[6][requests[i].get[i1][0]]] += JSON.parse(requests[i].get[i1][1]);
+        // }
+        // for (var i1 = 0; i1 < requests[i].giveAway.length; i1++) {
+        //   spieler[spielerIch].anzahlKarten[AblageListe[6][requests[i].giveAway[i1][0]]] -= JSON.parse(requests[i].giveAway[i1][1]);
+        // }
+        room.send({
+          message: {
+          type: "giveResources",
+          data: i
+        }
+        });
+      }
+      else alert("Sie haben nicht die nötigen Rohstoffe für den Handel!");
+      }
+    }
+    //  10 + 140*i, 730
+    for (var i = 0; i < AnzahlSpieler; i++) {
+      if (xMaus > 21 + 140*i && xMaus < 134 + 140*i && yMaus > 720 && yMaus < 720 + 37) {
+        selected = i;
+        showStats(0);
+      }
+      if (xMaus > 1065 && xMaus < 1222 && yMaus > 45 + 50*i && yMaus < 78 + 50*i && AblageListe[2][0] == "choose player") {
+        console.log(i);
+        anfrageRitter(i);
+      }
+    }
+  });
+  // function checkClickedField() {
+  //   AblageListe[0] = "none";
+  //   for (var i = 0; i < spielfeld.length; i++) {
+  //     for (var i1 = 0; i1 < spielfeld.length; i1++) {
+  //       if (xMaus > 476 + 70*i && xMaus < 476 + 70*i + 60 && yMaus > 17 + 70*i1 && yMaus < 17 + 70*i1 + 60) {
+  //         console.log(1 + " - " + i1);
+  //         AblageListe[0] = [i, i1];
+  //       }
+  //   }
+  //   }
+  // }
+  document.onkeydown = function(event) {
+    AblageListe[3] = [event.keyCode, event.key];
+      folgenKeyDown();
+  }
+function folgenKeyDown() {
+  if (AblageListe[3][1] == "ArrowRight") {
+    selected++;
+    if (selected == AnzahlSpieler) selected = 0;
+  }
+  if (AblageListe[3][1] == "ArrowLeft") {
+    selected--;
+    if (selected == -1) selected = AnzahlSpieler - 1;
+  }
+//  AblageListe[6] = {s: "Stroh", z: "Ziegelsteine", h: "Holz", w: "Wolle", e: "Erz"}
+  if (AblageListe[3][1].length == 1) AblageListe[3][1] = AblageListe[6][AblageListe[3][1]];
+  if (!(AblageListe[2] == undefined) && (AblageListe[2][0] == "Siedlung plazieren" || (AblageListe[2][0] == "Stadt plazieren" && spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].includes("Siedlung"))) && (AblageListe[3][1] == "Stroh" || AblageListe[3][1] == "Ziegelsteine" || AblageListe[3][1] == "Holz" || AblageListe[3][1] == "Wolle" || AblageListe[3][1] == "Erz")) {
+  spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].push(AblageListe[2].toString().split(' plazieren')[0])
+  if (AblageListe[2][0] == "Stadt plazieren") {
+    for (var i = 0; i < spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].length; i++) {
+      if (spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]][i] == "Siedlung") {
+        spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]][i] = "Stadt";
+        i = spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].length;
+      }
+    }
+  }
+    showStats(0)
+    AblageListe[2][1]--;
+    if (AblageListe[2][1] == 0) {
+      AblageListe[2] = ["beendet"];
+      spieler[spielerIch].punkte++;
+      showStats(0)
+    }
+  }
+  // if (AblageListe[2][0] == "ritter" && !(AblageListe[0][AblageListe[3][1]] == undefined) && !(AblageListe[5].includes(AblageListe[3][1]))) {
+  //   AblageListe[2][1]--;
+  //   AblageListe[5].push([AblageListe[3][1], spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]][spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].length - 1]])
+  //   spieler[spielerIch].kartenMultiplikator[AblageListe[3][1]].pop();
+  //   if (AblageListe[2][1] == 0) AblageListe[2] = ["beendet"];
+  // }
+  if (AblageListe[3][1].includes("Arrow")) showStats(0);
+}
+
+function Spielerwechsel() {
+  spielerAktuell++;
+  if (spielerAktuell == AnzahlSpieler) spielerAktuell = 0;
+  room.send({
+    message: {
+    type: "Reihenfolge",
+    data: spielerAktuell
+  }
+  });
+}
+
+</script>

@@ -19,6 +19,7 @@ class stratego {
         "type": "spielerIds",
         "data": [this.player1.id, this.player2.id]
       });
+      console.log(this.player1.client + " - " + this.player2.client);
       this.send(this.player1.client, {
         "type": "player1",
         "data": this.player1.id
@@ -58,7 +59,7 @@ class stratego {
       console.log("client.sessionId: " + client.sessionId + ", player1: " + this.player1);
       if (!(this.player1 == null && this.player2 == null) && (!(client == undefined))) {
         this.broadcast({
-          "type": "onLeave" 
+          "type": "onLeave"
         });
     if (client.sessionId == this.player1.id) {
         this.player1 = null;
