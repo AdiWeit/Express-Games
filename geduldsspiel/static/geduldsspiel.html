@@ -56,13 +56,13 @@
   }
 
   register();
-  setInterval(getMessages, 3000);
+  setInterval(getMessages, 300);
 
   function getMessages() {
     sendJson('/geduldsspiel/message-queue', {
       clientId
     }).then(messages => {
-      console.log("MESSAGES", messages);
+  //    console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -110,6 +110,13 @@
     if (message.type == "spielerDu") spielerIch = message.data;
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; document.getElementById('beginRound').style.display = "inline";}
     if (message.type == "Reihenfolge") spielerAktuell = message.data;
+    if (!(message.sender == spielerIch) && message.type == "playerStats") {
+        Layout(4);
+        canvas.fillStyle = "rgba(" + message.data.color[0] + "," +  message.data.color[1] + "," +  message.data.color[2] + "," +  0.8 + ")";
+        canvas.beginPath();
+        canvas.arc(message.data.x,message.data.y,(textur.width/40),0,Math.PI*2, false);
+        canvas.fill();
+    }
     if (message.type == "playerReady") {AblageListe[1]++;
       if (AblageListe[1] == AnzahlSpieler && spielerIch == message.empfänger) {
         room.send({
@@ -159,14 +166,14 @@
       }, 500);
     }
     else {
-      for (var i = 0; i < AnzahlSpieler; i++) {
-      if (i == spielerIch && kugeln.length > 0) canvas.fillStyle = "rgba(" + kugeln[i].color[0] + "," +  kugeln[i].color[1] + "," +  kugeln[i].color[2] + "," +  0.8 + ")";
-      else if (kugeln.length > 0) canvas.fillStyle = "rgba(" + kugeln[i].color[0] + "," +  kugeln[i].color[1] + "," +  kugeln[i].color[2] + "," +  0.7 + ")";
-      if (kugeln.length > 0) {
+      // for (var i = 0; i < AnzahlSpieler; i++) {
+      if (/*i == spielerIch && */kugeln.length > 0) {canvas.fillStyle = "rgba(" + kugeln[spielerIch].color[0] + "," +  kugeln[spielerIch].color[1] + "," +  kugeln[spielerIch].color[2] + "," +  0.8 + ")";
+      // else if (kugeln.length > 0) canvas.fillStyle = "rgba(" + kugeln[i].color[0] + "," +  kugeln[i].color[1] + "," +  kugeln[i].color[2] + "," +  0.7 + ")";
+      // if (kugeln.length > 0) {
         canvas.beginPath();
-        canvas.arc(kugeln[i].x,kugeln[i].y,(textur.width/40),0,Math.PI*2, false);
+        canvas.arc(kugeln[spielerIch].x,kugeln[spielerIch].y,(textur.width/40),0,Math.PI*2, false);
         canvas.fill();
-      }
+      // }
     }
     }
   }
@@ -292,11 +299,17 @@ if (window.DeviceMotionEvent != undefined) {
   // }
 //  document.getElementById('data').innerHTML = this.ax + " - " + this.ay;
  setInterval( function() {
-     Layout(4);
      // canvas.fillStyle = "black";
      // canvas.fillRect(900, 300, 90, 90);
      kugeln[spielerIch].move();
      // kugeln[spielerIch].away();
+     room.send({
+       message: {
+       type: "playerStats",
+       data: kugeln[spielerIch],
+       sender: spielerIch
+     }
+     });
  }, 25);
 }
 }
