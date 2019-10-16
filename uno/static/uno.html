@@ -167,19 +167,19 @@
     if (!(data[0] == "silver") && !(data[0] == "red")) {
       //Read image and make changes on the fly as it's read
       imgData = canvas.getImageData(x - 22, y - 22, 100 + 44, 144 + 44);
-      for (i = 0; i < imgDataData.length; i += 4)
+      for (i1 = 0; i1 < imgDataData.length; i1 += 4)
       {
-        redStay = imgData.data[i]; greenStay = imgData.data[i+1]; blueStay = imgData.data[i+2]; alphaStay = imgData.data[i+3];
-        red[i] = redStay; green[i] = greenStay; blue[i] = blueStay; alpha[i] = alphaStay;
-        if (imgDataData[0] == "green" && redStay > 100) {green[i] = red[i];red[i] = 0;}
-        if (imgDataData[0] == "blue" && redStay > 100) {blue[i] = red[i];red[i] = 0;}
-        if (imgDataData[0] == "yellow" && redStay > 100) {blue[i] = 0;red[i] = 255;green[i] = 255;alpha = 255;}
+        redStay = imgData.data[i1]; greenStay = imgData.data[i1+1]; blueStay = imgData.data[i1+2]; alphaStay = imgData.data[i1+3];
+        red[i1] = redStay; green[i1] = greenStay; blue[i1] = blueStay; alpha[i1] = alphaStay;
+        if (imgDataData[0] == "green" && redStay > 100) {green[i1] = red[i1];red[i1] = 0;}
+        if (imgDataData[0] == "blue" && redStay > 100) {blue[i1] = red[i1];red[i1] = 0;}
+        if (imgDataData[0] == "yellow" && redStay > 100) {blue[i1] = 0;red[i1] = 255;green[i1] = 255;alpha = 255;}
       }
 
       // Write the image back to the canvas
-      for (i = 0; i < imgDataData.length; i += 4)
+      for (i1 = 0; i1 < imgDataData.length; i1 += 4)
       {
-        imgData.data[i] = red[i]; imgData.data[i+1] = green[i]; imgData.data[i+2] = blue[i]; imgData.data[i+3] = alpha[i];
+        imgData.data[i1] = red[i1]; imgData.data[i+1] = green[i1]; imgData.data[i1+2] = blue[i1]; imgData.data[i1+3] = alpha[i1];
       }
 
       canvas.putImageData(imgData, 0, 0);
