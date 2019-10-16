@@ -9,9 +9,10 @@
   var koordinaten = [];
   var kartenAbgelegt = [];
   var AblageListe = [];
+  var Bild = new Image();
 
-  var imgData = canvas.getImageData(0,0,textur.width,textur.height);
-  var imgDataData = imgData.data;
+  // var imgData = canvas.getImageData(0,0,textur.width,textur.height);
+  // var imgDataData = imgData.data;
 
   var red = new Array(); var green = new Array(); var blue = new Array(); var alpha = new Array();
   var redStay = 0; var greenStay = 0; var blueStay = 0; var aphaStay = 0;
@@ -166,7 +167,8 @@
     canvas.drawImage(Bild, x - 22, y - 22, 100 + 44, 144 + 44);
     if (!(data[0] == "silver") && !(data[0] == "red")) {
       //Read image and make changes on the fly as it's read
-      imgData = canvas.getImageData(x - 22, y - 22, 100 + 44, 144 + 44);
+    var imgData = canvas.getImageData(x - 22, y - 22, 100 + 44, 144 + 44);
+    var imgDataData = imgData.data;
       for (i1 = 0; i1 < imgDataData.length; i1 += 4)
       {
         redStay = imgData.data[i1]; greenStay = imgData.data[i1+1]; blueStay = imgData.data[i1+2]; alphaStay = imgData.data[i1+3];
