@@ -24,6 +24,9 @@ app.use('/dieSiedler/', dieSiedler);
 const geduldsspiel = require('./geduldsspiel/index.js');
 app.use('/geduldsspiel/', geduldsspiel);
 
+const uno = require('./uno/index.js');
+app.use('/uno/', uno);
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname

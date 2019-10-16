@@ -1,0 +1,197 @@
+<canvas id="textur" width="1570" height="750"></canvas>
+
+<script>
+  var spielerIch = -1;
+  var spielerAktuell = -1;
+  var spielerGegner = -1;
+  var AnzahlSpieler = -1;
+  var canvas = document.getElementById('textur').getContext('2d'); //Dimension
+  var koordinaten = [];
+  var kartenAbgelegt = [];
+  var AblageListe = [];
+
+  var imgData = canvas.getImageData(0,0,textur.width,textur.height);
+  var imgDataData = imgData.data;
+
+  var red = new Array(); var green = new Array(); var blue = new Array(); var alpha = new Array();
+  var redStay = 0; var greenStay = 0; var blueStay = 0; var aphaStay = 0;
+
+  window.onbeforeunload = function() {
+    console.log("Leave Website");
+    sendJson('/uno/logout', {
+      clientId
+    });
+    return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/uno/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 3000);
+
+  function getMessages() {
+    sendJson('/uno/message-queue', {
+      clientId
+    }).then(messages => {
+      console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/uno/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+
+  // listen to patches coming from the server
+  room.setOnMessageListener(function(message) {
+    if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
+    if (message.data == "kartenAbgelegt") kartenAbgelegt = message.data;
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      if (spielerIch == AnzahlSpieler - 1) {getCard(kartenAbgelegt);
+        room.send({
+          message: {
+          type: "kartenAbgelegt",
+          data: kartenAbgelegt
+        }
+        });
+      }
+      Layout();
+    }
+    if (message.type == "Reihenfolge") {
+      if (AnzahlSpieler == 2 && spielerIch == 0) {
+        spielerGegner = 1;
+      } else if (AnzahlSpieler == 2) {
+        spielerGegner = 0;
+      }
+      spielerAktuell = message.data;
+      new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+      if (spielerAktuell == spielerIch) {
+      var notification = new Notification("It's your turn again! ", {
+        icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+        body: "Come back to destroy the enemy(s)!",
+      });
+    }
+    }
+  });
+
+  class player {
+    constructor() {
+      this.cards = [];
+    }
+  }
+  function Layout() {
+    canvas.fillStyle = "brown"
+    canvas.fillRect(0,0,2000,1000)
+    for (var i = 0; i < AnzahlSpieler - 1; i++) {
+      canvas.fillStyle = "white";
+      canvas.fillRect(33 + 177*i, 33, 111, 133);
+      canvas.fillStyle = "brown";
+      canvas.font = "77px Georgia";
+      canvas.fillText(spieler[i].cards.length, 66 + 177*i, 122);
+    }
+    spieler[spielerIch].cards.sort();
+    for (var i = 0; i < spieler[spielerIch].cards.length; i++) {
+      showCard(55 + 177*i, 555, spieler[spielerIch].cards[i]);
+    }
+    showCard(700, 277, kartenAbgelegt[kartenAbgelegt.length - 1]);
+  }
+  // get card player me: getCard(spieler[spielerIch].cards);
+  function getCard(who) {
+    AblageListe[0] = [];
+    AblageListe[0][0] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "plus2", "aussetzen", "plus4", "Richtungswechsel", "wunschFarbe"];
+    AblageListe[0][1] = ["green", "blue", "red", "yellow"];
+    AblageListe[2] = Math.round(Math.random() * AblageListe[0][0].length - 1);
+    if (AblageListe[2] < 10) who.push([AblageListe[0][1][Math.round(Math.random() * (AblageListe[0][1].length - 1))], AblageListe[0][0][AblageListe[2]]]);
+    else who.push(["silver", AblageListe[0][0][AblageListe[2]]]);
+    console.log("karteGezogen: " + who[who.length - 1]);
+  }
+  function showCard(x,y,data) {
+  if (!(isNaN(data[1]))) {
+    canvas.fillStyle = "white";
+    canvas.fillRect(x - 22, y - 22, 100 + 44, 144 + 44);
+    canvas.fillStyle = data[0];
+    canvas.fillRect(x, y, 100, 144);
+    canvas.fillStyle = "white";
+    canvas.font = "77px Georgia";
+    canvas.fillText(data[1], x + 27, y + 99);
+  }
+  else {
+    Bild = new Image();
+    Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Uno/" + data[1] + ".png";
+    canvas.drawImage(Bild, x - 22, y - 22, 100 + 44, 144 + 44);
+    if (!(data[0] == "silver") && !(data[0] == "red")) {
+      //Read image and make changes on the fly as it's read
+      imgData = canvas.getImageData(x - 22, y - 22, 100 + 44, 144 + 44);
+      for (i = 0; i < imgDataData.length; i += 4)
+      {
+        redStay = imgData.data[i]; greenStay = imgData.data[i+1]; blueStay = imgData.data[i+2]; alphaStay = imgData.data[i+3];
+        red[i] = redStay; green[i] = greenStay; blue[i] = blueStay; alpha[i] = alphaStay;
+        if (imgDataData[0] == "green" && redStay > 100) {green[i] = red[i];red[i] = 0;}
+        if (imgDataData[0] == "blue" && redStay > 100) {blue[i] = red[i];red[i] = 0;}
+        if (imgDataData[0] == "yellow" && redStay > 100) {blue[i] = 0;red[i] = 255;green[i] = 255;alpha = 255;}
+      }
+
+      // Write the image back to the canvas
+      for (i = 0; i < imgDataData.length; i += 4)
+      {
+        imgData.data[i] = red[i]; imgData.data[i+1] = green[i]; imgData.data[i+2] = blue[i]; imgData.data[i+3] = alpha[i];
+      }
+
+      canvas.putImageData(imgData, 0, 0);
+    }
+  }
+
+  }
+// showCard(700, 333, kartenAbgelegt);
+// showCard(55, 555, kartenAbgelegt);
+var spieler = [];
+for (var i = 0; i < 4; i++) {
+  spieler[i] = new player;
+}
+
+</script>

@@ -76,7 +76,7 @@
     if (AblageListe[0][0] > 8) {
       Bild = new Image();
       Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/dieSiedler/crone.png";
-      canvas.drawImage(Bild, 1205, /*27*/20 + 40*AblageListe[0][1], 70, 70);
+      canvas.drawImage(Bild, 1205, /*27*/20 + 130 + 40*AblageListe[0][1], 70, 70);
       spieler[AblageListe[0][1]].boniPoints += 2;
     }
     Bild = new Image();
@@ -320,7 +320,7 @@
   }
   if (message.type == "getAblageListe[5]Back" && message.data[0][2] == spielerIch) {
     for (var i = 0; i < message.data.length; i++) {
-      spieler[spielerIch].kartenMultiplikator[AblageListe[5][0]].push(AblageListe[5][1])
+      spieler[spielerIch].kartenMultiplikator[AblageListe[5][i][0]].push(AblageListe[5][1]);
     }
   }
   if (message.type == "ritter" && message.empfänger == spielerIch) {
@@ -502,7 +502,7 @@
         }
         if (i == 1 && spieler[spielerIch].anzahlKarten.Stroh > 0 && spieler[spielerIch].anzahlKarten.Ziegelsteine > 0 && spieler[spielerIch].anzahlKarten.Holz > 0 && spieler[spielerIch].anzahlKarten.Wolle > 0) {
       //    AblageListe[1] = 2;
-      if (spieler[spielerIch].anzahlStraßen >= (spieler[spielerIch].kartenMultiplikator.Stroh.length + spieler[spielerIch].kartenMultiplikator.Stroh.length + spieler[spielerIch].kartenMultiplikator.Ziegelsteine.length + spieler[spielerIch].kartenMultiplikator.Wolle.length + spieler[spielerIch].kartenMultiplikator.Erz.length) + 2 && AblageListe[2][0] == "beendet") {
+      if (spieler[spielerIch].anzahlStraßen >= (spieler[spielerIch].kartenMultiplikator.Holz .length + spieler[spielerIch].kartenMultiplikator.Stroh.length + spieler[spielerIch].kartenMultiplikator.Ziegelsteine.length + spieler[spielerIch].kartenMultiplikator.Wolle.length + spieler[spielerIch].kartenMultiplikator.Erz.length) + 2 && AblageListe[2][0] == "beendet") {
         AblageListe[2] = ["Siedlung plazieren", 2];
           spieler[spielerIch].anzahlKarten.Stroh--;
           spieler[spielerIch].anzahlKarten.Wolle--;
