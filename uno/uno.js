@@ -48,7 +48,7 @@ class uno {
           "data": 3
         });
       }
-      var Reihenfolge = Math.floor(Math.random() * spielerOnline);
+      // var Reihenfolge = Math.floor(Math.random() * spielerOnline);
       console.log(this.player1.client, this.player2.client);
       this.send(this.player1.client, {
         "type": "spielerDu",
@@ -58,10 +58,10 @@ class uno {
         "type": "spielerDu",
         "data": 1
       });
-      this.broadcast({
-        "type": "Reihenfolge",
-        "data": Reihenfolge
-      });
+      // this.broadcast({
+      //   "type": "Reihenfolge",
+      //   "data": Reihenfolge
+      // });
 }
   }
   onLeave(client) {
