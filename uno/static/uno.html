@@ -1,8 +1,10 @@
 <canvas id="textur" width="1570" height="750"></canvas>
-
+<br>
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
 <script>
   var spielerIch = -1;
-  var spielerAktuell = -1;
+  var spielerAktuell = 0;
   var spielerGegner = -1;
   var AnzahlSpieler = -1;
   var canvas = document.getElementById('textur').getContext('2d'); //Dimension
@@ -10,12 +12,28 @@
   var AblageListe = [];
   var Bild = new Image();
   var sperren = [false];
+  var messages = []
+  Notification.requestPermission()
   // var imgData = canvas.getImageData(0,0,textur.width,textur.height);
   // var imgDataData = imgData.data;
 
   var red = new Array(); var green = new Array(); var blue = new Array(); var alpha = new Array();
   var redStay = 0; var greenStay = 0; var blueStay = 0; var aphaStay = 0;
 
+  function submit() {
+    messages.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messages",
+      data: messages,
+      sender: spielerIch
+    }
+    });
+    setTimeout(function () {
+        window.scroll(scrollX, 10000)
+        document.getElementById('message').select();
+    }, 3000);
+  }
   window.onbeforeunload = function() {
     console.log("Leave Website");
     sendJson('/uno/logout', {
@@ -108,6 +126,26 @@
   }
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
+    if (message.type == "Reihenfolge") {
+      spielerAktuell = message.data;
+      if (AnzahlSpieler == 2 && spielerIch == 0) {
+        spielerGegner = 1;
+      } else if (AnzahlSpieler == 2) {
+        spielerGegner = 0;
+      }
+      if (spielerAktuell == spielerIch) new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+    }
+    if (message.type == "messages") {
+      messages = message.data
+      if (spieler[spielerIch].cards.length > 8) textur.width = 1570 + 160*(spieler[spielerIch].cards.length - 8);
+      textur.height = 750 + messages.length*50;
+      Layout(0);
+      if (!(spielerIch == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      AblageListe[1] = "warten Message angucken";
+      setTimeout(function () {
+        AblageListe[1] = "beendet";
+      }, 3777);
+    };
     if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
     if (message.type == "kartenAbgelegt") {spieler.kartenAbgelegt = message.data; Layout(0)}
     if (message.type == "plus" && message.empfänger == spielerIch)  getCard(spieler[spielerIch].cards, message.data);
@@ -156,15 +194,6 @@
       }
       Layout(0)
     }
-    if (message.type == "Reihenfolge") {
-      spielerAktuell = message.data;
-      if (AnzahlSpieler == 2 && spielerIch == 0) {
-        spielerGegner = 1;
-      } else if (AnzahlSpieler == 2) {
-        spielerGegner = 0;
-      }
-      if (spielerAktuell == spielerIch) new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
-    }
   });
 
   class player {
@@ -200,7 +229,7 @@
   }
   function Layout(times) {
     canvas.fillStyle = "brown"
-    canvas.fillRect(0,0,2000,1000)
+    canvas.fillRect(0,0,textur.width,textur.height)
     for (var i = 0; i < AnzahlSpieler; i++) {
       if (!(i == spielerIch)) {
         canvas.fillStyle = "white";
@@ -222,7 +251,17 @@
         Layout(times + 1)
       }, 500);
     }
+    showChat();
     }
+    function showChat() {
+      for (var i = 0; i < messages.length; i++) {
+        // if (!(messages[messages.length - 1 - i] == undefined)) {
+        canvas.fillStyle = "white";
+        canvas.font = "33px Georgia";
+        canvas.fillText(messages[messages.length - 1 - i], 33, 788 + 44*i);
+      }
+      }
+  //  }
   // get card player me: getCard(spieler[spielerIch].cards, 1);
   function getCard(who, times) {
     for (var i = 0; i < times; i++) {
@@ -235,6 +274,8 @@
     else who.push(["silver", AblageListe[0][0][AblageListe[2]]]);
     console.log("karteGezogen: " + who[who.length - 1]);
   }
+  if (spieler[spielerIch].cards.length > 8) textur.width = 1570 + 160*(spieler[spielerIch].cards.length - 8);
+  textur.height = 750 + messages.length*50;
   }
   function showCard(x,y,data) {
   if (!(isNaN(data[1])) || !(data[0] == "silver")) {
@@ -347,5 +388,24 @@ window.addEventListener('mousedown', function() {
     }
   }
 });
+
+  document.onkeydown = function(event) {
+    if (event.key == "ArrowUp") window.scroll(textur.width, 0);
+    if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
+      window.scroll(textur.width, 10000);
+      setTimeout(function () {
+        window.scroll(textur.width, 0);
+      }, 1777);
+    }
+  }
+
+window.addEventListener("dblclick", dbClick)
+
+function dbClick() {
+  window.scroll(textur.width, 10000);
+  setTimeout(function () {
+    window.scroll(textur.width, 0);
+  }, 1777);
+}
 
 </script>
