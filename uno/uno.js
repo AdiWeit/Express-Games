@@ -107,6 +107,7 @@ class uno {
       this.player1 = this.player2;
       this.player2 = null;
     }
+    if (spielerOnline == 1 && !(this.player1 == null)) this.player1 = null;
     /*  if (client.sessionId === this.player1.id) this.player1 = null;
       else if (client.sessionId === this.player2.id) this.player2 = null;
       else if (client.sessionId === this.player3.id) this.player3 = null;
