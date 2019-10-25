@@ -110,7 +110,7 @@
     if (message.type == "spielerDu") spielerIch = message.data;
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; document.getElementById('beginRound').style.display = "inline";}
     if (message.type == "Reihenfolge") spielerAktuell = message.data;
-    if (!(message.sender == spielerIch) && message.type == "playerStats") {
+    if (/*!(message.sender == spielerIch) && */message.type == "playerStats") {
         Layout(4);
         canvas.fillStyle = "rgba(" + message.data.color[0] + "," +  message.data.color[1] + "," +  message.data.color[2] + "," +  0.8 + ")";
         canvas.beginPath();
@@ -296,7 +296,6 @@ if (window.DeviceMotionEvent != undefined) {
     AblageListe[1] = [kugeln[i].ax, kugeln[i].ay]
     kugeln[spielerIch].ax = event.accelerationIncludingGravity.y * 1;
     kugeln[spielerIch].ay = event.accelerationIncludingGravity.x * 1;
-    Layout(0);
   // }
 //  document.getElementById('data').innerHTML = this.ax + " - " + this.ay;
  setInterval( function() {
