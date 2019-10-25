@@ -56,7 +56,7 @@
   }
 
   register();
-  setInterval(getMessages, 300);
+  setInterval(getMessages, 100);
 
   function getMessages() {
     sendJson('/geduldsspiel/message-queue', {
@@ -296,6 +296,7 @@ if (window.DeviceMotionEvent != undefined) {
     AblageListe[1] = [kugeln[i].ax, kugeln[i].ay]
     kugeln[spielerIch].ax = event.accelerationIncludingGravity.y * 1;
     kugeln[spielerIch].ay = event.accelerationIncludingGravity.x * 1;
+    Layout(0);
   // }
 //  document.getElementById('data').innerHTML = this.ax + " - " + this.ay;
  setInterval( function() {
@@ -310,7 +311,7 @@ if (window.DeviceMotionEvent != undefined) {
        sender: spielerIch
      }
      });
- }, 25);
+ }, 100);
 }
 }
 }
