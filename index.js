@@ -18,6 +18,9 @@ app.use('/davincicode/', davincicode);
 const stratego = require('./stratego/index.js');
 app.use('/stratego/', stratego);
 
+const strategoChars = require('./strategoChars/index.js');
+app.use('/strategoChars/', strategoChars);
+
 const dieSiedler = require('./dieSiedler/index.js');
 app.use('/dieSiedler/', dieSiedler);
 
