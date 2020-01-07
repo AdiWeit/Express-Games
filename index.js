@@ -9,6 +9,9 @@ app.use(bodyParser.json());
 const monopoly = require('./Monopoly/index.js');
 app.use('/monopoly/', monopoly);
 
+const go = require('./go/index.js');
+app.use('/go/', go);
+
 const heldenDesOlymp = require('./helden_des_olymp/index.js');
 app.use('/heldenDesOlymp/', heldenDesOlymp);
 
