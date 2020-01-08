@@ -150,11 +150,11 @@
       }, 5000);
     }
     else if (message.type == undefined && message.includes("wins") && !(message.includes(id))) {
-      console.log("verloren :(");
+      alert("you lost the game! You now have 5 more seconds to understand why ;) ")
       showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
     }
     else if (message.type == undefined && message.includes("wins") && message.includes(id)) {
-      console.log("gewonnen :)");
+      console.log("you won the game! You now have 5 more seconds to understand why ;) ");
       showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
     }
   });
@@ -162,13 +162,15 @@
   $('head').append('<link rel="stylesheet" href="https://adi.nicolaiweitkemper.de/von2Zu4Handy.css" type="text/css" />');
 }
 function showResults(picture, sounds, colour, time) {
-  if (time == 0) audio = new Audio(sounds).play();
-  canvas.fillStyle = colour;
-  canvas.fillRect(0, 0, 1847, 973);
-  Bild = new Image();
-  Bild.src = picture;
-  canvas.drawImage(Bild, 260, 0);
-  if (time < 5) showResults(picture, sounds, colour, time + 1);
+  setTimeout(function () {
+    if (time == 0) audio = new Audio(sounds).play();
+    canvas.fillStyle = colour;
+    canvas.fillRect(0, 0, 1847, 973);
+    Bild = new Image();
+    Bild.src = picture;
+    canvas.drawImage(Bild, 260, 0);
+    if (time < 5) showResults(picture, sounds, colour, time + 1);
+  }, 5000);
 }
 function Layout() {
   canvas.fillStyle = "#B45F04";
