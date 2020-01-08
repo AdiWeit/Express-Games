@@ -17,10 +17,6 @@ class go {
       console.log("player1 + player2: " + this.player1.id + " - " + this.player2.id);
   console.log("Spiel beginnen");
 reihenfolge = [this.player1.id, this.player2.id];
-this.broadcast({
-type: "Reihenfolge",
-data: reihenfolge
-});
 this.send(this.player1.client, {
   type: "name",
   data: reihenfolge[0]
@@ -28,6 +24,10 @@ this.send(this.player1.client, {
 this.send(this.player2.client, {
   type: "name",
   data: reihenfolge[1]
+});
+this.broadcast({
+type: "Reihenfolge",
+data: reihenfolge
 });
   }
 }
