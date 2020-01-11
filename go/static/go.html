@@ -6,8 +6,7 @@
   <input type="text" placeholder="points required for win" value="5" id="pointsRequiredForWin"></input>
 </div>
 <br>
-<canvas id="textur" width="2570" height="888" style="touch-action: none" onclick="canvasClicked();"></canvas>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<canvas id="textur" width="2570" height="888" onclick="canvasClicked();"></canvas>
 <script>
   if (navigator.userAgent.match(/Android/i) ||
   navigator.userAgent.match(/webOS/i) ||
@@ -94,6 +93,7 @@
     return 'Are you sure you want to leave?';
   };
   var ids = [];
+  var idsBleibt = [];
   var id = "";
   var idGegner = "";
   var fieldParameters = [];
@@ -106,6 +106,24 @@
 
   room.setOnMessageListener(function(message) {
     console.log(message);
+    if (message.type == "fieldPlaced" && id != message.sender) {
+      canvas.fillStyle = "yellow";
+      canvas.beginPath();
+      canvas.arc(10 + 70*message.data[0] + 30, 10 + 70*message.data[1] + 30,30,0,Math.PI*2, false);
+      canvas.fill();
+    }
+    if (message.type == "fieldsRemoved" && id != message.sender) {
+      for (var i = 0; i < message.data.length; i++) {
+        canvas.fillStyle = "black";
+        canvas.beginPath();
+        canvas.arc(10 + 70*message.data[i][0] + 30, 10 + 70*message.data[i][1] + 30,30,0,Math.PI*2, false);
+        canvas.fill();
+        canvas.fillStyle = "#FF8000";
+        canvas.beginPath();
+        canvas.arc(10 + 70*message.data[i][0] + 30, 10 + 70*message.data[i][1] + 10 + 20,20,0,Math.PI*2, false);
+        canvas.fill();
+      }
+    }
     if (message.type == undefined) {
       console.log(message);
     }
@@ -113,10 +131,20 @@
     else if (message.type == "points") {points[idGegner] = message.data[idGegner];}
     else if (message.type == "Reihenfolge") {
       ids = message.data;
-      if (id == ids[0] && idGegner == "") {
-        idGegner = ids[1];
-      } else if (idGegner == "") {
-        idGegner = ids[0];
+      if (idGegner == "") {
+        idsBleibt = message.data;
+        AblageListe[5] = [];
+      }
+      else if (!(ids.includes(idGegner))) {
+        document.getElementById('fieldSelection').style.display = "inline";
+        points[id] = 0;
+        points[idGegner] = 0;
+        idsBleibt = message.data;
+      }
+      if (id == idsBleibt[0]/* && idGegner == ""*/) {
+        idGegner = idsBleibt[1];
+      } else/* if (idGegner == "")*/ {
+        idGegner = idsBleibt[0];
       }
     }
     else if (message.type == "settings" && message.sender != id) {
@@ -158,9 +186,6 @@
       showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
     }
   });
-  if (gerät == "Handy") {
-  $('head').append('<link rel="stylesheet" href="https://adi.nicolaiweitkemper.de/von2Zu4Handy.css" type="text/css" />');
-}
 function showResults(picture, sounds, colour, time) {
   setTimeout(function () {
     if (time == 0) audio = new Audio(sounds).play();
@@ -173,19 +198,34 @@ function showResults(picture, sounds, colour, time) {
   }, 5000);
 }
 function Layout() {
+  canvas.clearRect(0, 0, textur.width, textur.height)
   canvas.fillStyle = "#B45F04";
-  canvas.fillRect(0, 0, 10 + fieldParameters[1]*70, 10 + fieldParameters[0]*70);
+  canvas.fillRect(0, 0, 10 + fieldParameters[0]*70, 10 + fieldParameters[1]*70);
   for (var i = 0; i < fieldParameters[1]; i++) {
     for (var i1 = 0; i1 < fieldParameters[0]; i1++) {
       canvas.fillStyle = "#FF8000";
       canvas.fillRect(10 + 70*i1, 10 + 70*i, 60, 60);
-      if (field[i1][i] != "none") {
+      if (field[i1][i] != "none" && field[i1][i] != "removedField") {
         if (field[i1][i] == id) canvas.fillStyle = "black";
         else                    canvas.fillStyle = "white";
         canvas.beginPath();
         canvas.arc(10 + 70*i1 + 30, 10 + 70*i + 30,30,0,Math.PI*2, false);
         canvas.fill();
       }
+    }
+  }
+  var idNow = [id, idGegner];
+  for (var i = 0; i < idNow.length; i++) {
+    canvas.fillStyle = "#B45F04";
+    if ((points[idNow[i]] + "") != "undefined") canvas.fillRect((fieldParameters[0] + 2)*70, i*70, 10 + (1 + /*fieldParameters[0] + */(points.required + "").length + (points[idNow[i]] + "").length)*70, 80);
+    for (var i1 = fieldParameters[0] + 2; i1 < 3 + fieldParameters[0] + (points.required + "").length + (points[idNow[i]] + "").length && (points[idNow[i]] + "") != "undefined"; i1++) {
+      canvas.fillStyle = "#FF8000";
+      canvas.fillRect(10 + 70*i1, 10 + 70*i, 60, 60);
+      canvas.font = "60px Georgia";
+      canvas.fillStyle = "white";
+      if ((points[idNow[i]] + "")[i1 - (fieldParameters[0] + 2)] != undefined) canvas.fillText((points[idNow[i]] + "")[i1 - (fieldParameters[0] + 2)], 10 + 70*i1 + 17, 10 + 70*i + 50);
+      else if (i1 == ((points[idNow[i]] + "").length +  (fieldParameters[0] + 2))) canvas.fillText("/", 10 + 70*i1 + 17, 10 + 70*i + 50);
+      else canvas.fillText((points.required + "")[ i1 - (fieldParameters[0] + 2) -  (points[idNow[i]] + "").length -1], 10 + 70*i1 + 17, 10 + 70*i + 50);
     }
   }
 }
@@ -195,13 +235,6 @@ function canvasClicked() {
   if (ids[0] == id && AblageListe[0] != "none" && field[AblageListe[0][0]][AblageListe[0][1]] == "none") {
     field[AblageListe[0][0]][AblageListe[0][1]] = id;
     checkUmzingelt();
-    room.send({
-      message: {
-      type: "map",
-      data: field,
-      sender: id
-    }
-    });
     console.log(points.required + " - " + points[id]);
     room.send({
       message: {
@@ -213,10 +246,32 @@ function canvasClicked() {
     });
     room.send({
       message: {
+      type: "map",
+      data: field,
+      sender: id
+    }
+    });
+    room.send({
+      message: {
       type: "Reihenfolge",
       data: [ids[1], ids[0]]
     }
     });
+    room.send({
+      message: {
+      type: "fieldPlaced",
+      data: AblageListe[0],
+      sender: id
+    }
+    });
+    room.send({
+      message: {
+      type: "fieldsRemoved",
+      data: AblageListe[5],
+      sender: id
+    }
+    });
+    AblageListe[5] = [];
     Layout();
   }
 }
@@ -224,43 +279,66 @@ function checkUmzingelt() {
   var fieldsChecked = 0;
   for (var i = 0; i < fieldParameters[1]; i++) {
     for (var i1 = 0; i1 < fieldParameters[0]; i1++) {
-      if (field[i1][i] == idGegner) {
+      if (field[i1][i] == idGegner || field[i1][i] == "removedField") {
       fieldsChecked = 0;
       // if (field[i1][i] != id && i1 > 0 && i1 + 1 < fieldParameters[0] && i > 0 && i + 1 < fieldParameters[1] && field[i1 - 1][i] == id && field[i1][i + 1] == id && field[i1 + 1][i] == id && field[i1][i - 1] == id) {
-      AblageListe[0] = [];
-      for (var i2 = i1; i2 > -1; i2--) {
+      AblageListe[4] = [];
+      AblageListe[1] = [];
+      AblageListe[2] = 0;
+      AblageListe[2] = AblageListe[4].length;
+      // x
+      for (var i2 = i1; i2 > -1 && !(AblageListe[4].length > AblageListe[2]); i2--) {
       //  console.log(field[i1][i] == idGegner && /*i2 != "closed" && */field[i2][i] == id);
         fieldsChecked++;
-        console.log(i1 + " - " + i);
-        if (field[i1][i] == idGegner && /*i2 != "closed" && */field[i2][i] == id) AblageListe[0].push("closed");
-        else checkUmzingeltEinFeld(i, i2);
+        AblageListe[3] = 0;
+        if ((field[i1][i] == idGegner || field[i1][i] == "removedField") && /*i2 != "closed" && */field[i2][i] == id) AblageListe[4].push(/*"closed"*/i1 + " - " + i);
+        else if (i1 != i2) checkUmzingeltEinFeld(i2, i);
       }
-      // if (AblageListe[0] == "closed") {
-        for (var i2 = i1; /*i2 != "closed" && field[i2][i1] && */i2 < fieldParameters[0]; i2++) {
+      console.log(AblageListe[4].length > AblageListe[2]);
+      AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+      AblageListe[2] = AblageListe[4].length;
+      // if (AblageListe[4] == "closed") {
+        // x
+        for (var i2 = i1; /*i2 != "closed" && field[i2][i1] && */i2 < fieldParameters[0] && !(AblageListe[4].length > AblageListe[2]); i2++) {
           fieldsChecked++;
-          console.log(i2 + " - " + i);
-          if (field[i2][i] == id) AblageListe[0].push("closed");
-          else checkUmzingeltEinFeld(i, i2);
+          AblageListe[3] = 0;
+          if (field[i2][i] == id) AblageListe[4].push(/*"closed"*/i2 + " - " + i);
+          else if (i1 != i2) checkUmzingeltEinFeld(i2, i);
         }
-        // if (AblageListe[0] == "closed") {
-          for (var i2 = i; /*i2 != "closed" && */i2 > -1; i2--) {
+        console.log(AblageListe[4].length > AblageListe[2]);
+        AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+        AblageListe[2] = AblageListe[4].length;
+        // if (AblageListe[4] == "closed") {
+          // y
+          for (var i2 = i; /*i2 != "closed" && */i2 > -1 && !(AblageListe[4].length > AblageListe[2]); i2--) {
             fieldsChecked++;
-            console.log(i2 + " - " + i);
-            if (field[i2][i] == id) AblageListe[0].push("closed");
-            else checkUmzingeltEinFeld(i, i2);
+            AblageListe[3] = 0;
+            if (field[i1][i2] == id) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
+            else if (i != i2) checkUmzingeltEinFeld(i1, i2);
           }
-          // if (AblageListe[0] == "closed") {
-            for (var i2 = i; /*i2 != "closed" && */i2 < fieldParameters[1]; i2++) {
+          // if (AblageListe[4] == "closed") {
+          console.log(AblageListe[4].length > AblageListe[2]);
+          AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+          AblageListe[2] = AblageListe[4].length;
+            // y
+            for (var i2 = i; /*i2 != "closed" && */i2 < fieldParameters[1] && !(AblageListe[4].length > AblageListe[2]); i2++) {
              fieldsChecked++;
-             console.log(i2 + " - " + i);
-              if (field[i2][i] == id) AblageListe[0].push("closed");
-              else checkUmzingeltEinFeld(i, i2);
+              AblageListe[3] = 0;
+              if (field[i1][i2] == id) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
+              else if (i != i2) checkUmzingeltEinFeld(i1, i2);
             }
-            console.log(AblageListe[0].length + " - " + (fieldsChecked - 3)*4);
-            if (/*AblageListe[0] == "closed"*/AblageListe[0].length == (fieldsChecked - 3)*4) {
-              console.log("removeField");
-              field[i1][i] = "none";
+            console.log(AblageListe[4].length > AblageListe[2]);
+            AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+            console.log(AblageListe[4].length + " - " + (fieldsChecked - 3)*4);
+            if (/*AblageListe[4] == "closed"*//*AblageListe[4].length == (fieldsChecked - 3)*4*/!(AblageListe[1].includes(false))) {
+              if (!(AblageListe[1].includes(false))) console.log("removeFieldTry2");
+              if (AblageListe[4].length == (fieldsChecked - 3)*4) console.log("removeField");
+              field[i1][i] = "removedField";
               points[id]++;
+              AblageListe[5].push([i1, i])
+            }
+            else if (field[i1][i] == "removedField") {
+              field[i1][i] = "none";
             }
     //     }
     //   }
@@ -269,47 +347,59 @@ function checkUmzingelt() {
     //  }
     // }
   }
+  console.log("fieldCheckFinished");
 }
 }
 }
-function checkUmzingeltEinFeld(iOriginal, i1Original) {
-  // AblageListe[0] = "open";
-  for (var i1 = i1Original; i1 > -1; i1--) {
-  //  console.log(field[i1][i] == idGegner && /*AblageListe[0] != "closed" &&*/ field[i1][i] == id);
-  console.log(i1 + " - " + iOriginal);
-    if (/*AblageListe[0] != "closed" &&*/ field[i1][iOriginal] == id) AblageListe[0].push("closed");
+function checkUmzingeltEinFeld(iOriginal, i2Original) {
+  // AblageListe[4] = "open";
+  AblageListe[2] = AblageListe[4].length;
+  AblageListe[3]++;
+  for (var i1 = iOriginal; i1 > -1 && !(AblageListe[4].length > AblageListe[2]); i1--) {
+  //  console.log(field[i1][i] == idGegner && /*AblageListe[4] != "closed" &&*/ field[i1][i] == id);
+    if (/*AblageListe[4] != "closed" &&*/ field[i1][i2Original] == id) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
+    else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, i2Original, 0);
     // else if (sender != undefined) checkUmzingeltEinFeld(i1, i);
   }
-  // if (AblageListe[0] == "closed") {
-    //AblageListe[0] = "open";
-    console.log(field[i1]);
-    for (var i1 = i1Original; /*AblageListe[0] != "closed" &&*/ i1 < fieldParameters[0]; i1++) {
+  console.log(AblageListe[4].length > AblageListe[2]);
+  AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+  AblageListe[2] = AblageListe[4].length;
+  // if (AblageListe[4] == "closed") {
+    //AblageListe[4] = "open";
+    for (var i1 = iOriginal; /*AblageListe[4] != "closed" &&*/ i1 < fieldParameters[0] && !(AblageListe[4].length > AblageListe[2]); i1++) {
       //fieldsChecked++;
-      console.log(i1 + " - " + iOriginal);
-      if (field[i1][iOriginal] == id) AblageListe[0].push("closed");
+      if (field[i1][i2Original] == id) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
+      else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, i2Original);
     }
-    // if (AblageListe[0] == "closed") {
-  //    AblageListe[0] = "open";
-      for (var i1 = iOriginal; /*AblageListe[0] != "closed" &&*/ i1 > -1; i1--) {
+    console.log(AblageListe[4].length > AblageListe[2]);
+    AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+    AblageListe[2] = AblageListe[4].length;
+    // if (AblageListe[4] == "closed") {
+  //    AblageListe[4] = "open";
+      for (var i = i2Original; /*AblageListe[4] != "closed" &&*/ i > -1 && !(AblageListe[4].length > AblageListe[2]); i--) {
       //  fieldsChecked++;
-      console.log(i1 + " - " + iOriginal);
-        if (field[i1][iOriginal] == id) AblageListe[0].push("closed");
+        if (field[iOriginal][i] == id) AblageListe[4].push(/*"closed"*/iOriginal + " - " + i);
+        else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i);
       }
-      // if (AblageListe[0] == "closed") {
-    //    AblageListe[0] = "open";
-        console.log(field[i1]);
-        for (var i1 = iOriginal; /*AblageListe[0] != "closed" &&*/ i1 < fieldParameters[1]; i1++) {
+      console.log(AblageListe[4].length > AblageListe[2]);
+      AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
+      AblageListe[2] = AblageListe[4].length;
+      // if (AblageListe[4] == "closed") {
+    //    AblageListe[4] = "open";
+        for (var i = i2Original; /*AblageListe[4] != "closed" &&*/ i < fieldParameters[1] && !(AblageListe[4].length > AblageListe[2]); i++) {
       //    fieldsChecked++;
-      console.log(i1 + " - " + iOriginal);
-          if (field[i1][iOriginal] == id) AblageListe[0].push("closed");
+          if (field[iOriginal][i] == id) AblageListe[4].push(iOriginal + " - " + i);
+          else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i);
         // }
-        // if (AblageListe[0] == "closed") {
+        // if (AblageListe[4] == "closed") {
         // if (true) {
           // field[i1][i] = "none";
           // points[id]++;
           // console.log("is closed");
         // }
         }
+        console.log(AblageListe[4].length > AblageListe[2]);
+        AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
 //     }
 //   }
 // }

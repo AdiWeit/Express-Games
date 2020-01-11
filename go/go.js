@@ -39,12 +39,15 @@ console.log(data.message.type + " - " +      data.message.data[data.message.send
     else this.broadcast(data.message);
   }
   onLeave(client) {
-    if (!(this.player1 == null || this.client == undefined)) {
-  if (this.client.sessionId == this.player1.id) {
+    console.log(client.sessionId);
+    if (!(/*this.player1 == null || */client.sessionId == undefined)) {
+  if (client.sessionId == this.player1.id) {
       this.player1 = null;
+      console.log("player 1 left");
   }
   else {
     this.player2 = null;
+    console.log("player 2 left");
   }
 }
 
