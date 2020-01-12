@@ -244,14 +244,22 @@ function canvasClicked() {
   fieldClicked();
   if (ids[0] == id && AblageListe[0] != "none" && (field[AblageListe[0][0]][AblageListe[0][1]] == "none" || field[AblageListe[0][0]][AblageListe[0][1]].includes("removedField"))) {
     if (field[AblageListe[0][0]][AblageListe[0][1]].includes("removedField")) {AblageListe[6] = "fieldFree?";AblageListe[7] = field[AblageListe[0][0]][AblageListe[0][1]]}
-    if (!(field[AblageListe[0][0]][AblageListe[0][1]].includes("removedFieldBy "))) field[AblageListe[0][0]][AblageListe[0][1]] = id;
+    /*if (!(field[AblageListe[0][0]][AblageListe[0][1]].includes("removedFieldBy "))) */field[AblageListe[0][0]][AblageListe[0][1]] = id;
     AblageListe[5] = [];
-    checkUmzingelt();
-    if (AblageListe[6].length == 2 && AblageListe[0][0] == AblageListe[6][0] && AblageListe[6][1] == AblageListe[0][1]) {
+    // if (AblageListe[6] == "fieldFree?" && AblageListe[7].includes(id)) checkUmzingelt(id, id);
+    // else if (AblageListe[6] == "fieldFree?") checkUmzingelt(idGegner, idGegner);
+    // else checkUmzingelt(id, idGegner);
+
+    /*if (AblageListe[6] != "fieldFree?" || (AblageListe[7].includes(idGegner)))*/ checkUmzingelt(id, idGegner);
+    if ((AblageListe[5].length == 0 && AblageListe[6] == "fieldFree?") || field[AblageListe[0][0]][AblageListe[0][1]].includes(id)) {
       field[AblageListe[0][0]][AblageListe[0][1]] = AblageListe[7];
     }
+    // if (AblageListe[6].length == 2 && AblageListe[0][0] == AblageListe[6][0] && AblageListe[6][1] == AblageListe[0][1]) {
+    //   field[AblageListe[0][0]][AblageListe[0][1]] = AblageListe[7];
+    // }
     else {
-      if (field[AblageListe[0][0]][AblageListe[0][1]].includes("removedFieldBy ")) field[AblageListe[0][0]][AblageListe[0][1]] = id;
+    //  if (field[AblageListe[0][0]][AblageListe[0][1]].includes("removedFieldBy ")) field[AblageListe[0][0]][AblageListe[0][1]] = id;
+    //  if (AblageListe[6].length == 2) checkUmzingelt(id, idGegner, true);
       for (var i = 0; i < AblageListe[5].length; i++) {
           field[AblageListe[5][i][0]][AblageListe[5][i][1]] = "removedFieldBy " + id;
           points[id]++;
@@ -297,11 +305,11 @@ function canvasClicked() {
     }
   }
 }
-function checkUmzingelt() {
+function checkUmzingelt(idUmzingeltCheck, idUmzingeltUmgekehrtCheck, removeDirectly) {
   var fieldsChecked = 0;
   for (var i = 0; i < fieldParameters[1]; i++) {
     for (var i1 = 0; i1 < fieldParameters[0]; i1++) {
-      if ((field[i1][i].includes(idGegner) && (AblageListe[6] != "fieldFree?"/* || field[i1][i].includes("removedFieldBy")*/)) || (AblageListe[6] == "fieldFree?" && field[i1][i].includes(id)/* && field[i1][i].includes("removedFieldBy")*/)) {
+      if (field[i1][i].includes(idUmzingeltUmgekehrtCheck)/* || AblageListe[6] == "fieldFree?"*/) {
       fieldsChecked = 0;
       // if (field[i1][i] != id && i1 > 0 && i1 + 1 < fieldParameters[0] && i > 0 && i + 1 < fieldParameters[1] && field[i1 - 1][i] == id && field[i1][i + 1] == id && field[i1 + 1][i] == id && field[i1][i - 1] == id) {
       AblageListe[4] = [];
@@ -313,8 +321,8 @@ function checkUmzingelt() {
       //  console.log(field[i1][i] == idGegner && /*i2 != "closed" && */field[i2][i] == id);
         fieldsChecked++;
         AblageListe[3] = 0;
-        if (((field[i1][i].includes(idGegner)) || (field[i1][i].includes(id) && AblageListe[6] == "fieldFree?"))/* || field[i1][i] == "fieldFree?"*/ && /*i2 != "closed" && */((field[i2][i].includes(id)) || (field[i2][i].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i1 + " - " + i);
-        else if (i1 != i2) checkUmzingeltEinFeld(i2, i);
+        if (i1 != i2 && (field[i1][i].includes(idUmzingeltUmgekehrtCheck)/* || field[i1][i] == "fieldFree?"*/) && /*i2 != "closed" && */field[i2][i].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i1 + " - " + i);
+        else if (i1 != i2) checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
       }
       console.log(AblageListe[4].length > AblageListe[2]);
       AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -324,8 +332,8 @@ function checkUmzingelt() {
         for (var i2 = i1; /*i2 != "closed" && field[i2][i1] && */i2 < fieldParameters[0] && !(AblageListe[4].length > AblageListe[2]); i2++) {
           fieldsChecked++;
           AblageListe[3] = 0;
-          if (((field[i2][i].includes(id)) || (field[i2][i].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i2 + " - " + i);
-          else if (i1 != i2) checkUmzingeltEinFeld(i2, i);
+          if (i1 != i2 && field[i2][i].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i2 + " - " + i);
+          else if (i1 != i2) checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
         }
         console.log(AblageListe[4].length > AblageListe[2]);
         AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -335,29 +343,29 @@ function checkUmzingelt() {
           for (var i2 = i; /*i2 != "closed" && */i2 > -1 && !(AblageListe[4].length > AblageListe[2]); i2--) {
             fieldsChecked++;
             AblageListe[3] = 0;
-            if (((field[i1][i2] == id) || (field[i1][i2].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
-            else if (i != i2) checkUmzingeltEinFeld(i1, i2);
+            if (i != i2 && field[i1][i2].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
+            else if (i != i2) checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
           }
           // if (AblageListe[4] == "closed") {
           console.log(AblageListe[4].length > AblageListe[2]);
           AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
           AblageListe[2] = AblageListe[4].length;
-            // y==
+            // y
             for (var i2 = i; /*i2 != "closed" && */i2 < fieldParameters[1] && !(AblageListe[4].length > AblageListe[2]); i2++) {
              fieldsChecked++;
               AblageListe[3] = 0;
-              if (((field[i1][i2] == id) || (field[i1][i2].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
-              else if (i != i2) checkUmzingeltEinFeld(i1, i2);
+              if (i != i2 && field[i1][i2].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
+              else if (i != i2) checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
             }
             console.log(AblageListe[4].length > AblageListe[2]);
             AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
             console.log(AblageListe[4].length + " - " + (fieldsChecked - 3)*4);
             if (/*AblageListe[4] == "closed"*//*AblageListe[4].length == (fieldsChecked - 3)*4*/!(AblageListe[1].includes(false))) {
-              if (!(AblageListe[1].includes(false))) console.log("removeFieldTry2");
-              if (AblageListe[4].length == (fieldsChecked - 3)*4) console.log("removeField");
+              // if (!(AblageListe[1].includes(false))) console.log("removeFieldTry2");
+              // if (AblageListe[4].length == (fieldsChecked - 3)*4) console.log("removeField");
+              /*if (AblageListe[6] == "fieldFree?") AblageListe[6] = [i1, i];
+              else */if (removeDirectly) field[i1][i] = "removedFieldBy " + id;
               AblageListe[5].push([i1, i])
-              if (AblageListe[6] == "fieldFree?") {AblageListe[6] = [i1, i]; i = fieldParameters[1]; i1 = fieldParameters[0];}
-        //      else field[i1][i] = "removedFieldBy " + id;
             }
     //
     //   }
@@ -370,14 +378,14 @@ function checkUmzingelt() {
 }
 }
 }
-function checkUmzingeltEinFeld(iOriginal, i2Original) {
+function checkUmzingeltEinFeld(iOriginal, i2Original, idUmzingeltCheck, idUmzingeltUmgekehrtCheck) {
   // AblageListe[4] = "open";
   AblageListe[2] = AblageListe[4].length;
   AblageListe[3]++;
   for (var i1 = iOriginal; i1 > -1 && !(AblageListe[4].length > AblageListe[2]); i1--) {
   //  console.log(field[i1][i] == idGegner && /*AblageListe[4] != "closed" &&*/ field[i1][i] == id);
-    if (/*AblageListe[4] != "closed" &&*/ ((field[i1][i2Original].includes(id)) || (field[i1][i2Original].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
-    else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, i2Original, 0);
+    if (i1 != iOriginal && /*AblageListe[4] != "closed" &&*/ field[i1][i2Original].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
+    else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, i2Original, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
     // else if (sender != undefined) checkUmzingeltEinFeld(i1, i);
   }
   console.log(AblageListe[4].length > AblageListe[2]);
@@ -387,8 +395,8 @@ function checkUmzingeltEinFeld(iOriginal, i2Original) {
     //AblageListe[4] = "open";
     for (var i1 = iOriginal; /*AblageListe[4] != "closed" &&*/ i1 < fieldParameters[0] && !(AblageListe[4].length > AblageListe[2]); i1++) {
       //fieldsChecked++;
-      if (((field[i1][i2Original].includes(id)) || (field[i1][i2Original].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
-      else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, i2Original);
+      if (i1 != iOriginal && field[i1][i2Original].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/i1 + " - " + i2Original);
+      else if (AblageListe[3] < 17) checkUmzingeltEinFeld(i1, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
     }
     console.log(AblageListe[4].length > AblageListe[2]);
     AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -397,8 +405,8 @@ function checkUmzingeltEinFeld(iOriginal, i2Original) {
   //    AblageListe[4] = "open";
       for (var i = i2Original; /*AblageListe[4] != "closed" &&*/ i > -1 && !(AblageListe[4].length > AblageListe[2]); i--) {
       //  fieldsChecked++;
-        if (((field[iOriginal][i].includes(id)) || (field[iOriginal][i].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(/*"closed"*/iOriginal + " - " + i);
-        else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i);
+        if (i != i2Original && field[iOriginal][i].includes(idUmzingeltCheck)) AblageListe[4].push(/*"closed"*/iOriginal + " - " + i);
+        else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
       }
       console.log(AblageListe[4].length > AblageListe[2]);
       AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -407,8 +415,8 @@ function checkUmzingeltEinFeld(iOriginal, i2Original) {
     //    AblageListe[4] = "open";
         for (var i = i2Original; /*AblageListe[4] != "closed" &&*/ i < fieldParameters[1] && !(AblageListe[4].length > AblageListe[2]); i++) {
       //    fieldsChecked++;
-          if (((field[iOriginal][i].includes(id)) || (field[iOriginal][i].includes(idGegner) && AblageListe[6] == "fieldFree?"))) AblageListe[4].push(iOriginal + " - " + i);
-          else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i);
+          if (i != i2Original && field[iOriginal][i].includes(idUmzingeltCheck)) AblageListe[4].push(iOriginal + " - " + i);
+          else  if (AblageListe[3] < 17) checkUmzingeltEinFeld(iOriginal, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck);
         // }
         // if (AblageListe[4] == "closed") {
         // if (true) {
