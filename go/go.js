@@ -41,11 +41,11 @@ console.log(data.message.type + " - " +      data.message.data[data.message.send
   onLeave(client) {
     console.log(client.sessionId);
     if (!(/*this.player1 == null || */client.sessionId == undefined)) {
-  if (client.sessionId == this.player1.id) {
+  if (this.player1 != null && client.sessionId == this.player1.id) {
       this.player1 = null;
       console.log("player 1 left");
   }
-  else {
+  else if (this.player2 != null) {
     this.player2 = null;
     console.log("player 2 left");
   }
