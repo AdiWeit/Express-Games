@@ -44,7 +44,8 @@ class monopolyKartenspiel {
     }
     this.spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
-    if (this.player1 && this.player2 && this.spielerOnline > 1) {
+        console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
+    if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
       this.broadcast({
@@ -291,6 +292,23 @@ class monopolyKartenspiel {
     if (this.spielerOnline == 2 && client.sessionId === this.player1.id) console.log(`${client.sessionId + "(0)"} left.`);
     else console.log(`${client.sessionId + "(1)"} left.`);
     this.broadcast(`${client.sessionId} left`);
+    if (this.player1 != undefined) console.log(client.sessionId + " - " + this.player1.id);
+    else {
+      console.log("war inaktiev");
+      this.spielerOnline = 1;
+      this.player1 = null;
+      this.player2 = null;
+      this.player3 = null;
+      this.player4 = null;
+    }
+    if (this.player2 != undefined) console.log(this.player2);
+    else {
+      console.log("nur 1 Spieler");
+      this.player1 = null;
+      this.spielerOnline = 1;
+    }
+    if (this.player3 != undefined) console.log(this.player3.id);
+    if (this.player4 != undefined) console.log(this.player4.id);
     if (this.spielerOnline == 4 && client.sessionId === this.player3.id) {
       this.player3 = this.player4;
       console.log("spieler3 weg - aufrücken (4 Spieler)");
@@ -392,7 +410,7 @@ class monopolyKartenspiel {
       }
       if (AblageListe[0][data.message.sender] > 2) this.broadcast(data.message.sender + " hat gewonnen!!!")
     }
-    if (data.message.type == "Gebot" || data.message.type == "namenSpieler") {
+    if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
       if (data.message.Empfänger == 1) this.send(this.player2.client, data.message);

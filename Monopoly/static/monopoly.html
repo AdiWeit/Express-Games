@@ -5,6 +5,8 @@
 </ul>
 <button type="button" name="button" id="keinenSpielstandLaden" onclick="keinenSpielstandLaden()">keinen Spielstand laden</button>
 <canvas id="textur" width="3310" height="790" style="opacity:1"></canvas>
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
 <meta charset="utf-8">
 <h2 id="aktivitätstext"></h2>
 <script>
@@ -37,13 +39,13 @@
   }
 
   register();
-  setInterval(getMessages, 3000);
+  setInterval(getMessages, 1000);
 
   function getMessages() {
     sendJson('/monopoly/message-queue', {
       clientId
     }).then(messages => {
-      console.log("MESSAGES", messages);
+      if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -108,7 +110,8 @@
   var nameSpiel = "none";
   var spielstände = [];
   var Bild = new Image();
-
+  var messages = [];
+  var colorObj = {"#00BFFF": "türkies", "#00FF40": "hell (neon) grün"};
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
   var host = window.document.location.host.replace(/:.*/, '');
@@ -152,6 +155,20 @@
     console.log("PC");
   }
 
+  function submit() {
+    messages.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messages",
+      data: messages,
+      sender: spielerIch
+    }
+    });
+    setTimeout(function () {
+        window.scroll(scrollX, 10000)
+        document.getElementById('message').select();
+    }, 3000);
+  }
   function keinenSpielstandLaden() {
     document.getElementById("spielstände").style.display = "none";
     document.getElementById("keinenSpielstandLaden").style.display = "none";
@@ -173,6 +190,17 @@
   }
 
   room.setOnMessageListener(function(message) {
+    if (message.type == "messages") {
+      messages = message.data
+
+      textur.height = 777 + messages.length*55;
+      Layout(0);
+      if (!(spielerIch == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      AblageListe[1] = "warten Message angucken";
+      setTimeout(function () {
+        AblageListe[1] = "beendet";
+      }, 3777);
+    };
     if (message.type == "namen") {
       spieler[0].name = message.data.toString().split(',')[0];
       spieler[1].name = message.data.toString().split(',')[1];
@@ -304,10 +332,16 @@
       }, 300);
       new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
       if (spielerAktuell == spielerIch) {
-      var notification = new Notification("It's your turn again! ", {
-        icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
-        body: "Come back to destroy the enemy(s)!",
-      });
+        try {
+          var notification = new Notification("It's your turn again! ", {
+            icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+            body: "Come back to destroy the enemy(s)!",
+          });
+        } catch (e) {
+          if (!(localStorage.getItem("firefoxHint") == "true")) {
+          alert("Für Benachrichtigungen, wenn sie dran kommen, bitte Firefox nutzen, oder es mit einem anderen Browser versuchen!");
+          localStorage.setItem("firefoxHint", true); }
+        }
     }
     }
     if (message.type == "spielerDu") spielerIch = message.data;
@@ -344,16 +378,22 @@
       AblageListe[0] = JSON.parse(message.data[1][0]);
       //    spieler[spielerIch.einkommen][0] -=
       bezahlen();
+      alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
   //    datenAktuallisieren();
     }
     if (message.type == "NixDa") {
       if (message.Status[0] == "abgebrochen" || message.Status[0] == "richtigerSpielerEmpfangen") {
         zustand[0] = "abgebrochen";
+        setTimeout(function () {
+          zustand[0] = "inGame";
+        }, 1000);
         AblageListe[4][0] = "beendet";
         console.log("AblageListe[0]: " + AblageListe[0]);
+        if (spielerIch == spielerAktuell && message["AblageListe[3]"] != undefined) AblageListe[3] = message["AblageListe[3]"];
+        if (spielerIch == spielerAktuell && message["AblageListe[2]"] != undefined) AblageListe[2] = message["AblageListe[2]"];
         if (message.Status[1] == spielerIch == false) {
           console.log("Nix Da battle gewonnen :)");
-          alert("Sie haben sich durchgesetzt!")
+      //    alert("Sie haben sich durchgesetzt! (Uventuell waren sie von der Nix-Da Aktion nicht betroffen)")
           console.log(AblageListe[2] + " - " + AblageListe[3]);
           if (spielerIch == spielerAktuell) {
             AblageListe[4][0] = "beendet";
@@ -377,7 +417,7 @@
               schlauGeklaut();
             }
             if (message.data == "Miete für alle") {
-              zählerListe[2] = AblageListe[3];
+              zählerListe[2] = AblageListe[11];
               MieteAlle();
             }
             if (message.data == "Miete gegen sie") {
@@ -387,7 +427,7 @@
               Miete();
             }
             if (message.data == "einen Geburtstag") {
-              zählerListe[2] = AblageListe[3];
+              zählerListe[2] = AblageListe[11];
               GeburtstagFunction();
             }
           } else if (spielerIch == spielerAktuell == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && message.Empfänger == spielerAktuell == false) {
@@ -396,6 +436,9 @@
                 "type": "NixDa",
                 "data": message.data,
                 "Empfänger": spielerAktuell,
+                "AblageListe[2]": message["AblageListe[2]"],
+                "AblageListe[3]": message["AblageListe[3]"],
+                "AblageListe[4]": message["AblageListe[4]"],
                 "Status": ["richtigerSpielerEmpfangen", message.Status[1]]
               }
             });
@@ -409,29 +452,34 @@
                 datenAktuallisieren();
               }, 500);
             }
-        } else {
+        } else if (spielerIch == spielerAktuell) {
           console.log("Nix da Battle verloren :(");
-          console.log("Leider hat der Gegner genug Nix da Karten gehabt.");
+        //  alert("Leider hat der Gegner genug Nix da Karten gehabt.");
           if (spielerIch == spielerAktuell == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && message.Empfänger == spielerAktuell == false) {
             room.send({
               message: {
                 "type": "NixDa",
                 "data": message.data,
                 "Empfänger": spielerAktuell,
+                "AblageListe[2]": message["AblageListe[2]"],
+                "AblageListe[3]": message["AblageListe[3]"],
+                "AblageListe[4]": message["AblageListe[4]"],
                 "Status": ["richtigerSpielerEmpfangen", message.Status[1]]
               }
             });
           }
+          if (spielerIch == spielerAktuell) {
           if (message.data == "Miete für alle") {
             AblageListe[8] = "NixDaVollendet";
-            zählerListe[2] = AblageListe[3] + 1;
+            zählerListe[2] = AblageListe[11] + 1;
             MieteAlle();
           }
           if (message.data == "einen Geburtstag") {
             AblageListe[8] = "NixDaVollendet";
-            zählerListe[2] = AblageListe[3] + 1;
+            zählerListe[2] = AblageListe[11] + 1;
             GeburtstagFunction();
           }
+        }
         }
         if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
           Spielerwechsel();
@@ -441,13 +489,15 @@
         }, 2500);
       }
     }
-    if (message.Empfänger == spielerIch && message.type == "NixDa" && message.Status[0] == "abgebrochen" == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && zustand[0] == "abgebrochen" == false) {
+    if (message.Empfänger == spielerIch && message.type == "NixDa" && message.Status[0] == "abgebrochen" == false && message.Status[0] == "richtigerSpielerEmpfangen" == false/* && zustand[0] == "abgebrochen" == false*/) {
       zustand[0] = message.Status[0];
       if (spieler[spielerIch].kartenIch.some(x => x.includes("Nix Da"))) {
         textButton = "Meine Karten";
         Layout();
         window.scroll(250, 0);
         setTimeout(function() {
+          if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte") && !(Object.keys(colorObj).includes(spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]))) alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4] + ") ");
+          else if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte"))  alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + colorObj[spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]] + ") ");
           if (confirm("Wollen sie ihre Nix Da Karte gegen " + message.data + " einsetzen?")) {
             zählerListe[3] = 0;
             while (zählerListe[3] < spieler[spielerIch].kartenIch.length) {
@@ -480,6 +530,9 @@
               "type": "NixDa",
               "data": message.data,
               "Empfänger": spielerAktuell,
+              "AblageListe[2]": message["AblageListe[2]"],
+              "AblageListe[3]": message["AblageListe[3]"],
+              "AblageListe[4]": message["AblageListe[4]"],
               "Status": zustand
             }
           });
@@ -488,7 +541,10 @@
             message: {
               "type": "NixDa",
               "data": message.data,
-              "Empfänger": AblageListe[3],
+              "Empfänger": message["AblageListe[3]"],
+              "AblageListe[2]": message["AblageListe[2]"],
+              "AblageListe[3]": message["AblageListe[3]"],
+              "AblageListe[4]": message["AblageListe[4]"],
               "Status": zustand
             }
           });
@@ -758,6 +814,14 @@
   AblageListe[10] = "none"
 
   document.onkeydown = function(event) {
+    if (event.key == "ArrowUp") window.scroll(scrollX, 73 + 403);
+    if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
+      window.scroll(scrollX, 742);
+      // setTimeout(function () {
+      //   window.scroll(scrollX, 73);
+      // }, 1777);
+    }
+
   if (event.keyCode == 39 && scrollX > 334) {
     window.scroll(scrollX + 250 - 44, scrollY);
   //  335 + 250 * karten.length > x
@@ -884,7 +948,7 @@
         schlauGeklaut();
         AblageListe[4][0] = "beendet";
       }
-    } else if (AblageListe[4][0] == "Haus" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5] == spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
+    } else if (AblageListe[4][0] == "Haus" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length == spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
       Haus();
       AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "Übernahme" && AblageListe[3] < AnzahlSpieler && spieler[AblageListe[3]].kartenMitte[AblageListe[2]] == undefined == false && spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length == spieler[
@@ -934,7 +998,7 @@
         AblageListe[4][0] = "beendet";
       }
 
-    } else if (AblageListe[4][0] == "Hotel" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false) {
+    } else if (AblageListe[4][0] == "Hotel" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length == spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
       Hotel();
       AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "GrundstücksJoker" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][2].length == spieler[spielerIch].kartenMitte[AblageListe[2]][5].length ==
@@ -1094,11 +1158,11 @@
           } else {
             if (AnzahlSpieler == 2 && spieler[spielerGegner].kartenMitte.length == 1) {
               AblageListe[3] = spielerGegner;
+              AblageListe[2] = 0;
               if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
                 //            AblageListe[2] = 0;
                 AblageListe[4][0] = "eine Schlau Geklaut Karte";
               } else {
-                AblageListe[2] = 0;
                 schlauGeklaut();
               }
             } else {
@@ -1327,17 +1391,10 @@
     } else if (AblageListe[4][0] == "Warten Bezahlen Gegner" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false) {
       alert("Bitte warten sie auf die Bezahlung des Gegners!")
     }
-    if (AblageListe[4][0] == "einen Zwangstausch" || AblageListe[4][0] == "Miete gegen sie" || AblageListe[4][0] == "einen Geburtstag" || AblageListe[4][0] == "Miete für alle" || AblageListe[4][0] == "eine Schlau Geklaut Karte" || AblageListe[4]
+    if (AblageListe[4][0] == "einen Zwangstausch" || AblageListe[4][0] == "Miete gegen sie"/* || AblageListe[4][0] == "einen Geburtstag" || AblageListe[4][0] == "Miete für alle"*/ || AblageListe[4][0] == "eine Schlau Geklaut Karte" || AblageListe[4]
       [0] == "einen Geldhai" || AblageListe[4][0] == "eine Übernahme Karte") {
       console.log(AblageListe[2] + " - " + AblageListe[3]);
-      room.send({
-        message: {
-          "type": "NixDa",
-          "data": AblageListe[4][0],
-          "Empfänger": AblageListe[3],
-          "Status": ["imGange"]
-        }
-      });
+      askNixDa();
     }
     if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
       Spielerwechsel();
@@ -1353,6 +1410,19 @@
   });
   // localStorage.setItem("Test", JSON.stringify([1,2,3]));
   // console.log(JSON.parse(localStorage.getItem("Test"));
+  function askNixDa() {
+    room.send({
+      message: {
+        "type": "NixDa",
+        "data": AblageListe[4][0],
+        "Empfänger": AblageListe[3],
+        "AblageListe[3]": AblageListe[3],
+        "AblageListe[2]": AblageListe[2],
+        "AblageListe[4]": AblageListe[4],
+        "Status": ["imGange"]
+      }
+    });
+  }
   function datenAktuallisieren() {
     if (spieler[AnzahlSpieler - 1].name == undefined == false) {
       localStorage.setItem(AblageListe[9] + " kartenZiehen", JSON.stringify(kartenZiehen));
@@ -1409,31 +1479,63 @@
   }
 
   function MieteAlle() {
-    if (zählerListe[2] > -1 && zählerListe[2] < AnzahlSpieler && zählerListe[2] == spielerIch == false) {
-      AblageListe[3] = zählerListe[2];
-      Miete();
-    }
-    zählerListe[2]++;
-
-    if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da")) && zählerListe[2] == spielerIch == false) {
-      AblageListe[3] = zählerListe[2];
-      AblageListe[4][0] = "Miete für alle";
-    } else if (zählerListe[2] < AnzahlSpieler) {
+    if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
+      if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
+        AblageListe[11] = zählerListe[2];
+        AblageListe[3] = zählerListe[2];
+        AblageListe[4][0] = "Miete für alle";
+        askNixDa();
+      } else {
+    //    AblageListe[0] = 2;
+        AblageListe[3] = zählerListe[2];
+        Miete();
+        // spieler[spielerIch].einkommen[0] += 2;
+        // spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+      }
       if (AblageListe[8] == "NixDaVollendet") {
         AblageListe[8] = "beendet";
       }
+    }
+    /* else {
+       //  spieler[spielerIch].einkommen[0] += 2 * (AnzahlSpieler - 1);
+         zählerListe[1] = 0;
+         while (zählerListe[1] < AnzahlSpieler - 1) {
+           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+           zählerListe[1]++;
+         }
+       } */
+    zählerListe[2]++;
+    if (zählerListe[2] < AnzahlSpieler && AblageListe[4][0] == "Miete für alle" == false) {
       MieteAlle();
     }
-
-    /*   while (zählerListe[2] < AnzahlSpieler) {
-         if (zählerListe[2] == spielerIch == false) {
-           AblageListe[3] = zählerListe[2];
-           Miete();
-         }
-         zählerListe[2]++;
-       } */
-    // datenAktuallisieren();
   }
+  // function MieteAlle() {
+  //   if (zählerListe[2] > -1 && zählerListe[2] < AnzahlSpieler && zählerListe[2] == spielerIch == false) {
+  //     AblageListe[3] = zählerListe[2];
+  //     Miete();
+  //   }
+  //   zählerListe[2]++;
+  //
+  //   if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da")) && zählerListe[2] == spielerIch == false) {
+  //     AblageListe[11] = zählerListe[2];
+  //     AblageListe[4][0] = "Miete für alle";
+  //     askNixDa();
+  //   } else if (zählerListe[2] < AnzahlSpieler) {
+  //     if (AblageListe[8] == "NixDaVollendet") {
+  //       AblageListe[8] = "beendet";
+  //     }
+  //     MieteAlle();
+  //   }
+  //
+  //   /*   while (zählerListe[2] < AnzahlSpieler) {
+  //        if (zählerListe[2] == spielerIch == false) {
+  //          AblageListe[3] = zählerListe[2];
+  //          Miete();
+  //        }
+  //        zählerListe[2]++;
+  //      } */
+  //   // datenAktuallisieren();
+  // }
 
   function Miete() {
     zählerListe[0] = 0;
@@ -1641,8 +1743,11 @@
   function GeburtstagFunction() {
     if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
       if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
+        AblageListe[11] = zählerListe[2];
         AblageListe[3] = zählerListe[2];
         AblageListe[4][0] = "einen Geburtstag";
+        console.log("ask nixDa (" + zählerListe[2] + ")");
+        askNixDa();
       } else {
         AblageListe[0] = 2;
         AblageListe[3] = zählerListe[2];
@@ -1665,8 +1770,8 @@
        } */
     zählerListe[2]++;
     if (zählerListe[2] < AnzahlSpieler && AblageListe[4][0] == "einen Geburtstag" == false) {
+      console.log("nextBirthday");
       GeburtstagFunction();
-      //    AblageListe[3] = zählerListe[2];
     }
   }
 
@@ -1849,6 +1954,9 @@
           }
           canvas.fillRect(koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180, 120);
           canvas.fillStyle = "white";
+          if (karten[zählerListe[1]][0] == "Straße" && karten[zählerListe[1]][4] == "yellow") {
+            canvas.fillStyle = "black";
+          }
           if (karten[zählerListe[1]][0] == "Straße" == false) {
             canvas.beginPath();
             canvas.arc(koordinaten[1] + 707 + 123, 710 - koordinaten[2], 15, 0, Math.PI * 2, false);
@@ -1885,6 +1993,9 @@
             koordinaten[0] = 635;
             while (zählerListe[0] < karten[zählerListe[1]][2].length) {
               canvas.fillStyle = "white";
+              if (karten[zählerListe[1]][0] == "Straße" && karten[zählerListe[1]][4] == "yellow") {
+                canvas.fillStyle = "black";
+              }
               canvas.fillText(AblageListe[0][0], koordinaten[1] + 550 + 123, 640 - koordinaten[2]);
               canvas.fillText(AblageListe[0][1], koordinaten[1] + 550 + 123, 666 - koordinaten[2]);
               if (karten[zählerListe[1]][2][zählerListe[0]] < 10 && karten[zählerListe[1]][5] == undefined == false && karten[zählerListe[1]][5].length - 1 == zählerListe[0]) {
@@ -1917,6 +2028,9 @@
               canvas.fillText(karten[zählerListe[1]][2][3],koordinaten[1] +  700, 710 - koordinaten[2]);
             } */
             canvas.fillStyle = "white";
+            if (karten[zählerListe[1]][0] == "Straße" && karten[zählerListe[1]][4] == "yellow") {
+              canvas.fillStyle = "black";
+            }
             canvas.beginPath();
             canvas.arc(koordinaten[1] + 640 + 123, 700 - koordinaten[2], 20, 0, Math.PI * 2, false);
             canvas.fill();
@@ -1926,11 +2040,18 @@
           }
         } else if (karten[zählerListe[1]][1] == undefined || karten[zählerListe[1]][1].length < 2 || karten[zählerListe[1]][1] == "Übernahme") {
           //  canvas.fillRect(koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180 , 120);
-          if (karten[zählerListe[1]][1] == undefined == false && !(karten[zählerListe[1]][1][0] == "all" == false && karten[zählerListe[1]][0] == "T Miete")) {
-            canvas.drawImage(Bild, koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180, 120);
-          }
-          if (karten[zählerListe[1]][1] == undefined) {
-            canvas.drawImage(Bild, koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180, 120);
+          try {
+            if (karten[zählerListe[1]][1] == undefined == false && !(karten[zählerListe[1]][1][0] == "all" == false && karten[zählerListe[1]][0] == "T Miete")) {
+              canvas.drawImage(Bild, koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180, 120);
+            }
+            if (karten[zählerListe[1]][1] == undefined) {
+              canvas.drawImage(Bild, koordinaten[1] + 545 + 123, 610 - koordinaten[2], 180, 120);
+            }
+          } catch (e) {
+            if (e.includes("Uncaught DOMException: Failed to execute 'drawImage' on 'CanvasRenderingContext2D': The HTMLImageElement provided is in the 'broken' state.")) {
+              Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/regenbogen004_1024x768.jpg";
+              Layout();
+            }
           }
           canvas.fillStyle = "white";
           if (karten[zählerListe[1]][1] == undefined == false && karten[zählerListe[1]][1][0] == "all") {
@@ -2052,24 +2173,29 @@
   function Layout() {
     if (!(Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" || Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg")) {
     canvas.fillStyle = "#DF7401"
-    canvas.fillRect(0, 0, 4000, 1000);
+    canvas.fillRect(0, 0, textur.width, textur.height);
     canvas.fillStyle = "white";
     canvas.fillRect(15, 200, 222, 300);
     canvas.fillStyle = "green"
     canvas.fillRect(15 + 20, 220, 180, 260);
     canvas.font = "30px Georgia";
     canvas.fillStyle = "white";
-    if (AblageListe[4][0] == "Auswahl Karten ablegen") {
-      canvas.fillText(AblageListe[4][0] + " Verbleibend: " + (spieler[spielerIch].kartenIch.length - 7), 10 + scrollX, 750 + 27);
-    } else if (AblageListe[4][0] == "bezahlen Gegner") {
-      canvas.fillText(AblageListe[4][0] + " Verbleibend: " + AblageListe[4][1], 10 + scrollX, 750 + 27);
-    } else if (AblageListe[4][0] == "beendet" && spielerAktuell == spielerIch) {
+    var displayObject = {"Auswahl Karten ablegen": AblageListe[4][0] + " Verbleibend: " + (spieler[spielerIch].kartenIch.length - 7), "bezahlen Gegner": AblageListe[4][0] + " Verbleibend: " + AblageListe[4][1]}
+    // if (AblageListe[4][0] == "Auswahl Karten ablegen") {
+    //   canvas.fillText(AblageListe[4][0] + " Verbleibend: " + (spieler[spielerIch].kartenIch.length - 7), 10 + scrollX, 750 + 27);
+    // } else if (AblageListe[4][0] == "bezahlen Gegner") {
+      // canvas.fillText(AblageListe[4][0] + " Verbleibend: " + AblageListe[4][1], 10 + scrollX, 750 + 27);
+    /*} else */if (AblageListe[4][0] == "beendet" && spielerAktuell == spielerIch) {
       canvas.fillText(" Verbleibende Züge: " + restlicheZüge, 10 + scrollX, 750 + 27);
     } else if (AblageListe[4][0] == "beendet" && spieler[spielerAktuell].name == undefined) {
       canvas.fillText("warten auf Gegner (" + (spielerAktuell + 1) + ")", 10 + scrollX, 750 + 27);
     }  else if (AblageListe[4][0] == "beendet") {
         canvas.fillText("warten auf Gegner (" + (spielerAktuell + 1) + ", namens " + spieler[spielerAktuell].name + ")", 10 + scrollX, 750 + 27);
-    } else {
+    }
+    else if (Object.keys(displayObject).includes(AblageListe[4][0])) {
+      canvas.fillText(displayObject[AblageListe[4][0]], 10 + scrollX, 750 + 27);
+    }
+    else {
       canvas.fillText(AblageListe[4][0], 10 + scrollX, 750 + 27);
     }
     canvas.fillStyle = "white"
@@ -2104,8 +2230,16 @@
       }
     }
   }
+  showChat();
 }
-
+function showChat() {
+  for (var i = 0; i < messages.length; i++) {
+    // if (!(messages[messages.length - 1 - i] == undefined)) {
+    canvas.fillStyle = "white";
+    canvas.font = "33px Georgia";
+    canvas.fillText(messages[messages.length - 1 - i], 33, 822 + 44*i);
+  }
+  }
   function koordinatenCheck() {
     zählerListe[0] = 0;
     while (zählerListe[0] < 20) {
@@ -2161,4 +2295,14 @@
       }
     }
   }
+
+window.addEventListener("dblclick", dbClick)
+
+function dbClick() {
+  window.scroll(scrollX, 742);
+  // setTimeout(function () {
+  //   window.scroll(scrollX, 73);
+  // }, 1777);
+}
+
 </script>
