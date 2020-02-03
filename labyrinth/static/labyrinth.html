@@ -1,0 +1,321 @@
+<div class="" id="fieldSelection">
+  <h1 id="field size">field size</h1>
+  <input type="text" placeholder="x" value="20" id="fieldSizeX"></input>
+  <input type="text" placeholder="y" value="20" id="fieldSizeY"></input>
+  <input type="text" placeholder="points required for win" value="5" id="pointsRequiredForWin"></input>
+</div>
+<button type="button" id="nextRound" onclick="ready(true);" name="button">nextRound!</button>
+<canvas id="textur" width="1590" height="730"></canvas>
+<input type="text" id="guess" placeholder="guess (Anzahl)"></input>
+<script>
+  document.getElementById("nextRound").style.display = "none";
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/labyrinth/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/labyrinth/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/labyrinth/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/labyrinth/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.round(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var points = {};
+  var xLength = 0;
+  var yLength = 0;
+  var player1 = false;
+  var AnzahlSpieler = 0;
+  var nextRound = [];
+  var id = "";
+  var secs = 60;
+  var timer;
+  room.setOnMessageListener(function(message) {
+    if (message.type == "points") {points[id] = message.data[id]; visible([["nextRound", "inline"]]); document.getElementById('nextRound').innerHTML = "nextRound!";}
+    if (message.type == "player1") player1 = message.data;
+    if (message.type == "newCard") {cards[0] = message.data; Layout();guess.select();}
+    if (message.type == "wrongAnswer") {
+      playAudio(0, 3000, "https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3");
+      var i1 = 0;
+      for (var i = 0; i < Object.keys(message.data).length; i++) {
+        if (message.data[Object.keys(message.data)[i]] == true) i1++;
+      }
+      secs = (xLength + yLength)*2 - 20;
+      if (secs < 30) secs = 30;
+      if (i1 < 2 && message.data[id] == false) timer = setInterval(timerFun, 1000);
+    }
+    if (message.type == "settings"/* && message.sender != id*/) {
+    document.getElementById('fieldSelection').style.display = "none";
+    document.getElementById("nextRound").style.display = "inline";
+    xLength = Math.round((JSON.parse(document.getElementById('fieldSizeX').value) + JSON.parse(message.data.map[0]))/2);
+    yLength =  Math.round((JSON.parse(document.getElementById('fieldSizeY').value) + JSON.parse(message.data.map[1]))/2);
+    points.required = Math.round((JSON.parse(document.getElementById('pointsRequiredForWin').value) + JSON.parse(message.data.points))/2);
+  }
+  else if (message.type == "nextRound") {nextRound.push(true);
+    if (nextRound.length == AnzahlSpieler) {visible([["nextRound", "none"]]); guess.value = "0";
+    guessObj = {finished: false, /*yourGuess: false, youGuessed: false*/guessed: {}};
+    for (var i = 0; i < Object.keys(points).length - 1; i++) {
+      guessObj.guessed[Object.keys(points)[i]] = false;
+    }
+  }
+    if (nextRound.length == AnzahlSpieler && id == message.id) {
+      newRound();
+    }
+  }
+  else if (message.type == "ids") {
+    points = {};
+    for (var i = 0; i < message.data.length; i++) {
+      points[message.data[i]] = 0;
+    }
+    AnzahlSpieler = message.data.length;
+  }
+  else if (message.type == "name") {
+    player1 = false;
+    id = message.data;
+    alert("You have 5 more seconds to change your settings! After it, the middle between the settings of the two players will be chosen.");
+    setTimeout(function () {
+      room.send({
+        message: {
+        type: "settings",
+        data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
+        sender: id
+      }
+      });
+    }, 5000);
+  }
+  else if (message.type == undefined && message.includes("wins") && !(message.includes(id))) {
+    alert("you lost the game! You now have 5 more seconds to understand why ;) ")
+    showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
+  }
+  else if (message.type == undefined && message.includes("wins") && message.includes(id)) {
+    console.log("you won the game! You now have 5 more seconds to understand why ;) ");
+    showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
+  }
+});
+function timerFun() {
+  secs--;
+  if (secs > 0) playAudio(0, 500, "https://adi.nicolaiweitkemper.de/Sounds/130046__maxdemianagl__alarmclock-clicking.wav");
+  else {playAudio(0, 4000, "https://adi.nicolaiweitkemper.de/Sounds/476176__unadamlar__bell-ringing-ii.wav");clearInterval(timer)
+  guessObj.guessed[id] = true;
+  if (guess.value == auswertungAnzahlKisten()) points[id]++;
+  else guess.value = auswertungAnzahlKisten();
+  room.send({
+    message: {
+      type: "points",
+      data: points,
+      rightGuess: auswertungAnzahlKisten()
+    }
+  });
+};
+}
+function showResults(picture, sounds, colour, time) {
+setTimeout(function () {
+  if (time == 0) audio = new Audio(sounds).play();
+  canvas.fillStyle = colour;
+  canvas.fillRect(0, 0, 1847, 973);
+  Bild = new Image();
+  Bild.src = picture;
+  canvas.drawImage(Bild, 260, 0);
+  if (time < 5) showResults(picture, sounds, colour, time + 1);
+}, 5000);
+}
+
+  var canvas = textur.getContext('2d'); //Dimension
+  var cards = [];
+
+  createNewCard(30, 20);
+  function createNewCard(xLength, yLength) {
+    var card = [];
+    for (var i = 0; i < xLength; i++) {
+      card[i] = [];
+      for (var i1 = 0; i1 < yLength; i1++) {
+        card[i][i1] = "weg";
+      }
+    }
+    card[Math.round(xLength/2)][Math.round(yLength/2)] = "start";
+    console.log(xLength/2 + " - " + yLength/2 + " - " + card[xLength/2][yLength/2]);
+    for (var i = 0; i < (xLength*yLength)/1.7/*(xLength*yLength)/1.5*/; i++) {
+      var randomNumbers = [Math.round(Math.random() *(xLength - 1)), Math.round(Math.random() *(yLength - 1))];
+      if (card[randomNumbers[0]][randomNumbers[1]] == "weg") card[randomNumbers[0]][randomNumbers[1]] = "wall";
+      else i--;
+    }
+    for (var i = 0; i < (xLength*yLength)/13; i++) {
+      var randomNumbers = [Math.round(Math.random() *(xLength - 1)), Math.round(Math.random() *(yLength - 1))];
+      if (card[randomNumbers[0]][randomNumbers[1]] != "truhe" && card[randomNumbers[0]][randomNumbers[1]] != "start"/* && ((card[randomNumbers[0] + 1] != undefined && card[randomNumbers[0] + 1][randomNumbers[1]]) == "truhe" || (card[randomNumbers[0] - 1] != undefined && card[randomNumbers[0] - 1][randomNumbers[1]] == "truhe") || (card[randomNumbers[0]][randomNumbers[1] + 1] == "truhe") || card[randomNumbers[0]][randomNumbers[1] - 1] == "truhe")*/) card[randomNumbers[0]][randomNumbers[1]] = "truhe";
+      else i--;
+    }
+    console.log(card);
+    cards[0] = card;
+    Layout();
+  }
+  function ready(ready) {
+    document.getElementById('nextRound').innerHTML = "waiting for opponents...";
+    room.send({
+      message: {
+        type: "nextRound",
+        id: id
+      }
+    });
+  }
+  function Layout() {
+    canvas.fillStyle = "white";
+    canvas.fillRect(0, 0, textur.width, textur.height);
+    canvas.fillStyle = "gray";
+    canvas.fillRect(0, 0, 33*cards[0].length, 33*cards[0][0].length)
+    for (var i = 0; i < cards[0][0].length; i++) {
+      for (var i1 = 0; i1 < cards[0].length; i1++) {
+        if (cards[0][i1][i] == "weg") canvas.fillStyle = "brown";
+        else if (cards[0][i1][i] == "totenkopf") canvas.fillStyle = "blue";
+        else if (cards[0][i1][i] == "wall") canvas.fillStyle = "gray";
+        // else if (cards[0][i1][i] != "start" && cards[0][i1][i] != undefined) canvas.fillStyle = cards[0][i1][i].toString().split('tür (')[1].toString().split(')')[0];
+        else if (cards[0][i1][i] == "start") canvas.fillStyle = "yellow";
+        else canvas.fillStyle = "orange";
+        canvas.fillRect(/*10 + */33*i1,/* 10 + */33*i, 33, 33);
+      }
+    }
+  }
+
+  function checkAnzahlKisten(i1, i, commingFrom, felderChecked) {
+  var bereitsGezählt = false;
+  for (var i2 = 0; i2 < felderChecked.length; i2++) {
+    if (felderChecked[i2][0] == i && felderChecked[i2][1] == i1) bereitsGezählt = true;
+  }
+  if (!bereitsGezählt) {felderChecked.push([i, i1]);
+    // if (cards[0][i1][i].item != false && cards[0][i1][i].item.includes("Goal")) item.goal = true;
+    // else if (cards[0][i1][i].item != false) item.normal = true;
+    if (cards[0][i1][i] == "truhe") anzahlTruhen++;
+    // console.log(i1 > 0 && (cards[0][i1 - 1][i] == "truhe" || cards[0][i1 - 1][i] == "wall"));
+    if (i1 > 0 && (cards[0][i1 - 1][i] == "truhe" || cards[0][i1 - 1][i] == "wall") && commingFrom != "left") checkAnzahlKisten(i1 - 1, i, "right", felderChecked);
+    // console.log(i > 0 && (cards[0][i1][i - 1] == "truhe" || cards[0][i1][i - 1] == "wall"));
+    if (i > 0 && (cards[0][i1][i - 1] == "truhe" || cards[0][i1][i - 1] == "wall") && commingFrom != "up") checkAnzahlKisten(i1, i - 1, "down", felderChecked);
+    // console.log(i1 < cards[0].length - 1 && cards[0][i1 + 1][i]) == "truhe" || );
+    if (i1 < cards[0].length - 1 && (cards[0][i1 + 1][i] == "truhe" || cards[0][i1 + 1][i] == "wall") && commingFrom != "right") checkAnzahlKisten(i1 + 1, i, "left", felderChecked);
+    // console.log(i < cards[0][0].length - 1 && cards[0][i1][i + 1] == "truhe" || ));
+    if (i < cards[0][0].length - 1 && (cards[0][i1][i + 1] == "truhe" || cards[0][i1][i + 1] == "wall") && commingFrom != "down") checkAnzahlKisten(i1, i + 1, "up", felderChecked);
+  }
+}
+  var anzahlTruhen = 0;
+function auswertungAnzahlKisten() {
+  anzahlTruhen = 0;
+  checkAnzahlKisten(cards[0].length/2, cards[0][0].length/2, undefined, []);
+  console.log(anzahlTruhen + " Truhen erreichbar");
+  return anzahlTruhen;
+}
+function newRound() {
+  nextRound = [];
+  // if (player1) {
+    createNewCard(xLength, yLength);
+    room.send({
+      message: {
+        type: "newCard",
+        data: cards[0]
+      }
+    });
+// }
+}
+var lastValue;
+var guessObj = {finished: false, /*yourGuess: false, youGuessed: false*/};
+document.onkeydown = function(event) {
+  console.log(event.key);
+  if (event.key == "Enter") {console.log("confirm");
+  if (auswertungAnzahlKisten() == guess.value && guessObj/*.youguessed*/.guessed[id] == false && guessObj.finished == false) {console.log("you guessed right!"); guessObj.finished = true; /*guessObj.yourGuess = true; */guessObj/*.youguessed*/.guessed[id] = true; points[id]++;
+  room.send({
+    message: {
+      type: "points",
+      data: points,
+      rightGuess: guess.value
+    }
+  });
+  playAudio(0, 4000, "https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3");
+}
+  else if (guessObj/*.youguessed*/.guessed[id] == false) {console.log("you guessed wrong!"); guessObj/*.youguessed*/.guessed[id] = true; guess.value = auswertungAnzahlKisten();
+  room.send({
+    message: {
+      type: "wrongAnswer",
+      data: guessObj.guessed
+    }
+  });
+}
+}
+  else if (event.key == "ArrowUp") {console.log("expose"); guess.value = JSON.parse(guess.value) + 1}
+  else if (event.key == "ArrowDown") {console.log("go down one"); guess.value = JSON.parse(guess.value) - 1}
+  else if (lastValue == "ArrowUp" || lastValue == "ArrowDown" || lastValue == "Enter") guess.select();
+  lastValue = event.key;
+}
+
+function visible(list) {
+  for (var i = 0; i < list.length; i++) {
+    document.getElementById(list[i][0]).style.display = list[i][1];
+  }
+}
+function playMultibleAudios(list, i) {
+  playAudio(list[i].startTime, list[i].dauerInMiliSec, list[i].link)
+  setTimeout(function () {
+  if (i + 1 < list.length) {
+    playMultibleAudios(list, i + 1);
+}
+}, list[i].dauerInMiliSec);
+}
+function playAudio(startTime, dauerInMiliSec, link) {
+  var audio = new Audio(link);
+  audio.currentTime = startTime;
+  audio.play();
+  setTimeout(function () {
+    audio.pause();
+  }, dauerInMiliSec);
+}
+</script>

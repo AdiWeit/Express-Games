@@ -33,6 +33,21 @@ app.use('/geduldsspiel/', geduldsspiel);
 const uno = require('./uno/index.js');
 app.use('/uno/', uno);
 
+const snakeGame = require('./snakeGame/index.js');
+app.use('/snakeGame/', snakeGame);
+
+const SchereSteinPapier = require('./SchereSteinPapier/index.js');
+app.use('/SchereSteinPapier/', SchereSteinPapier);
+
+const gruselino = require('./gruselino/index.js');
+app.use('/gruselino/', gruselino);
+
+const vierGewinnt = require('./vierGewinnt/index.js');
+app.use('/vierGewinnt/', vierGewinnt);
+
+const labyrinth = require('./labyrinth/index.js');
+app.use('/labyrinth/', labyrinth);
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname
