@@ -1,7 +1,7 @@
 <div class="" id="fieldSelection">
   <h1 id="field size">field size</h1>
-  <input type="text" placeholder="x" value="20" id="fieldSizeX"></input>
-  <input type="text" placeholder="y" value="20" id="fieldSizeY"></input>
+  <input type="text" placeholder="x" value="20" onchange="createNewCard(value, document.getElementById('fieldSizeY').value);" id="fieldSizeX"></input>
+  <input type="text" placeholder="y" value="20" onchange="createNewCard(document.getElementById('fieldSizeX').value, value);" id="fieldSizeY"></input>
   <input type="text" placeholder="points required for win" value="5" id="pointsRequiredForWin"></input>
 </div>
 <button type="button" id="nextRound" onclick="ready(true);" name="button">nextRound!</button>
@@ -87,12 +87,13 @@
   room.setOnMessageListener(function(message) {
     if (message.type == "points") {points[id] = message.data[id]; visible([["nextRound", "inline"]]); document.getElementById('nextRound').innerHTML = "nextRound!";}
     if (message.type == "player1") player1 = message.data;
-    if (message.type == "newCard") {cards[0] = message.data; Layout();guess.select();}
+    if (message.type == "newCard") {cards[0] = message.data; Layout(0, 0, true, 0);guess.select();}
+    if (message.type == "guess") guessObj.guessed[message.sender] = message.data[message.sender];
     if (message.type == "wrongAnswer") {
       playAudio(0, 3000, "https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3");
       var i1 = 0;
       for (var i = 0; i < Object.keys(message.data).length; i++) {
-        if (message.data[Object.keys(message.data)[i]] == true) i1++;
+        if (message.data[Object.keys(message.data)[i]] == false) i1++;
       }
       secs = (xLength + yLength)*2 - 20;
       if (secs < 30) secs = 30;
@@ -111,6 +112,9 @@
     for (var i = 0; i < Object.keys(points).length - 1; i++) {
       guessObj.guessed[Object.keys(points)[i]] = false;
     }
+    setTimeout(function () {
+      nextRound = [];
+    }, 1000);
   }
     if (nextRound.length == AnzahlSpieler && id == message.id) {
       newRound();
@@ -187,7 +191,7 @@ setTimeout(function () {
       }
     }
     card[Math.round(xLength/2)][Math.round(yLength/2)] = "start";
-    console.log(xLength/2 + " - " + yLength/2 + " - " + card[xLength/2][yLength/2]);
+    //console.log(xLength/2 + " - " + yLength/2 + " - " + card[xLength/2][yLength/2]);
     for (var i = 0; i < (xLength*yLength)/1.7/*(xLength*yLength)/1.5*/; i++) {
       var randomNumbers = [Math.round(Math.random() *(xLength - 1)), Math.round(Math.random() *(yLength - 1))];
       if (card[randomNumbers[0]][randomNumbers[1]] == "weg") card[randomNumbers[0]][randomNumbers[1]] = "wall";
@@ -200,7 +204,7 @@ setTimeout(function () {
     }
     console.log(card);
     cards[0] = card;
-    Layout();
+    Layout(0, 0, true, 0);
   }
   function ready(ready) {
     document.getElementById('nextRound').innerHTML = "waiting for opponents...";
@@ -211,24 +215,51 @@ setTimeout(function () {
       }
     });
   }
-  function Layout() {
+  function Layout(startX, startY, clearCanvas, card) {
     canvas.fillStyle = "white";
-    canvas.fillRect(0, 0, textur.width, textur.height);
+    if (clearCanvas) canvas.fillRect(0, 0, textur.width, textur.height);
     canvas.fillStyle = "gray";
-    canvas.fillRect(0, 0, 33*cards[0].length, 33*cards[0][0].length)
-    for (var i = 0; i < cards[0][0].length; i++) {
-      for (var i1 = 0; i1 < cards[0].length; i1++) {
-        if (cards[0][i1][i] == "weg") canvas.fillStyle = "brown";
-        else if (cards[0][i1][i] == "totenkopf") canvas.fillStyle = "blue";
-        else if (cards[0][i1][i] == "wall") canvas.fillStyle = "gray";
-        // else if (cards[0][i1][i] != "start" && cards[0][i1][i] != undefined) canvas.fillStyle = cards[0][i1][i].toString().split('tür (')[1].toString().split(')')[0];
-        else if (cards[0][i1][i] == "start") canvas.fillStyle = "yellow";
-        else canvas.fillStyle = "orange";
-        canvas.fillRect(/*10 + */33*i1,/* 10 + */33*i, 33, 33);
+    canvas.fillRect(startX, startY, 33*cards[card].length, 33*cards[card][0].length)
+    for (var i = 0; i < cards[card][0].length; i++) {
+      for (var i1 = 0; i1 < cards[card].length; i1++) {
+        if (cards[card][i1] != undefined) {
+        if (cards[card][i1][i] == "weg") canvas.fillStyle = "brown";
+        else if (cards[card][i1][i] == "totenkopf") canvas.fillStyle = "blue";
+        else if (cards[card][i1][i] == "truhe") canvas.fillStyle = "orange";
+        // else if (cards[card][i1][i] != "start" && cards[card][i1][i] != undefined) canvas.fillStyle = cards[card][i1][i].toString().split('tür (')[1].toString().split(')')[0];
+        else if (cards[card][i1][i] == "start") canvas.fillStyle = "yellow";
+        else canvas.fillStyle = "gray";
+        canvas.fillRect(startX + /*10 + */33*i1, startY + /* 10 + */33*i, 33, 33);
+      }
       }
     }
   }
-
+  function showScores() {
+    cards[1] = [];
+    cards[1][0] = [];
+    for (var i = 0; i < AnzahlSpieler*4 - 1*AnzahlSpieler + 1; i++) {
+      cards[1][0][i] = "weg";
+      if (!cards[1][(points.required + "").length*2 + 1]) cards[1][(points.required + "").length*2 + 1] = [];
+      cards[1][(points.required + "").length*2 + 1][i] = "weg";
+      if (!((i/3 + "").includes("."))) {
+        for (var i1 = 1; i1 < (points.required + "").length*2 + 1; i1++) {
+          if (!cards[1][i1]) cards[1][i1] = [];
+          cards[1][i1][i] = "weg";
+        }
+      }
+    }
+    for (var i = 1; i < (points.required + "").length*2 + 1; i++) {
+      if (!cards[1][i]) cards[1][i] = [];
+      cards[1][i][0] = "weg";
+      cards[1][i][AnzahlSpieler*4 - 1] = "weg";
+    }
+    Layout((xLength + 1)*33, 0, false, 1);
+    canvas.fillStyle = "orange";
+    canvas.font = "50px Georgia";
+    for (var i = 0; i < Object.keys(points).length; i++) {
+      if (Object.keys(points)[i] != "required") canvas.fillText(points[Object.keys(points)[i]], (xLength + 2)*33 + 33/2, 99*(i) + 66 + 33/2);
+    }
+  }
   function checkAnzahlKisten(i1, i, commingFrom, felderChecked) {
   var bereitsGezählt = false;
   for (var i2 = 0; i2 < felderChecked.length; i2++) {
@@ -256,7 +287,6 @@ function auswertungAnzahlKisten() {
   return anzahlTruhen;
 }
 function newRound() {
-  nextRound = [];
   // if (player1) {
     createNewCard(xLength, yLength);
     room.send({
@@ -271,7 +301,8 @@ var lastValue;
 var guessObj = {finished: false, /*yourGuess: false, youGuessed: false*/};
 document.onkeydown = function(event) {
   console.log(event.key);
-  if (event.key == "Enter") {console.log("confirm");
+  if (event.key == "Enter" && xLength > 0 && yLength > 0) {console.log("confirm");
+  clearInterval(timer);
   if (auswertungAnzahlKisten() == guess.value && guessObj/*.youguessed*/.guessed[id] == false && guessObj.finished == false) {console.log("you guessed right!"); guessObj.finished = true; /*guessObj.yourGuess = true; */guessObj/*.youguessed*/.guessed[id] = true; points[id]++;
   room.send({
     message: {
@@ -285,15 +316,35 @@ document.onkeydown = function(event) {
   else if (guessObj/*.youguessed*/.guessed[id] == false) {console.log("you guessed wrong!"); guessObj/*.youguessed*/.guessed[id] = true; guess.value = auswertungAnzahlKisten();
   room.send({
     message: {
+      type: "guess",
+      data: guessObj.guessed,
+      sender: id
+    }
+  });
+  room.send({
+    message: {
       type: "wrongAnswer",
       data: guessObj.guessed
     }
   });
 }
+var i1 = 0;
+for (var i = 0; i < Object.keys(guessObj).length; i++) {
+  if (guessObj.guessed[Object.keys(guessObj.guessed)[i]] == false) i1++;
 }
-  else if (event.key == "ArrowUp") {console.log("expose"); guess.value = JSON.parse(guess.value) + 1}
-  else if (event.key == "ArrowDown") {console.log("go down one"); guess.value = JSON.parse(guess.value) - 1}
-  else if (lastValue == "ArrowUp" || lastValue == "ArrowDown" || lastValue == "Enter") guess.select();
+if (i1 == 0) {
+  room.send({
+    message: {
+      type: "points",
+      data: points,
+      rightGuess: guess.value
+    }
+  });
+}
+}
+  else if (event.key == "ArrowUp" && xLength > 0 && yLength > 0) {console.log("expose"); guess.value = JSON.parse(guess.value) + 1}
+  else if (event.key == "ArrowDown" && xLength > 0 && yLength > 0) {console.log("go down one"); guess.value = JSON.parse(guess.value) - 1}
+  else if (xLength > 0 && yLength > 0 && (lastValue == "ArrowUp" || lastValue == "ArrowDown" || lastValue == "Enter")) guess.select();
   lastValue = event.key;
 }
 
