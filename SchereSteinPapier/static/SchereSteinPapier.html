@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width" />
+
+  <style>
+    body { font-family: Tahoma, Geneva, sans-serif; text-align: center; }
+    </style>
+
+  <!-- colyseus.js client (npm run bundle-colyseus-client) -->
+
+
+</head>
+
+<body>
+
+  <button onclick="send('Schere')">Schere</button>
+  <button onclick="send('Stein')">Stein</button>
+  <button onclick="send('Papier')">Papier</button>
+
+  <p>This room doesn't use the room's state. It just broadcast messages through "broadcast" method.</p>
+
+  <strong>Messages</strong><br>
+
+  <form id="form">
+    <input type="text" id="input" value="" autofocus />
+    <input type="submit" value="send" />
+  </form>
+
+  <div id="messages"></div>
+
+  <script>
+    var host = window.document.location.host.replace(/:.*/, '');
+
+  //  var client = new Colyseus.Client(location.protocol.replace("http", "ws") + host + (location.port ? ':' + location.port : ''));
+    async function sendJson(url = "/", body = {}) {
+      const rawResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      const content = await rawResponse.json();
+      return content;
+    }
+    // sendJson('/logout', {
+    //   clientId
+    // });
+
+    const clientId = makeid(10);
+    var messageListener = null;
+
+    async function register() {
+      let response = sendJson('/SchereSteinPapier/login', {
+        clientId
+      });
+    }
+
+    register();
+    setInterval(getMessages, 3000);
+
+    function getMessages() {
+      sendJson('/SchereSteinPapier/message-queue', {
+        clientId
+      }).then(messages => {
+        console.log("MESSAGES", messages);
+        messages.forEach(msg => messageListener(msg));
+      });
+    }
+
+    function sendMessage(obj) {
+      sendJson('/SchereSteinPapier/message', {
+        clientId,
+        content: obj
+      });
+    }
+
+    function makeid(length) {
+      var result = '';
+      var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      var charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      }
+      return result;
+    }
+
+
+    var room = {
+      setOnMessageListener(listener) {
+        messageListener = listener;
+      },
+      send(msg) {
+        sendMessage(msg);
+      }
+    };
+    window.onbeforeunload = function() {
+      console.log("Leave Website");
+      sendJson('/SchereSteinPapier/logout', {
+        clientId
+      });
+      return 'Are you sure you want to leave?';
+    };
+    room.setOnMessageListener(function(message) {
+      var p = document.createElement("p");
+      p.innerHTML = message;
+      document.querySelector("#messages").appendChild(p);
+    });
+
+    // send message to room on submit
+    document.querySelector("#form").onsubmit = function(e) {
+      e.preventDefault();
+
+      var input = document.querySelector("#input");
+
+      console.log("input:", input.value);
+
+      // send data to room
+      room.send({
+        message: input.value
+      });
+
+      // clear input
+      input.value = "";
+    }
+
+    function send(typ) {
+      room.send({
+        message: typ
+      });
+    }
+  </script>
+</body>
+
+</html>

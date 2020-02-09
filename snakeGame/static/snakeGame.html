@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<h1 id="wartenSpieler">Warten auf andere Spieler</h1>
+<div id="vorSpielBeginn">
+<h1>die Schlange muss vergeben werden!!!</h2>
+<div id="app">
+<li v-for="title in db" id="character">
+  {{ title }}
+</li>
+</div>
+<br>
+<button type="button" name="button" onclick="rundeStarten()" id="rundeStarten">bereit für Rundenbeginn</button>
+</div>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team S.C.R.I.P.T.</title>
+    <style> body {padding: 0; margin: 0;} </style>
+    <script src="https://adi.nicolaiweitkemper.de/p5/p5.min.js"></script>
+    <script src="https://adi.nicolaiweitkemper.de/p5/addons/p5.dom.min.js"></script>
+    <script src="https://adi.nicolaiweitkemper.de/p5/addons/p5.sound.min.js"></script>
+
+  </head>
+  <body>
+  </body>
+</html>
+
+<script>
+
+var syncI;
+var AblageListe = [];
+    AblageListe[1] = [];
+var zählerListe = [];
+var AnzahlSpieler = 1;
+var spielerIch = -1;
+var iDirectionInterval;
+var fMovement;
+var dMoving;
+var hMovement;
+var snake = true;
+var drawFrog  = false;
+var character = ["snake", "insect", "frog", "draughts (Dame)", "hunter"];
+    AblageListe[2] = {};
+    for(i=0; i< character.length; i++) {
+      AblageListe[2][character[i]] = i;
+    }
+  var app = new Vue({
+  el: '#app',
+  data: {
+    db: character
+  }
+})
+
+// Auswahl von Liste:
+var items = document.querySelectorAll("#character"),
+tab = [], liIndex;
+        for(var i = 0; i < items.length; i++){
+            tab.push(items[i].innerHTML);
+        }
+        for(i = 0; i < items.length; i++){
+            items[i].onclick = function(){
+                liIndex = tab.indexOf(this.innerHTML);
+                console.log(this.innerHTML + " INDEX = " + liIndex);
+                if (document.getElementById('rundeStarten').innerHTML == "bereit für Rundenbeginn" && spielerIch < 0) {
+                for(zählerListe[0] = 0; zählerListe[0]< character.length; zählerListe[0]++) {
+                  if (this.innerHTML.includes(character[zählerListe[0]])) {
+                    spielerIch = AblageListe[2][character[zählerListe[0]]];
+                    character.splice(zählerListe[0] ,1)
+                    room.send({
+                      message: {
+                        "type": "character",
+                        "data": character
+                      }
+                    });
+                  }
+                }
+            }
+        };
+      }
+
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+var xDown = null;
+var yDown = null;
+function getTouches(evt) {
+return evt.touches ||             // browser API
+       evt.originalEvent.touches; // jQuery
+}
+function handleTouchStart(evt) {
+  const firstTouch = getTouches(evt)[0];
+  xDown = firstTouch.clientX;
+  yDown = firstTouch.clientY;
+//  document.getElementById('koordinaten').innerHTML = "first touch: " + firstTouch.clientX + " - " + firstTouch.clientY;
+};
+function handleTouchMove(evt) {
+//  document.getElementById('koordinaten2').innerHTML = "touches: " + evt.touches[0].clientX + " - " + evt.touches[0].clientY ;
+  var xUp = evt.touches[0].clientX;
+  var yUp = evt.touches[0].clientY;
+  var xDiff = xDown - xUp;
+  var yDiff = yDown - yUp;
+
+  if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+      if ( xDiff > 0 ) {
+          /* left swipe */
+          AblageListe[0] = 37;
+      } else {
+          /* right swipe */
+          AblageListe[0] = 39;
+      }
+  } else {
+      if ( yDiff > 0 ) {
+          /* up swipe */
+          AblageListe[0] = 38;
+      } else {
+          /* down swipe */
+          AblageListe[0] = 40;
+      }
+  }
+  folgenKeyPressed();
+};
+
+if (navigator.userAgent.match(/Android/i) ||
+  navigator.userAgent.match(/webOS/i) ||
+  navigator.userAgent.match(/iPhone/i) ||
+  navigator.userAgent.match(/iPad/i) ||
+  navigator.userAgent.match(/iPod/i) ||
+  navigator.userAgent.match(/BlackBerry/i) ||
+  navigator.userAgent.match(/Windows Phone/i)
+) {
+var gerät = "Handy"
+  console.log("Handy");
+} else {
+var gerät = "PC"
+  console.log("PC");
+}
+
+document.getElementById('vorSpielBeginn').style.display = "none";
+setTimeout(function () {
+//  if (spielerIch == 1) {
+    setup();
+//  }
+  canvas.style.display = "none";
+}, 1000);
+
+async function sendJson(url = "/", body = {}) {
+  const rawResponse = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  const content = await rawResponse.json();
+  return content;
+}
+// sendJson('/logout', {
+//   clientId
+// });
+
+const clientId = makeid(10);
+var messageListener = null;
+
+async function register() {
+  let response = sendJson('/snakeGame/login', {
+    clientId
+  });
+}
+
+register();
+setInterval(getMessages, 3000);
+
+function getMessages() {
+  sendJson('/snakeGame/message-queue', {
+    clientId
+  }).then(messages => {
+    console.log("MESSAGES", messages);
+    messages.forEach(msg => messageListener(msg));
+  });
+}
+
+function sendMessage(obj) {
+  sendJson('/snakeGame/message', {
+    clientId,
+    content: obj
+  });
+}
+
+function makeid(length) {
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+
+var room = {
+  setOnMessageListener(listener) {
+    messageListener = listener;
+  },
+  send(msg) {
+    sendMessage(msg);
+  }
+};
+window.onbeforeunload = function() {
+  console.log("Leave Website");
+  sendJson('/snakeGame/logout', {
+    clientId
+  });
+  return 'Are you sure you want to leave?';
+};
+room.setOnMessageListener(function(message) {
+    if (message.type == "character") {character = message.data;app.db = character}
+    if (message.type == "screenHandy" && (message.data[0] < x || message.data[1] < y)) {
+      createCanvas(message.data[0],message.data[1]);
+      x = message.data[0];
+      y = message.data[1];
+    }
+    if (message.type == "2playersGetReady") {
+      document.getElementById('vorSpielBeginn').style.display = "inline";
+      document.getElementById('wartenSpieler').style.display = "none";
+
+    }
+    if (message.type == "food") {
+      food.x = message.data[0];
+      food.y = message.data[1];
+    }
+    if (message.type == "arrayPlayerReady") {
+      AblageListe[1] = message.data;
+      if (AblageListe[1].length == AnzahlSpieler) {
+        if (character.includes("snake")) {
+          alert("Die Schlange muss vergeben sein! Bitte wählen sie ihre Charaktere erneut aus!")
+          character = ["snake", "insect", "frog"]
+          spielerIch = -1;
+          room.send({
+            message: {
+              "type": "character",
+              "data": character
+            }
+          });
+          document.getElementById('rundeStarten').innerHTML = "bereit für Rundenbeginn";
+        }
+        else {
+          document.getElementById('vorSpielBeginn').style.display = "none";
+          canvas.style.display = "inline";
+          if (gerät == "Handy") {
+    //        setTimeout(function () {
+            room.send({
+              message: {
+                "type": "screenHandy",
+                "data": [x, y]
+              }
+            });
+    //      }, 1500);
+          }
+          setTimeout(function () {
+            if (spielerIch == 0) {
+              pickLocation(false);
+            }
+          }, 500);
+          if (spielerIch == 0) {
+        //    setInterval(syncroS, 100);
+          }
+          if (spielerIch == 1) {
+            iDirectionInterval = setInterval(moveI, /*sameSpeed: 100*/17 + ((1580 - x))/93);
+          syncI = setInterval(syncroI, (17 + ((1580 - x))/93)*2);
+          }
+          if (spielerIch == 2) {
+            setTimeout(function () {
+              drawFrog = true;
+              draw();
+            }, 1735);
+            setTimeout(function () {
+              this.visibilityDirection = "unvisible";
+    //          f.moving = true;
+              drawFrog = false;
+              fMovement = setInterval(moveF, 77);
+            }, 2735);
+          }
+          if (spielerIch == 3) {
+            d.zählerWinkel = [d.winkel[0], d.winkel[1]];
+            dMoving = setInterval(moveD, 99);
+          }
+          if (spielerIch == 4) {
+            AblageListe[3] = 0;
+            hMovement = setInterval(moveH, 37);
+          }
+        }
+        }
+    }
+    // if (message.type == "a player left!") location.reload();
+    if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
+  //  if (message.type == "spielerDu") {spielerIch = message.data;console.log("spielerIch aktuallisiert! " + spielerIch)}
+    if (message.type == "livesS") {
+      s.lives = message.data;
+    }
+    if (message.type == "snakeLose") {
+      canvas.style.display = "none";
+      console.log(message.type);
+    }
+    if (message.type == "s" && (!(spielerIch == 0)/* || message.Empfänger == "hit"*/)) {
+      zählerListe[0] = 0;
+      while (zählerListe[0] < 5) {
+        s[Object.keys(s)[zählerListe[0]]] = message.data[zählerListe[0]];
+        zählerListe[0]++;
+      }
+      zählerListe[0] = 0;
+      s.tail = [];
+      while (zählerListe[0] < (message.data[5][0].length + 1)) {
+        if (message.data[5][0][zählerListe[0]] == undefined == false) {
+          s.tail[zählerListe[0]] = message.data[5][0][zählerListe[0]];
+        }
+        zählerListe[0]++;
+      }
+  /*    if (message.data[5][1] == undefined == false) {
+        s.tail[-1] = message.data[5][1];
+      } */
+      s.total = message.data[4]
+  }
+  if (message.type == "i" && !(spielerIch == 1)) {
+    i.x = message.data[0];
+    i.y = message.data[1];
+    snake = false;
+    draw();
+    snake = true;
+  }
+  if (message.type == "f" && !(spielerIch == 2)) {
+  f.x = message.data[0];
+  f.y = message.data[1];
+  f.visibility = message.data[2];
+  drawFrog = message.data[3];
+  if (drawFrog == true) {
+    console.log("frogGettingReady");
+  }
+  snake = false;
+  draw();
+  snake = true;
+  }
+  if (message.type == "h" && !(spielerIch == 4)) {
+    h.x = message.data[0];
+    h.y = message.data[1];
+  }
+  if (message.type == "hBullet" && !(spielerIch == 4)) {
+    h.bullet.x = message.data[0];
+    h.bullet.y = message.data[1];
+  }
+  });
+
+  function rundeStarten() {
+    if (gerät == "Handy") {
+    viewPage();
+  }
+    if (!(document.getElementById('rundeStarten').innerHTML == "Warten auf Gegner") && spielerIch > -1) {
+      document.getElementById('rundeStarten').innerHTML = "Warten auf Gegner";
+      AblageListe[1][AblageListe[1].length] = "ready!"
+      room.send({
+        message: {
+          "type": "arrayPlayerReady",
+          "data": AblageListe[1]
+        }
+      });
+    }
+    else {
+      alert("bitte wählen sie einen Character aus!");
+    }
+  }
+
+    var w = window,
+        d = document,
+        e = d.documentElement,
+        g = d.getElementsByTagName('body')[0],
+        x = w.innerWidth || e.clientWidth || g.clientWidth,
+        y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+        while ((x/20 + "").length > 2 && x > 0) {
+          x--;
+        }
+        while ((y/20 + "").length > 2 && y > 0) {
+          y--;
+        }
+  console.log(x + ' × ' + y);
+  			function viewPage () {
+  				var el = document.body;
+  				toggleFullscreen(el);
+  			};
+
+  			function viewImage () {
+  				var el = canvas/*document.getElementById('myImage');*/
+  				toggleFullscreen(el);
+  			};
+
+  			function toggleFullscreen (el) {
+  		/*		if(document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement){
+  					if(document.exitFullscreen){
+  					//	document.exitFullscreen();
+  					}else if(document.mozCancelFullScreen){
+  				//		document.mozCancelFullScreen();
+  					}else if(document.webkitExitFullscreen){
+  				//		document.webkitExitFullscreen();
+  					}else if(document.msExitFullscreen){
+  				//		document.msExitFullscreen();
+  					}
+  				}else{*/
+  					if(document.documentElement.requestFullscreen){
+  						el.requestFullscreen();
+  					}else if(document.documentElement.mozRequestFullScreen){
+  						el.mozRequestFullScreen();
+  					}else if(document.documentElement.webkitRequestFullscreen){
+  						el.webkitRequestFullscreen();
+  					}else if(document.documentElement.msRequestFullscreen){
+  						el.msRequestFullscreen();
+  					}
+  			//	}
+  			};
+
+
+  // sketch.js
+  var s;
+  var scl=20;
+  var food;
+
+  function setup() {
+    createCanvas(x,y);
+    s=new Snake();
+    i=new insect();
+    f=new frog();
+    d=new draughts();
+    h=new hunter();
+    frameRate(10);
+    pickLocation(true);
+  }
+
+  function pickLocation(setup)
+  {
+  	var cols=floor(width/scl);
+  	var rows=floor(height/scl);
+  	food=createVector(floor(random(cols)),floor(random(rows)));
+  	food.mult(scl);
+    if (setup == false) {
+      room.send({
+        message: {
+          "type": "food",
+          "data": [food.x, food.y]
+        }
+      });
+    }
+  }
+
+  function draw() {
+    background(51);
+    if(spielerIch == 0 && snake == true && s.eat(food))
+    {
+    	pickLocation(false);
+    }
+    if (spielerIch == 0 && snake == true) {
+      s.death();
+      s.update();
+      syncroS();
+    }
+    if (spielerIch == 1) {
+      i.collision();
+    }
+    s.show();
+
+    fill(255,0,100);
+    rect(food.x,food.y,scl,scl);
+    if (!(character.includes("insect"))) {
+      fill(110, 100, 110)
+      rect(i.x, i.y,scl,scl);
+    //  syncroI();
+    }
+    if (!(character.includes("draughts (Dame)"))) {
+      fill("#B45F04");
+      rect(d.x, d.y,scl,scl);
+      // fill(199,115,0, 73);
+      // for(var i = 0; i < d.futureKoordinates.length; i++){
+      //   rect(d.futureKoordinates[i][0], d.futureKoordinates[i][1],scl,scl);
+      // }
+    }
+    fill(51);
+    if (drawFrog == false) {
+      fill(0, 255, 0, /* trancparence: */f.visibility);
+    }
+    else {
+      fill(255, 0, 0, /* trancparence: */f.visibility);
+    }
+    if (!(character.includes("frog"))) {
+      rect(f.x, f.y,scl,scl);
+      // room.send({
+      //   message: {
+      //     "type": "f",
+      //     "data": [f.x, f.y, f.visibility, drawFrog]
+      //   }
+      // });
+    }
+    snake = true;
+    if (!(character.includes("hunter"))) {
+      AblageListe[0] = canvas.getContext('2d');
+      AblageListe[0].drawImage(h.image, h.x, y - scl, scl, scl)
+      if (h.bullet.y < y - scl) {
+        fill(255, 0, 0);
+        rect(h.bullet.x, h.bullet.y, scl, scl);
+        // room.send({
+        //   message: {
+        //     "type": "hBullet",
+        //     "data": [h.bullet.x, h.bullet.y]
+        //   }
+        // });
+      }
+    }
+  }
+  function keyPressed()
+  {
+    AblageListe[0] = keyCode;
+    folgenKeyPressed();
+  }
+  window.addEventListener('mousedown', function() {
+    if (gerät == "Handy") {
+      AblageListe[0] = 32;
+      folgenKeyPressed();
+    }
+  });
+  function folgenKeyPressed() {
+    if (gerät == "PC") {
+      viewImage();
+    }
+    if(AblageListe[0]=== UP_ARROW)
+    {
+      if (spielerIch == 0) s.dir(0,-1);
+    }
+    else if (AblageListe[0]===DOWN_ARROW)
+    {
+      if (spielerIch == 0) s.dir(0,1);
+    }
+    else if (AblageListe[0]===RIGHT_ARROW)
+    {
+      if (spielerIch == 0) s.dir(1,0);
+    }
+    else if (AblageListe[0]===LEFT_ARROW)
+    {
+      if (spielerIch == 0) s.dir(-1,0);
+    }
+    else if (AblageListe[0] == 32 && spielerIch == 4 && h.bullet.y == - 20) {
+      setTimeout(function () {
+        h.bullet.y = y - scl;
+        h.bullet.x = h.x;
+      }, 58);
+      hunterBullet = setInterval(moveHunterBullet, 59);
+    }
+    if (spielerIch == 1 && (AblageListe[0]===DOWN_ARROW || AblageListe[0]===UP_ARROW || AblageListe[0]===RIGHT_ARROW || AblageListe[0]===LEFT_ARROW)) {
+      i.direction = i.directionObj[AblageListe[0]];
+    }
+    if (spielerIch == 2 && (AblageListe[0]===DOWN_ARROW || AblageListe[0]===UP_ARROW || AblageListe[0]===RIGHT_ARROW || AblageListe[0]===LEFT_ARROW)) {
+      f.direction = i.directionObj[AblageListe[0]];
+    }
+    if (spielerIch == 3 && (AblageListe[0]===LEFT_ARROW || AblageListe[0]===RIGHT_ARROW /*|| AblageListe[0]===UP_ARROW || AblageListe[0]===RIGHT_ARROW || AblageListe[0]===LEFT_ARROW*/)) {
+      d.futureKoordinates = [];
+      AblageListe[1] = [];
+      AblageListe[1][0] = d.x;
+      AblageListe[1][1] = d.y;
+      while (!(AblageListe[1][0] == 0 || AblageListe[1][1] == 0 || AblageListe[1][0] == x - scl || AblageListe[1][1] == y - scl)) {
+      if (d.direction.toString().split(' + ')[0] == "LEFT_ARROW" && d.zählerWinkel[0] > 0) {
+        AblageListe[1][0] -= scl;
+      }
+      else if (d.zählerWinkel[0] > 0) {
+        AblageListe[1][0] += scl;
+      }
+      if (d.direction.toString().split(' + ')[1] == "UP_ARROW" && d.zählerWinkel[1] > 0) {
+        AblageListe[1][1] -= scl;
+      }
+      else if (d.zählerWinkel[1] > 0) {
+        AblageListe[1][1] += scl;
+      }
+      d.zählerWinkel[0]--;
+      d.zählerWinkel[1]--;
+      if (d.zählerWinkel[0] < 1 && d.zählerWinkel[1] < 1) {
+        d.zählerWinkel[0] = d.winkel[0];
+        d.zählerWinkel[1] = d.winkel[1];
+      }
+    }
+  //  d.zählerWinkel = [d.winkel[0], d.winkel[1]];
+      if (AblageListe[0]===LEFT_ARROW) {
+      if (AblageListe[1][0] == 0 || AblageListe[1][0] == x - scl) {
+        if (d.futureWinkel[1] > 1) {
+          d.futureWinkel[1]--;
+        }
+        else {
+          d.futureWinkel[0]++;
+        }
+      }
+      if (AblageListe[1][1] == 0 || AblageListe[1][1] == y - scl) {
+        if (d.futureWinkel[0] > 1) {
+          d.futureWinkel[0]--;
+        }
+        else {
+          d.futureWinkel[1]++;
+        }
+      }
+    }
+    else if (AblageListe[1][0] == 0 || AblageListe[1][0] == x - scl && AblageListe[0]===RIGHT_ARROW) {
+            d.futureWinkel[1]++;
+          }
+        else if (AblageListe[1][1] == 0 || AblageListe[1][1] == y - scl && AblageListe[0]===RIGHT_ARROW) {
+            d.futureWinkel[0]++;
+            }
+          // // TODO
+          // if (AblageListe[1][0] == 0) {
+          //   d.directionFuture = "RIGHT_ARROW" + " + " + d.directionFuture.toString().split(' + ')[1];
+          // }
+          // if (AblageListe[1][0] == x - scl) {
+          //   d.directionFuture = "LEFT_ARROW" + " + " + d.directionFuture.toString().split(' + ')[1];
+          // }
+          // if (AblageListe[1][1] == 0) {
+          //   d.directionFuture = d.directionFuture.toString().split(' + ')[0] + " + " + "DOWN_ARROW";
+          // }
+          // if (AblageListe[1][1] == y - scl) {
+          //   d.directionFuture = d.directionFuture.toString().split(' + ')[0] + " + " + "UP_ARROW";
+          // }
+        //  JSON.parse(JSON.stringify(d.zählerWinkel = d.futureWinkel));
+        //  zählerListe[0] = 0;
+        //  d.zählerWinkel = [d.futureWinkel[0], d.futureWinkel[1]];
+          // while (zählerListe[0] < 7) {
+          //   if (d.directionFuture.toString().split(' + ')[0] == "LEFT_ARROW" && d.zählerWinkel[0] > 0) {
+          //     AblageListe[1][0] -= scl;
+          //   }
+          //   else if (d.zählerWinkel[0] > 0) {
+          //     AblageListe[1][0] += scl;
+          //   }
+          //   if (d.directionFuture.toString().split(' + ')[1] == "UP_ARROW" && d.zählerWinkel[1] > 0) {
+          //     AblageListe[1][1] -= scl;
+          //   }
+          //   else if (d.zählerWinkel[1] > 0) {
+          //     AblageListe[1][1] += scl;
+          //   }
+          //   d.zählerWinkel[0]--;
+          //   d.zählerWinkel[1]--;
+          //   if (d.zählerWinkel[0] < 1 && d.zählerWinkel[1] < 1) {
+          //     d.zählerWinkel[0] = d.winkel[0];
+          //     d.zählerWinkel[1] = d.winkel[1];
+          //   }
+          //   d.futureKoordinates[d.futureKoordinates.length] = [AblageListe[1][0], AblageListe[1][1]];
+          //   zählerListe[0]++;
+          // }
+    }
+    }
+
+function insect() {
+  AblageListe[0] = 0;
+  while (AblageListe[0]*20 < x/2 && AblageListe[0]*20 < x) {
+    AblageListe[0]++;
+  }
+  this.x = ((floor(AblageListe[0]))*20) - 60;
+  AblageListe[0] = 0;
+  while (AblageListe[0]*20 < y/2 && AblageListe[0]*20 < y) {
+    AblageListe[0]++;
+  }
+  this.y = ((floor(AblageListe[0]))*20)-60;
+  this.direction = "RIGHT_ARROW";
+  this.opositeDirection = {"UP_ARROW": "DOWN_ARROW", "RIGHT_ARROW": "LEFT_ARROW", "DOWN_ARROW": "UP_ARROW", "LEFT_ARROW": "RIGHT_ARROW"}
+  this.directionObj = {38: "UP_ARROW", 40: "DOWN_ARROW", 39: "RIGHT_ARROW", 37: "LEFT_ARROW"};
+  this.isDead = [false];
+
+  this.collision= function() {
+    if (this.x > x - scl) {
+      this.isDead[1] = "LEFT_ARROW";
+    }
+    else if (this.y > y - 20) {
+      this.isDead[1] = "UP_ARROW";
+    }
+    else if (this.y < 0) {
+      this.isDead[1] = "DOWN_ARROW";
+    }
+    else if (this.x < 0) {
+      this.isDead[1] = "RIGHT_ARROW";
+    }
+    zählerListe[0] = 0;
+    while (zählerListe[0] < s.tail.length) {
+      if (s.tail[zählerListe[0]].x == this.x && s.tail[zählerListe[0]].y == this.y) {
+        console.log("collisionSnake");
+        s.lives -= 37;
+        checkGewinner();
+        this.isDead[0] = true;
+        this.isDead[1] = this.opositeDirection[this.direction];
+        this.isDead[2] = "collision";
+      clearInterval(iDirectionInterval);
+      clearInterval(syncI)
+      setTimeout(function () {
+        iDirectionInterval = setInterval(moveI, /*sameSpeed: 100*/17 + ((1580 - x))/93);
+        syncI = setInterval(syncroI, (17 + ((1580 - x))/93)*2)
+      }, 1537);
+      }
+      zählerListe[0]++;
+    }
+  /*  if (s.tail.some(x => x.includes(this.x) ) && s.tail.some(x => x.includes(this.y) )) {
+      console.log("collisionSnake");
+    } */
+    if (dist(this.x, this.y, s.x, s.y) == 0 && this.direction == this.opositeDirection[s.direction]) {
+      console.log("snakeEatsInsect");
+      s.lives += 13;
+      s.total++;
+      checkGewinner();
+      clearInterval(iDirectionInterval);
+      clearInterval(syncI);
+      AblageListe[0] = 0;
+      while (AblageListe[0]*20 < x/2 && AblageListe[0]*20 < x) {
+        AblageListe[0]++;
+      }
+      this.x = (floor(AblageListe[0]))*20;
+      AblageListe[0] = 0;
+      while (AblageListe[0]*20 < y/2 && AblageListe[0]*20 < y) {
+        AblageListe[0]++;
+      }
+      this.y = (floor(AblageListe[0]))*20;
+      zählerListe[0] = 0;
+      while (zählerListe[0] < s.tail.length) {
+        if (s.tail[zählerListe[0]].x == this.x && s.tail[zählerListe[0]].y == this.y) {
+          this.y += 20;
+          this.direction = "RIGHT_ARROW";
+          if (this.y == y - 20) {
+            this.x += 20;
+          }
+          zählerListe[0] = -1;
+        }
+        zählerListe[0]++;
+      }
+      setTimeout(function () {
+        iDirectionInterval = setInterval(moveI, /*sameSpeed: 100*/17 + ((1580 - x))/93);
+        syncI = setInterval(syncroI, (17 + ((1580 - x))/93)*2)
+      }, 2731);
+    }
+    if (this.x > x - scl || this.y > y - 20 || this.y < 0 || this.x < 0) {
+      console.log("deathInsect (Rand)");
+      this.isDead[0] = true;
+      this.isDead[2] = "Rand";
+    }
+    if (dist(this.x, this.y, food.x, food.y) == 0) {
+      console.log("insectEatFood");
+      pickLocation(false);
+    }
+    if (this.isDead[0] == true) {
+      this.isDead[0] = false;
+      if (this.isDead[1] == "LEFT_ARROW") {
+        this.x -= 20;
+      }
+      else if (this.isDead[1] == "RIGHT_ARROW") {
+        this.x += 20;
+      }
+      else if (this.isDead[1] == "UP_ARROW") {
+        this.y -= 20;
+      }
+      else {
+        this.y += 20;
+      }
+      if (this.isDead[1] == "RIGHT_ARROW" || this.isDead[1] == "LEFT_ARROW" || this.isDead[1] == "UP_ARROW" || this.isDead[1] == "DOWN_ARROW") {
+        this.isDead[1] = "none";
+        this.direction = this.opositeDirection[this.direction];
+      }
+      if (this.isDead[2] == "Rand") {
+        clearInterval(iDirectionInterval);
+        clearInterval(syncI)
+        setTimeout(function () {
+          iDirectionInterval = setInterval(moveI, /*sameSpeed: 100*/17 + ((1580 - x))/93);
+          syncI = setInterval(syncroI, (17 + ((1580 - x))/93)*2);
+        }, 3700);
+      }
+    }
+  }
+}
+
+  function moveI() {
+  if (i.direction == "UP_ARROW") i.y -= scl;
+  else if (i.direction == "DOWN_ARROW") i.y += scl;
+  else if (i.direction == "RIGHT_ARROW") i.x += scl;
+  else i.x -= scl;
+  snake = true;
+  draw();
+}
+
+function frog() {
+  this.x = 300;
+  this.y = 400;
+  this.direction = "RIGHT_ARROW";
+  this.visibility = 255;
+//  this.moving = false;
+  this.visibilityPerField = 11 + ((1580 - x)/33);
+  this.visibilityDirection = "unvisible"
+  // TODO
+}
+function draughts() {
+  this.x = x - scl;
+  this.y = y - scl;
+  this.direction = "LEFT_ARROW + UP_ARROW";
+  this.winkel = [3, 3];
+  this.futureWinkel = [3, 3];
+  this.futureKoordinates = [];
+  this.directionFuture = "LEFT_ARROW + UP_ARROW";
+  this.zählerWinkel = [3,3];
+}
+function hunter() {
+  this.x = 20;
+  this.bullet = {"x": this.x, "y": - 20}
+  this.image = new Image();
+  this.image.src = "https://adi.nicolaiweitkemper.de/Bilder/Tarnfarbe.jpeg";
+  this.direction = "RIGHT_ARROW";
+}
+
+function moveF() {
+  if (!(f.visibility >= 250 && f.visibilityDirection == "visible") && (f.x < x - scl || !(f.direction == "RIGHT_ARROW")) && (f.y < y - scl || !(f.direction == "DOWN_ARROW")) && (f.x > 1 || !(f.direction == "LEFT_ARROW")) && (f.y > 1 || !(f.direction == "UP_ARROW"))) {
+    if (f.direction == "RIGHT_ARROW") {
+      f.x += scl;
+    }
+    else if (f.direction == "LEFT_ARROW") {
+      f.x -= scl;
+    }
+    else if (f.direction == "UP_ARROW") {
+      f.y -= scl;
+    }
+    else {
+      f.y += scl;
+    }
+  }
+  if (f.visibility > 77 && f.visibilityDirection == "unvisible") {
+    f.visibility -= f.visibilityPerField;
+  }
+  else if (f.visibility < 250) {
+    f.visibilityDirection = "visible";
+    f.visibility += f.visibilityPerField;
+  }
+  else {
+    f.visibility = 255;
+  //  f.moving = false;
+    clearInterval(fMovement);
+    setTimeout(function () {
+      drawFrog = true;
+      draw();
+      room.send({
+        message: {
+          "type": "f",
+          "data": [f.x, f.y, f.visibility, drawFrog]
+        }
+      });
+    }, 3735);
+    setTimeout(function () {
+      f.visibilityDirection = "unvisible";
+    //  f.moving = true;
+      drawFrog = false;
+      fMovement = setInterval(moveF, 77);
+    }, 4735);
+    for (var i = 0; i < s.tail.length; i++) {
+      if (dist(s.tail[i].x, s.tail[i].y, f.x, f.y) == 0) {
+        console.log("collisionSnake");
+        s.lives -= 27;
+        checkGewinner();
+      }
+    }
+    room.send({
+      message: {
+        "type": "f",
+        "data": [f.x, f.y, f.visibility, drawFrog]
+      }
+    });
+  }
+  room.send({
+    message: {
+      "type": "f",
+      "data": [f.x, f.y, f.visibility, drawFrog]
+    }
+  });
+}
+function moveD() {
+  if (d.direction.toString().split(' + ')[0] == "LEFT_ARROW" && d.zählerWinkel[0] > 0) {
+    d.x -= scl;
+  }
+  else if (d.zählerWinkel[0] > 0) {
+    d.x += scl;
+  }
+  if (d.direction.toString().split(' + ')[1] == "UP_ARROW" && d.zählerWinkel[1] > 0) {
+    d.y -= scl;
+  }
+  else if (d.zählerWinkel[1] > 0) {
+    d.y += scl;
+  }
+//  console.log(d.x + " - " + d.y);
+  if (d.x == 0 || d.y == 0 || d.x == x - scl || d.y == y - scl) {
+  //  clearInterval(dMoving);
+    d.winkel = JSON.parse(JSON.stringify(d.futureWinkel));
+    if (d.x == 0) {
+      d.direction = "RIGHT_ARROW" + " + " + d.direction.toString().split(' + ')[1];
+    }
+    if (d.x == x - scl) {
+      d.direction = "LEFT_ARROW" + " + " + d.direction.toString().split(' + ')[1];
+    }
+    if (d.y == 0) {
+      d.direction = d.direction.toString().split(' + ')[0] + " + " + "DOWN_ARROW";
+    }
+    if (d.y == y - scl) {
+      d.direction = d.direction.toString().split(' + ')[0] + " + " + "UP_ARROW";
+    }
+    // if (d.direction.toString().split(' + ').length == 2) {
+    //   d.direction = i.opositeDirection[d.direction.toString().split(' + ')[0]] + " + " + i.opositeDirection[d.direction.toString().split(' + ')[1]];
+    // }
+    // else {
+    //   d.direction = i.opositeDirection[d.direction.toString().split(' + ')[0]];
+    // }
+    d.zählerWinkel = [d.winkel[0], d.winkel[1]];
+    // setTimeout(function () {
+    //   d.zählerWinkel = [d.winkel[0], d.winkel[1]];
+    //   dMoving = setInterval(moveD, 99);
+    // }, 2753);
+  }
+  d.zählerWinkel[0]--;
+  d.zählerWinkel[1]--;
+  if (d.zählerWinkel[0] < 1 && d.zählerWinkel[1] < 1) {
+    d.zählerWinkel[0] = d.winkel[0];
+    d.zählerWinkel[1] = d.winkel[1];
+  }
+}
+function moveH() {
+  if (!((AblageListe[3]/2 + "").includes("."))) {
+    room.send({
+      message: {
+        "type": "h",
+        "data": [h.x, h.y]
+      }
+    });
+  }
+  if (h.x == x - scl || h.x == 0) {
+    h.direction = i.opositeDirection[h.direction];
+  }
+   if (h.direction == "RIGHT_ARROW") {
+    h.x += scl;
+  }
+  else {
+    h.x -= scl;
+  }
+  AblageListe[3]++;
+}
+function moveHunterBullet() {
+  room.send({
+    message: {
+      "type": "hBullet",
+      "data": [h.bullet.x, h.bullet.y]
+    }
+  });
+  for(var i = 0; i < s.tail.length; i++){
+      if (h.bullet.x == s.tail[i].x && h.bullet.y == s.tail[i].y) {
+        console.log("hitBodeySnake");
+        s.lives -= 10;
+        checkGewinner();
+      }
+  }
+  if (h.bullet.x == s.x && h.bullet.y == s.y) {
+    console.log("hitHeadSnake");
+    s.lives -= 15;
+    s.total--;
+    s.tail.pop();
+    checkGewinner();
+  }
+  if (!(h.bullet.y == - 20)) {
+    h.bullet.y -= scl;
+  }
+  else {
+    clearInterval(hunterBullet)
+  }
+}
+
+// snake.js
+function Snake()
+{
+	this.x=0;
+	this.y=0;
+	this.xspeed=1;
+	this.yspeed=0;
+	this.total=1;
+	this.tail=[];
+  this.direction = "RIGHT_ARROW";
+  this.lives = (x*y)/400;
+
+	this.eat=function(pos)
+	{
+		var d=dist(this.x,this.y,pos.x,pos.y);
+		if(d<1){this.total++;return true;}
+		else {return false;}
+	}
+
+	this.dir=function(x,y)
+	{
+    this.direction = {"0,1": "UP_ARROW", "0,-1": "DOWN_ARROW", "1,0": "RIGHT_ARROW", "-1,0": "LEFT_ARROW"}
+    this.direction = this.direction[x + "," + y];
+  	this.xspeed=x;
+		this.yspeed=y;
+	}
+
+	this.death=function(){
+
+		for(var i=0;i<this.tail.length;i++)
+		{
+			var pos=this.tail[i];
+			var d=dist(this.x,this.y,pos.x,pos.y);
+			if(d<1)
+			{
+				console.log('You lose in S.C.R.I.P.T\'s Snake Game!');
+				console.log('starting over');
+        if (document.getElementById('vorSpielBeginn').style.display == "none") {
+          s.lives -= 27
+          if (this.total > 1) {
+            this.total -= 1;
+            this.tail.pop();
+          }
+          checkGewinner();
+        }
+        AblageListe[0] = 0;
+        while (AblageListe[0]*20 < x/2 && AblageListe[0]*20 < x) {
+          AblageListe[0]++;
+        }
+        this.x = (floor(AblageListe[0]))*20;
+        AblageListe[0] = 0;
+        while (AblageListe[0]*20 < y/2 && AblageListe[0]*20 < y) {
+          AblageListe[0]++;
+        }
+        this.y = (floor(AblageListe[0]))*20;
+        this.x -= 20*this.total;
+        console.log(this.x + this.y);
+        this.dir(1,0);
+      }
+		}
+
+	}
+	this.update=function()
+	{
+		if(this.total===this.tail.length)
+		{
+			for(var i=0;i<this.tail.length-1;i++)
+			{
+			this.tail[i]=this.tail[i+1];
+			}
+
+		}
+		this.tail[this.total-1]=createVector(this.x,this.y);
+		this.x=this.x+this.xspeed*scl;
+		this.y=this.y+this.yspeed*scl;
+
+		this.x=constrain(this.x,0,width-scl);
+		this.y=constrain(this.y,0,height-scl);
+	}
+
+	this.show=function()
+	{
+  	fill(255);
+		for(var i=0;i<this.tail.length;i++)
+		{
+			rect(this.tail[i].x,this.tail[i].y,scl,scl);
+    //   if (!((s.lives + "")[i] == undefined)) {
+    // //    fill(51);
+    //   }
+    }
+		rect(this.x,this.y,scl,scl);
+    if (s.direction == "RIGHT_ARROW"/* || s.direction == "DOWN_ARROW"*/ || s.direction == "UP_ARROW") {
+      for (var i = 0; i < s.tail.length; i++) {
+        fill(255, 0, 0);
+        textSize(30);
+        text((s.lives + "")[i], this.tail[i].x, this.tail[i].y);
+        fill(255);
+      }
+    }
+    else {
+      zählerListe[0] = 0;
+      for (var i = s.tail.length - 1; i > -1; i--) {
+        fill(255, 0, 0);
+        textSize(30);
+        text((s.lives + "")[zählerListe[0]], this.tail[i].x, this.tail[i].y);
+        fill(255);
+        zählerListe[0]++;
+      }
+    }
+  }
+}
+
+// my script
+
+function syncroS() {
+    zählerListe[0] = 0;
+    AblageListe[0] = [];
+    while (zählerListe[0] < s.tail.length) {
+      AblageListe[0][zählerListe[0]] = {"x":0,"y":0,"z":0};
+      AblageListe[0][zählerListe[0]].x = s.tail[zählerListe[0]].x;
+      AblageListe[0][zählerListe[0]].y = s.tail[zählerListe[0]].y;
+      AblageListe[0][zählerListe[0]].z = s.tail[zählerListe[0]].z;
+      zählerListe[0]++;
+    }
+    room.send({
+      message: {
+        "type": "s",
+        "data": [s.x, s.y, s.xspeed, s.yspeed, s.total, [AblageListe[0], s.tail[-1]]]
+      }
+    })
+}
+function syncroI() {
+    room.send({
+      message: {
+        "type": "i",
+        "data": [i.x, i.y]
+      }
+    });
+}
+
+function checkGewinner() {
+  syncroS();
+  if (s.lives < 1) {
+    canvas.style.display = "none";
+    console.log("snakeLose");
+    room.send({
+      message: {
+        "type": "snakeLose"
+      }
+    });
+  }
+  else {
+    room.send({
+      message: {
+        "type": "livesS",
+        "data": s.lives
+      }
+    });
+  }
+}
+
+</script>
