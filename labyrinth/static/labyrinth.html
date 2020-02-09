@@ -1,12 +1,15 @@
 <div class="" id="fieldSelection">
   <h1 id="field size">field size</h1>
-  <input type="text" placeholder="x" value="20" onchange="createNewCard(value, document.getElementById('fieldSizeY').value);" id="fieldSizeX"></input>
-  <input type="text" placeholder="y" value="20" onchange="createNewCard(document.getElementById('fieldSizeX').value, value);" id="fieldSizeY"></input>
+  <input type="text" placeholder="x" value="20" onchange="textur.width = JSON.parse(value)*33; createNewCard(value, document.getElementById('fieldSizeY').value);" id="fieldSizeX"></input>
+  <input type="text" placeholder="y" value="20" onchange="textur.height = JSON.parse(value)*33; createNewCard(document.getElementById('fieldSizeX').value, value);" id="fieldSizeY"></input>
   <input type="text" placeholder="points required for win" value="5" id="pointsRequiredForWin"></input>
+  <br>
 </div>
 <button type="button" id="nextRound" onclick="ready(true);" name="button">nextRound!</button>
+<br>
 <canvas id="textur" width="1590" height="730"></canvas>
-<input type="text" id="guess" placeholder="guess (Anzahl)"></input>
+<br>
+<input type="text" autocomplete="off" id="guess" placeholder="guess (Anzahl)"></input>
 <button type="button" onclick="folgenKeyDown({key: 'Enter'});" id="confirmGuess" name="button"> confirm guess</button>
 <div class="" id="tastatur">
   <br>
@@ -68,7 +71,7 @@
   }
 
   register();
-  setInterval(getMessages, 1000);
+  setInterval(getMessages, 100);
 
   function getMessages() {
     sendJson('/labyrinth/message-queue', {
@@ -114,12 +117,19 @@
   var id = "";
   var secs = 60;
   var timer;
+  var suggestion = {x: [], y: [], requiredPoints: []};
   room.setOnMessageListener(function(message) {
     if (message.type == "points") {
       for (var i = 0; i < Object.keys(points).length; i++) {
         if (Object.keys(points)[i] != "required") points[Object.keys(points)[i]] = message.data[Object.keys(points)[i]];
       }
-      visible([["nextRound", "inline"]]); showScores(); document.getElementById('nextRound').innerHTML = "nextRound!";}
+      visible([["nextRound", "inline"]]); showScores(); document.getElementById('nextRound').innerHTML = "nextRound!";
+      if (points[id] >= points.required) {
+        room.send({
+          message: id + "wins"
+        });
+      }
+    }
     if (message.type == "player1") player1 = message.data;
     if (message.type == "newCard") {cards[0] = message.data; Layout(0, 0, true, 0);guess.select();}
     if (message.type == "guess") guessObj.guessed[message.sender] = message.data[message.sender];
@@ -134,12 +144,29 @@
       if (i1 < 2 && message.data[id] == false) timer = setInterval(timerFun, 1000);
     }
     if (message.type == "settings"/* && message.sender != id*/) {
+      suggestion.x.push(message.data.map[0]);
+      suggestion.y.push(message.data.map[1]);
+      suggestion.requiredPoints.push(message.data.points);
+      if (suggestion.x.length == AnzahlSpieler) {
     document.getElementById('fieldSelection').style.display = "none";
-    document.getElementById("nextRound").style.display = "inline";
-    xLength = Math.round((JSON.parse(document.getElementById('fieldSizeX').value) + JSON.parse(message.data.map[0]))/2);
-    yLength =  Math.round((JSON.parse(document.getElementById('fieldSizeY').value) + JSON.parse(message.data.map[1]))/2);
-    textur.height = yLength;
-    points.required = Math.round((JSON.parse(document.getElementById('pointsRequiredForWin').value) + JSON.parse(message.data.points))/2);
+    xLength = 0;
+    yLength = 0;
+    points.required = 0;
+    for (var i = 0; i < AnzahlSpieler; i++) {
+      xLength += JSON.parse(suggestion.x[i]);
+      yLength += JSON.parse(suggestion.y[i]);
+      points.required += JSON.parse(suggestion.requiredPoints[i]);
+    }
+    xLength /= AnzahlSpieler;
+    yLength /= AnzahlSpieler;
+    points.required /= AnzahlSpieler;
+    // xLength = Math.round((JSON.parse(document.getElementById('fieldSizeX').value) + JSON.parse(message.data.map[0]))/2);
+    // yLength =  Math.round((JSON.parse(document.getElementById('fieldSizeY').value) + JSON.parse(message.data.map[1]))/2);
+    textur.height = yLength*33;
+    textur.width = window.innerWidth;
+    // points.required = Math.round((JSON.parse(document.getElementById('pointsRequiredForWin').value) + JSON.parse(message.data.points))/2);
+    visible([["nextRound", "inline"]]);
+  }
   }
   else if (message.type == "nextRound") {nextRound.push(true);
     if (nextRound.length == AnzahlSpieler) {visible([["nextRound", "none"]]); guess.value = "0";
@@ -165,23 +192,29 @@
   else if (message.type == "name") {
     player1 = false;
     id = message.data;
-    alert("You have 5 more seconds to change your settings! After it, the middle between the settings of the two players will be chosen.");
+    suggestion = {x: [], y: [], requiredPoints: []};
+    document.getElementById('fieldSelection').style.display = "inline";
+    document.getElementById("nextRound").style.display = "inline";
+    document.getElementById("nextRound").innerHTML = "this is my vote!";
+    voted = false;
+    alert("You have 30 more seconds to change your settings! After it, the middle between the settings of the two players will be chosen.");
     setTimeout(function () {
-      room.send({
-        message: {
-        type: "settings",
-        data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
-        sender: id
+      if (!voted) {
+        voted = true;
+        room.send({
+          message: {
+          type: "settings",
+          data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
+          sender: id
+        }
+        });
       }
-      });
-    }, 5000);
+    }, 30000);
   }
   else if (message.type == undefined && message.includes("wins") && !(message.includes(id))) {
-    alert("you lost the game! You now have 5 more seconds to understand why ;) ")
     showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
   }
   else if (message.type == undefined && message.includes("wins") && message.includes(id)) {
-    console.log("you won the game! You now have 5 more seconds to understand why ;) ");
     showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
   }
 });
@@ -242,6 +275,7 @@ setTimeout(function () {
     Layout(0, 0, true, 0);
   }
   function ready(ready) {
+    if (document.getElementById('nextRound').innerHTML != "this is my vote!") {
     document.getElementById('nextRound').innerHTML = "waiting for opponents...";
     room.send({
       message: {
@@ -250,6 +284,20 @@ setTimeout(function () {
       }
     });
   }
+  else {
+    document.getElementById('nextRound').innerHTML = "nextRound!";
+    voted = true;
+    visible([["nextRound", "none"]]);
+    room.send({
+      message: {
+      type: "settings",
+      data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
+      sender: id
+    }
+    });
+  }
+  }
+  var voted = false;
   function Layout(startX, startY, clearCanvas, card) {
     canvas.fillStyle = "white";
     if (clearCanvas) canvas.fillRect(0, 0, textur.width, textur.height);
@@ -337,7 +385,8 @@ var guessObj = {finished: false, /*yourGuess: false, youGuessed: false*/};
 var anzahlTyping = 0;
 function folgenKeyDown(event, innerHTML) {
   console.log(event.key);
-  if (anzahlTyping == 0 && event.key != "Enter") {
+  if (voted) {
+  if (anzahlTyping == 0 && event.key != "Enter" && yMaus > yLength*33 && event.key != "ArrowDown" && event.key != "ArrowUp") {
     guess.value = "";
 }
   if (innerHTML) guess.value += innerHTML;
@@ -375,9 +424,14 @@ function folgenKeyDown(event, innerHTML) {
     }
   });
 }
+}
 var i1 = 0;
 for (var i = 0; i < Object.keys(guessObj).length; i++) {
-  if (guessObj.guessed[Object.keys(guessObj.guessed)[i]] == false) i1++;
+  try {
+    if (guessObj.guessed != undefined && guessObj.guessed[Object.keys(guessObj.guessed)[i]] == false) i1++;
+  } catch (e) {
+    console.log("please debug me: " + e);
+  }
 }
 if (i1 == 0) {
   room.send({
@@ -388,11 +442,11 @@ if (i1 == 0) {
     }
   });
 }
-}
-  else if (event.key == "ArrowUp" && xLength > 0 && yLength > 0) {console.log("expose"); guess.value = JSON.parse(guess.value) + 1}
-  else if (event.key == "ArrowDown" && xLength > 0 && yLength > 0) {console.log("go down one"); guess.value = JSON.parse(guess.value) - 1}
-  else if (xLength > 0 && yLength > 0 && (lastValue == "ArrowUp" || lastValue == "ArrowDown" || lastValue == "Enter")) guess.select();
+  if (yMaus < yLength*33 && event.key == "ArrowUp" && xLength > 0 && yLength > 0) {console.log("expose"); guess.value = JSON.parse(guess.value) + 1}
+  else if (yMaus < yLength*33 && event.key == "ArrowDown" && xLength > 0 && yLength > 0) {console.log("go down one"); guess.value = JSON.parse(guess.value) - 1}
+  else if (yMaus < yLength*33 && xLength > 0 && yLength > 0 && (lastValue == "ArrowUp" || lastValue == "ArrowDown" || lastValue == "Enter")) guess.select();
   lastValue = event.key;
+}
 }
 document.onkeydown = function(event) {
   folgenKeyDown(event);
