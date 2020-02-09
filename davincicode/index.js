@@ -43,7 +43,7 @@ app.post('/logout', function(req, res) {
   });
   //  clientIds.push(clientId);
   messageQueue[clientId] = undefined;
-
+  console.log(clientId);
   davincicodeInstance.onLeave({
     sessionId: clientId
   });

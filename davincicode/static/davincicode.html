@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <canvas id="textur" width="2069" height="688"></canvas>
-
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
 <script>
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
@@ -59,6 +60,7 @@
   var AnfrageCheck;
   var RemachCheck;
   var RematchAnfrage = [];
+  var messages = [];
   // 1. und 2. : Koord. Stein 3. und 4. : Koord. Text 3. und 4. : X und Y Maus
   // Y war = 30, 130
   // X war ; 170, 205
@@ -146,6 +148,16 @@
     return 'Are you sure you want to leave?';
   };
   room.setOnMessageListener(function(message) {
+    if (message.type == "messages") {
+      messages = message.data;
+      textur.height = 750 + messages.length*50;
+      LayoutIch();
+      if (!(name == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      Ablage[1] = "warten Message angucken";
+      setTimeout(function () {
+        Ablage[1] = "beendet";
+      }, 3777);
+    };
     if (message.type == "KartenSpieler1") kartenSpieler1 = message.data;
     if (message.type == "KartenSpieler2") kartenSpieler2 = message.data;
     if (message.type == "karteGegnerGezogen" && NameSpieler[1] == name) karteGegnerGezogen = message.data;
@@ -218,7 +230,7 @@
           }
         }
 
-        canvas.font = "75pxGeorgia";
+        canvas.font = "75px Georgia";
         if (message.tipp.length == 2) {
           canvas.fillText(message.tipp, 45 + AblageList[1] * 170 + 15, 570);
         } else {
@@ -236,50 +248,12 @@
     }
     if (message.type == "Zustand") {
       result = message.data;
-      if (Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" == false && Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg" == false) {
-        if (result[result.length - 1] == "1 gewonnen") {
-          //     Bild = new Image();
-          if (name == NameBleibt[0]) {
-            console.log("Du hast gewonnen!!!");
-            canvas.fillStyle = "green";
-            canvas.fillRect(0, 0, 1847, 973)
-            Bild.src = 'http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg'
-
-          } else {
-            console.log("Du hast verloren!!!");
-            canvas.fillStyle = "red";
-            canvas.fillRect(0, 0, 1847, 973)
-            Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
-          }
-          canvas.drawImage(Bild, 260, 0);
-          Sperren[2] = true;
-        } else if (result[result.length - 1] == "2 gewonnen") {
-          if (name == NameBleibt[0]) {
-            canvas.fillStyle = "red";
-            canvas.fillRect(0, 0, 1847, 973)
-            console.log("Du hast verloren!!!");
-            Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
-          } else {
-            console.log("Du hast gewonnen!!!");
-            canvas.fillStyle = "green";
-            canvas.fillRect(0, 0, 1847, 973)
-            Bild.src = 'http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg'
-          }
-          canvas.drawImage(Bild, 260, 0);
-          Sperren[2] = true;
-        }
-      } else {
-        if (Bild.src == "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg") {
-          canvas.fillStyle = "green";
-        } else {
-          canvas.fillStyle = "red";
-        }
-        if (result[result.length - 1] == "1 gewonnen" || result[result.length - 1] == "2 gewonnen") {
-          canvas.fillRect(0, 0, 1847, 973)
-          canvas.drawImage(Bild, 260, 0);
-        }
-      }
-
+      // showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
+      // showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
+      if (result[result.length - 1] == "1 gewonnen" && name == NameBleibt[0]) showResults("http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
+      else if (result[result.length - 1] == "1 gewonnen") showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
+      if (result[result.length - 1] == "2 gewonnen" && name == NameBleibt[0]) showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
+      else if (result[result.length - 1] == "2 gewonnen") showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
       if (Zustand.length < message.data.length) {
       NameSpieler[2] = NameSpieler[0];
       NameSpieler[0] = NameSpieler[1];
@@ -292,7 +266,17 @@
   }
   });
 
-
+  function showResults(picture, sounds, colour, time) {
+  setTimeout(function () {
+    if (time == 0) audio = new Audio(sounds).play();
+    canvas.fillStyle = colour;
+    canvas.fillRect(0, 0, 1847, 973);
+    Bild = new Image();
+    Bild.src = picture;
+    canvas.drawImage(Bild, 260, 0);
+    if (time < 5) showResults(picture, sounds, colour, time + 1);
+  }, 5000);
+  }
 
   var kartenSpieler1 = [];
   var kartenSpieler2 = [];
@@ -324,7 +308,20 @@
 
   var spielerCheck = setInterval(spielerCheck, 600)
   var DranCheck;
-
+  function submit() {
+    messages.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messages",
+      data: messages,
+      sender: name
+    }
+    });
+    setTimeout(function () {
+        window.scroll(scrollX, 10000)
+        document.getElementById('message').select();
+    }, 3000);
+  }
   function Ampel() {
     if (Sperren[2] == false) {
       if (koordinatenSpieler1[6] == undefined) {
@@ -346,11 +343,11 @@
     }
   }
 
-  function LayoutIch() {
+  function LayoutIch(popOrange) {
     console.log("LayoutIch");
     if (!(Zustand[Zustand.length - 1].includes("gewonnen"))) {
       canvas.fillStyle = "brown"; //Farbe
-      canvas.fillRect(0, 0, 2069, 754)
+      canvas.fillRect(0, 0, textur.width, textur.height)
     // zählerLayout++;
     // canvas.fillStyle = "Black"
     // canvas.font = "20px Georgia";
@@ -362,8 +359,8 @@
         } else {
           canvas.fillStyle = "green"; //Farbe
         }
-        if (kartenZiehen[0] == kartenSpieler1[zähler]) {
-          if (!(tipp == true)) kartenZiehen.shift();
+        if (kartenZiehen.length > 0 &&  kartenZiehen[0][0] == kartenSpieler1[zähler][0] && kartenZiehen[0][1] == kartenSpieler1[zähler][1]) {
+          if (!(tipp == true) && popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
           room.send({
@@ -399,8 +396,8 @@
         } else {
           canvas.fillStyle = "green"; //Farbe
         }
-        if (kartenZiehen[0] == kartenSpieler2[zähler]) {
-          if (!(tipp == true)) kartenZiehen.shift();
+        if (kartenZiehen.length > 0 && kartenZiehen[0][0] == kartenSpieler2[zähler][0] && kartenZiehen[0][1] == kartenSpieler2[zähler][1]) {
+          if (!(tipp == true) && popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
           room.send({
@@ -444,6 +441,7 @@
     */
     Ampel();
   }
+  showChat();
   }
 
   function LayoutGegner() {
@@ -525,6 +523,16 @@ else {
     Sperren[0] = true;
     //}
   }
+  function showChat() {
+    canvas.fillStyle = "brown"; //Farbe
+    canvas.fillRect(0, 650, textur.width, textur.height - 650);
+    for (var i = 0; i < messages.length; i++) {
+      // if (!(messages[messages.length - 1 - i] == undefined)) {
+      canvas.fillStyle = "white";
+      canvas.font = "33px Georgia";
+      canvas.fillText(messages[messages.length - 1 - i], 33, 700 + 44*i);
+    }
+    }
 
   function readMouseMove(e) {
     koordinatenSpieler1[4] = e.clientX;
@@ -554,10 +562,11 @@ else {
                 kartenSpieler2[zähler][2] = true;
                 LayoutGegner();
                 setTimeout(function() {
-                      if (!(confirm("Möchten sie weiterraten?"))) {
+                      if (!(gewonnenCheck(true).includes("gewonnen")) && !(confirm("Möchten sie weiterraten?"))) {
                     Zustand[Zustand.length] = "getroffen"
                     Spielerwechsel();
                   }
+                  else if (gewonnenCheck(true).includes("gewonnen")) Spielerwechsel();
                 }, 700);
               } else {
                 Zustand[Zustand.length] = "verfehlt"
@@ -591,10 +600,11 @@ else {
                 kartenSpieler1[zähler][2] = true;
                 LayoutGegner();
                 setTimeout(function() {
-                  if (!(confirm("Möchten sie weiterraten?"))) {
+                  if (!(gewonnenCheck(true).includes("gewonnen")) && !(confirm("Möchten sie weiterraten?"))) {
                     Zustand[Zustand.length] = "getroffen"
                     Spielerwechsel();
                   }
+                  else if (gewonnenCheck(true).includes("gewonnen")) Spielerwechsel();
                 }, 700);
               } else {
                 Zustand[Zustand.length] = "verfehlt"
@@ -619,6 +629,7 @@ else {
 
   function Spielerwechsel() {
     gewonnenCheck();
+    LayoutIch(true);
     SpielerwechselSet();
     zähler = 0;
     LayoutIch();
@@ -685,7 +696,7 @@ else {
     });
   }
 
-  function gewonnenCheck() {
+  function gewonnenCheck(pop) {
     while (zähler < kartenSpieler1.length) {
       if (kartenSpieler1[zähler][2] == "true" || kartenSpieler1[zähler][2] == true) {
         zählerListe[1]++;
@@ -709,6 +720,8 @@ else {
     }
     zähler = 0;
     zählerListe[1] = 0;
+    return Zustand[Zustand.length - 1];
+    if (pop) Zustand.pop();
   }
 
   function sort() {
@@ -764,4 +777,23 @@ else {
 
   };
   window.addEventListener('DOMContentLoaded', f, false)
+  document.onkeydown = function(event) {
+    if (event.key == "ArrowUp") window.scroll(scrollX, 0);
+    if (event.key == "Enter" && !(Ablage[1] == "beendet")) {
+      window.scroll(scrollX, 742);
+      setTimeout(function () {
+        window.scroll(scrollX, 0);
+      }, 1777);
+    }
+  }
+
+window.addEventListener("dblclick", dbClick)
+
+function dbClick() {
+  window.scroll(scrollX, 742);
+  setTimeout(function () {
+    window.scroll(scrollX, 0);
+  }, 1777);
+}
+
 </script>
