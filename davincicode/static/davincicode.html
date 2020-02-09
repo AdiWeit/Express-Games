@@ -360,7 +360,7 @@
           canvas.fillStyle = "green"; //Farbe
         }
         if (kartenZiehen.length > 0 &&  kartenZiehen[0][0] == kartenSpieler1[zähler][0] && kartenZiehen[0][1] == kartenSpieler1[zähler][1]) {
-          if (!(tipp == true) && popOrange) kartenZiehen.shift();
+          if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
           room.send({
@@ -397,7 +397,7 @@
           canvas.fillStyle = "green"; //Farbe
         }
         if (kartenZiehen.length > 0 && kartenZiehen[0][0] == kartenSpieler2[zähler][0] && kartenZiehen[0][1] == kartenSpieler2[zähler][1]) {
-          if (!(tipp == true) && popOrange) kartenZiehen.shift();
+          if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
           room.send({
