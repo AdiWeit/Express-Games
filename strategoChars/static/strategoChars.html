@@ -1,4 +1,4 @@
-<canvas id="textur" width="1566" height="744" style="touch-action: none"></canvas>
+<canvas id="textur" width="1566" height="744"></canvas>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
 
@@ -29,8 +29,11 @@ var xMaus = 0;
 var yMaus = 0;
 var hinzufügenX = 0;
 var hinzufügenY = 0;
-var player = {bomb: {anzahl: 6}, flag: {anzahl: 1}, entschärfer: {anzahl: 5} ,sniper: {lives: 200, damagePerField: {higher: "away", damage: 77}, radius: 3, streuung: 1, loaded: 1, anzahl: 5}, zerstreuer: {lives: 333, damagePerField: {higher: "near", damage: 44}, radius: 1, streuung: 2, loaded: 1, anzahl: 3}, tank: {lives: 555, damage: 55, radius: 2, streuung: 1, loaded: 1, anzahl: 3}, disperser: {lives: 355, damage: 133, radius:2, streuung: 1, loaded: 1, anzahl: 3},
-loader: {lives: 300, damage/*PerShot*/: 33, radius: 3, streuung: 1, maxLoad: 4, loaded: 0, anzahl: 7}};
+var mins;
+var secs;
+var tenths;
+var message = {sniper: "Der Sniper hat wenig leben, macht jedoch bei großer Entfenung zum Gegner viel Schaden. Um dies zu ermöglichen, ist die Reichweite natürlich auch hoch. Also: je weiter entfernt vom Ziel, desto besser!", disperser: "Der Disperser macht aus der Nähe viel Schaden und hat zudem eine durchschnittliche Anzahl an leben. Leider ist seine Reichweite gering. Deshalb ist es wichtig, möglichst nah an den Gegner ran zu kommen!", tank: "Der Tank hat viele Leben. Dafür macht er wenig Schaden. Die Reichweite ist durchschnittlich.", zerstreuer: "Der Zerstreuer verteilt seine Kugeln auch auf Felder neben sich. Deshalb macht er pro Gegner geringen Schaden. Die Reichweite ist leicht unterdurchschnittlich, wobei die Entfernung zum Gegner keine Rolle spielt.", loader: "der Loader kann, wie der Name schon sagt seine Waffe aufladen (statt schießen), um später mehrere Salven abfeuern zu können. Die Leben sind durchschnittlich. Maximal kann die Waffe 4 Mal ohne Abschuss geladen werden. Die Reichweite ist hoch, um die volle Power gut nutzen zu können."}
+var player = {bomb: {lives: 100, damage: 55, anzahl: 3}, flag: {lives: 500, damage: 17, anzahl: 1}, entschärfer: {lives: 170, damage: 55, radius: 3, streuung: 1, loaded: 1, anzahl: 2} ,sniper: {lives: 200, damagePerField: {higher: "away", damage: 50}, radius: 3, streuung: 1, loaded: 1, anzahl: 2}, zerstreuer: {lives: 277, damage: 33, radius: 2, streuung: 2, loaded: 1, anzahl: 1}, tank: {lives: 555, damage: 55, radius: 2, streuung: 1, loaded: 1, anzahl: 1}, disperser: {lives: 355,damagePerField: {higher: "near", damage: 44}, radius:2, streuung: 1, loaded: 1, anzahl: 2},loader: {lives: 300, damage/*PerShot*/: 40, radius: 2, streuung: 1, maxLoaded: 4, loaded: 0, anzahl: 1}};
 var spielfeld = [];
     spielfeld[0] = [["land", 5]];
     spielfeld[1] = [["land", 5]];
@@ -156,14 +159,15 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     if (message.type == "onLeave") idsBleibt = [];
     if (message.type == "playerMoved" && myId == ids[1]) {
       playerMoved = [true, message.data[0], message.data[1]];
-      canvas.fillStyle = colors[1];
-      canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
+      // canvas.fillStyle = colors[1];
+      // canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
       audio = new Audio(links.sounds.march);
       audio.currentTime = 50;
       audio.play();
       setTimeout(function () {
         audio.pause();
       }, 333);
+      Layout(false);
     }
     if (message.type == "spielerIds")    {
        ids = message.data;
@@ -251,7 +255,7 @@ function submit() {
       document.getElementById('message').select();
   }, 3000);
 }
-function Layout(sync) {
+function Layout(sync, vorschau) {
   canvas.fillStyle = "#FA9B0D";
   // background colour: #FA9B0D
   canvas.fillRect(0, 0, document.getElementById('textur').width, document.getElementById('textur').height);
@@ -269,43 +273,68 @@ function Layout(sync) {
     }
   }
   // showRangeAttack:
-  if (roundStatus[0] == "movePlayer") {
+   AblageListe[4] = [-1,-1];
+  if (!(roundStatus[0] == "movePlayer" || roundStatus[0] == "shoot") && AblageListe[0].length == 2 && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.id == myId ) AblageListe[4] = AblageListe[0];
+  else if (!(roundStatus[1] == undefined)) AblageListe[4] = roundStatus[1];
     roundStatus[3] = [];
-  for (var i1 = 0; ((spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.streuung == 1 && i1 < 1) || (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.streuung > 1 && i1 < spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.streuung*2)); i1++) {
-  if (!((i1/2 + "").includes("."))) i1 = i1*(-1);
-  for (var i = 1; i < spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius + 1; i++) {
-    console.log([roundStatus[1][0] + 1*i, roundStatus[1][1] + i1]);
-    roundStatus[3].push([roundStatus[1][0] + 1*i, roundStatus[1][1] + i1]);
+  if (!(spielfeld[AblageListe[4][0]]/*[AblageListe[4][1]]*/ == undefined) && !(spielfeld[AblageListe[4][0]][AblageListe[4][1]] == undefined)  && !(spielfeld[AblageListe[4][0]][AblageListe[4][1]].player == false) /*roundStatus[0] == "movePlayer" || roundStatus[0] == "shoot"*/) {
+    roundStatus[3][0] = [];
+    roundStatus[3][1] = [];
+    roundStatus[3][2] = [];
+    roundStatus[3][3] = [];
+  for (var i1 = 0; ((spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.streuung == 1 && i1 < 1) || (spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.streuung > 1 && i1 < spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.streuung*2 - 1)); i1++) {
+  if (!((i1/2 + "").includes(".")) && i1 > 0) i1 = (i1 - 1)*(-1);
+  for (var i = 1; i < spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.radius + 1; i++) { // right
+//    console.log([AblageListe[4][0] + 1*i, AblageListe[4][1] + i1]);
+    roundStatus[3][2].push([AblageListe[4][0] + 1*i, AblageListe[4][1] + i1]);
   }
-  for (var i = 1; i < spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius + 1; i++) {
-    console.log([roundStatus[1][0] - 1*i, roundStatus[1][1] + i1]);
-    roundStatus[3].push([roundStatus[1][0] - 1*i, roundStatus[1][1] + i1]);
+  for (var i = 1; i < spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.radius + 1; i++) { // left
+//    console.log([AblageListe[4][0] - 1*i, AblageListe[4][1] + i1]);
+    roundStatus[3][0].push([AblageListe[4][0] - 1*i, AblageListe[4][1] + i1]);
   }
-  for (var i = 1; i < spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius + 1; i++) {
-    console.log([roundStatus[1][0] + i1, roundStatus[1][1] + 1*i]);
-    roundStatus[3].push([roundStatus[1][0] + i1, roundStatus[1][1] + 1*i]);
+  for (var i = 1; i < spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.radius + 1; i++) { // down
+//    console.log([AblageListe[4][0] + i1, AblageListe[4][1] + 1*i]);
+    roundStatus[3][3].push([AblageListe[4][0] + i1, AblageListe[4][1] + 1*i]);
   }
-  for (var i = 1; i < spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius + 1; i++) {
-    console.log([roundStatus[1][0] + i1, roundStatus[1][1] - 1*i]);
-    roundStatus[3].push([roundStatus[1][0] + i1, roundStatus[1][1] - 1*i]);
+  for (var i = 1; i < spielfeld[AblageListe[4][0]][AblageListe[4][1]].player.radius + 1; i++) { // up
+  //  console.log([AblageListe[4][0] + i1, AblageListe[4][1] - 1*i]);
+    roundStatus[3][1].push([AblageListe[4][0] + i1, AblageListe[4][1] - 1*i]);
   }
-  if (i1 < 0) i1 = i1*(-1);
+  if (i1 < 0) i1 = (i1)*(-1) + 1
 }
 }
   for (var i1 = 0; i1 < spielfeld.length; i1++) {
     for (var i = 0; i < spielfeld.length; i++) {
+      if (!(spielfeld[i][i1].player == false) && !(spielfeld[i][i1].player.vorschau == undefined)) {
+        if (spielfeld[i][i1].player.vorschau > 2) spielfeld[i][i1].player = false;
+        spielfeld[i][i1].player.vorschau++;
+      }
+      if (!(spielfeld[i][i1].player == false) && spielfeld[i][i1].player.livesNow < 1 && ids[0] == myId) {
+        if (spielfeld[i][i1].player.number == "flag" && !(spielfeld[i][i1].player.id == myId)) {
+              room.send({
+                message: {
+                  type: "gewonnen",
+                  data: myId,
+                  siegDurch: "Niederlage"
+                }
+          //    }
+              });
+        }
+        spielfeld[i][i1].player = false;
+      }
       if (roundStatus[0] == "movePlayer" && i == roundStatus[1][0] && i1 == roundStatus[1][1]) {
         canvas.fillStyle = "#FC2600";
         canvas.fillRect(477 + 70*roundStatus[1][0] - 10, 17 + 70*roundStatus[1][1] - 10, 80, 80);
       }
     canvas.fillStyle = AblageListe[2][spielfeld[i][i1].type];
     if (!(spielfeld[i][i1].player == false)) {
-      if (spielfeld[i][i1].player.id == myId/* || (roundStatus[0] == "movePlayer" && roundStatus[1][0] == i && roundStatus[1][1] == i1)*/) {
+      if (true/*spielfeld[i][i1].player.id == myId*/  /* || (roundStatus[0] == "movePlayer" && roundStatus[1][0] == i && roundStatus[1][1] == i1)*/) {
       if (roundStatus[0] == "showRewardsAttack" && roundStatus[1][0] == i && roundStatus[1][1] == i1) {
         canvas.fillStyle = "#FC2600";
       }
       else {
-        canvas.fillStyle = "blue";
+        if (spielfeld[i][i1].player.id == myId) canvas.fillStyle = "blue";
+        else canvas.fillStyle = "red";
       }
       AblageListe[1].push([i, i1]);
       // setTimeout(function () {
@@ -315,7 +344,7 @@ function Layout(sync) {
           //   Layout(true)true);
           // }
           // }, 100);
-          showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number, i, i1);
+        showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number, i, i1);
         AblageListe[1].shift();
     }
     // }, 10);
@@ -323,6 +352,7 @@ function Layout(sync) {
     else canvas.fillStyle = "#FC2600";
   }
     else if (!(spielfeld[i][i1].player == false))  canvas.fillStyle = "#FC2600";
+    if (vorschau == "vorschau" && i == AblageListe[4][0] && i1 == AblageListe[4][1]) canvas.fillStyle = "rgba(0, 0, 255, 0.5)";
     canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
     if (!(roundStatus[0] == "placePlayer") && !(spielfeld[i][i1].player == false) && spielfeld[i][i1].player.id == myId) {
       AblageListe[3][0][spielfeld[i][i1].player.number].anzahl++;
@@ -336,14 +366,16 @@ function Layout(sync) {
       // }
       AblageListe[3][1][spielfeld[i][i1].player.number].anzahl++;
     }
-    if (roundStatus[0] == "movePlayer") {
-    for (var i3 = 0; i3 < roundStatus[3].length; i3++) {
-      if (roundStatus[3][i3][0] == i && roundStatus[3][i3][1] == i1) {
+    if (/*roundStatus[0] == "movePlayer" || roundStatus[0] == "shoot"*/roundStatus[3].length > 0) {
+    for (var i4 = 0; i4 < 4; i4++) {
+    for (var i3 = 0; i3 < roundStatus[3][i4].length; i3++) {
+      if (roundStatus[3][i4][i3][0] == i && roundStatus[3][i4][i3][1] == i1) {
         canvas.fillStyle = "rgba(128, 128, 128, 0.5)";
         canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
       }
     }
   }
+}
   }
   }
   if (playerMoved[0] == true) {
@@ -378,19 +410,20 @@ function showIcon(coordinates, number, i, i1) {
   setTimeout(function () {
   Bild = new Image();
   if (number == "flag") {
-  if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId)  Bild.src = links.pictures["blueFlag"];
+  if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId || ((i == playerMoved[1] || i == playerMoved[3]) && (i1 == playerMoved[2] || i1 == playerMoved[4])))  Bild.src = links.pictures["blueFlag"];
   else Bild.src = links.pictures["redFlag"];
-    canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
+    if (spielfeld[i][i1].player.id == myId || (i == playerMoved[1] || i == playerMoved[3]) && (i1 == playerMoved[2] || i == playerMoved[4])) canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
   }
-  else if (number == "bomb") {
+  else if (number == "bomb" && (spielfeld[i][i1].player.id == myId || (i == playerMoved[1] || i == playerMoved[3]) && (i1 == playerMoved[2] || i1 == playerMoved[4]))) {
     Bild.src = links.pictures["bomb"];
     canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
   }
   else {
     canvas.fillStyle = "white";
     canvas.font = "37px Georgia";
-    canvas.fillText(number[0], 477 + 70*coordinates[0] + 22, 17 + 70*coordinates[1] + 40);
-    //  showHealth:
+    if (spielfeld[i][i1].player.id == myId || ((i == playerMoved[1] || i == playerMoved[3]) && (i1 == playerMoved[2] || i1 == playerMoved[4]))) canvas.fillText(number[0], 477 + 70*coordinates[0] + 22, 17 + 70*coordinates[1] + 40);
+  }
+  //  showHealth:
       canvas.fillStyle = "white";
       canvas.fillRect(477 + 70*coordinates[0], 17 + 70*coordinates[1] + 5 - 5, 60, 10);
       canvas.fillStyle = "blue";
@@ -398,7 +431,6 @@ function showIcon(coordinates, number, i, i1) {
       canvas.fillStyle = "red";
       canvas.fillRect(477 + 70*coordinates[0] + 3, 17 + 70*coordinates[1] + 5 - 2, (60 - 6)*((spielfeld[i][i1].player.livesNow/spielfeld[i][i1].player.lives)), 3);
       AblageListe[1].shift();
-  }
   }, 10);
 }
 function syncData() {
@@ -440,12 +472,12 @@ function showStats() {
   else if (!(myId == undefined)) canvas.fillText("your side: top", 157, 97);
 //  ( && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)
   canvas.font = "37px Georgia";
-  for (var i = 0; i < Object.keys(player).length - 1; i++) {
+  for (var i = 0; i < Object.keys(player).length/* - 1*/; i++) {
     for (var i1 = 0; i < 7 &&(player[Object.keys(player)[i]].anzahl < 1 && !(i == Object.keys(player).length)); i++) {
       koordinaten[1] += 94;
       if (i == 6) {
         koordinaten[0] += 222;
-        koordinaten[1] = 222;
+        koordinaten[1] = 333;
       }
     }
     if (!(roundStatus[1] == undefined) && Object.keys(player)[i] == roundStatus[1])  canvas.fillStyle = "#FC2600";
@@ -582,6 +614,7 @@ window.addEventListener("dblclick", dbClick)
 function dbClick() {
   if (viewingMessages == false) {window.scroll(scrollX, 742); viewingMessages = true;}
   else {window.scroll(scrollX, 0); viewingMessages = false;}
+  if (roundStatus[0] == "placePlayer") alert(message[roundStatus[1]] + " Nachdem die Kugel jemanden getroffen hat, wird sie nicht mehr weiter nach außen fliegen. Auch eigene Truppen können getroffen werden!");
 }
 document.onkeydown = function(event) {
   AblageListe[3] = [event.keyCode, event.key];
@@ -653,10 +686,91 @@ function folgenKeyDown() {
         roundStatus[0] = "finished";
   //    }
       }
+    //   if (roundStatus[0] == "shoot" && AblageListe[3][0] == 37 && roundStatus[1][0] - 1 > -1 && spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false /*|| !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId)*/)) {  // left
+    //     // attack
+    // //    if (!(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false)) {
+    //       roundStatus[1][0]--;
+    //       roundStatus[0] = "shootFinished";
+    // //    }
+    //   }
+    //   if (roundStatus[0] == "shoot" && AblageListe[3][0] == 38 && roundStatus[1][1] - 1 > -1 && spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false /*|| !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId)*/)) {  // up
+    //     // attack
+    // //    if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false)) {
+    //       roundStatus[1][1]--;
+    //       roundStatus[0] = "shootFinished";
+    // //    }
+    //   }
+    //   if (roundStatus[0] == "shoot" && AblageListe[3][0] == 39 && roundStatus[1][0] - 1 < spielfeld.length && spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false/* || !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId)*/)) {  // right
+    //     // attack
+    //   //  if ( !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false)) {
+    //       roundStatus[1][0]++;
+    //       roundStatus[0] = "shootFinished";
+    //   //  }
+    //   }
+    //   if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 40 && roundStatus[1][1] + 1 < spielfeld.length && spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false/* || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId)*/)) {  // down
+    //     // attack
+    //   //  if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false))
+    //       roundStatus[1][1]++;
+    //       roundStatus[0] = "shootFinished";
+    // //    }
+    //     }
       if (roundStatus[0] == "finished") {
         spielfeld[roundStatus[1][0]][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[2][0]][roundStatus[2][1]]));
         spielfeld[roundStatus[2][0]][roundStatus[2][1]].player = false;
-        FinishRound();}
+        roundStatus[0] = "waitingForEndingMove";
+          var interval = setInterval(function () {
+          if (gerät == "PC" || swipeCoordinates + "" == AblageListe[6] + "") {
+            clearInterval(interval);
+            setTimeout(function () {
+              roundStatus[0] = "shoot";
+              Layout(false);
+              console.log("move done");
+            }, 1000);
+          }
+          if (gerät == "Handy") AblageListe[6] = swipeCoordinates;
+        }, 10);
+
+      }
+      if (roundStatus[0] == "shoot" && AblageListe[3][0] > 36 && AblageListe[3][0] < 41) {
+        console.log("shot");
+        AblageListe[0] = [];
+        for (var i = 0; i < roundStatus[3][AblageListe[3][0] - 37].length && (((AblageListe[3][1] == "ArrowUp" || AblageListe[3][1] == "ArrowDown") && !(AblageListe[0].includes(roundStatus[3][AblageListe[3][0] - 37][i][0]))) || ((AblageListe[3][1] == "ArrowLeft" || AblageListe[3][1] == "ArrowRight") && !(AblageListe[0].includes(roundStatus[3][AblageListe[3][0] - 37][i][1])))); i++) {
+        if (!(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) {
+            playerMoved[3] = roundStatus[3][AblageListe[3][0] - 37][i][0];
+            playerMoved[4] = roundStatus[3][AblageListe[3][0] - 37][i][1];
+        }
+        if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == "entschärfer") && (spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.number == "bomb")) spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.livesNow -= spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.damage;
+        else if ((spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == "entschärfer") && (spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.number == "bomb")) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damage;
+        else {
+        if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField == undefined)) {
+            if (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.higher == "away") {
+            if (AblageListe[3][1] == "ArrowUp" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(roundStatus[1][1] - roundStatus[3][AblageListe[3][0] - 37][i][1]))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+            if (AblageListe[3][1] == "ArrowDown" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(roundStatus[3][AblageListe[3][0] - 37][i][1] - roundStatus[1][1]))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded
+            if (AblageListe[3][1] == "ArrowLeft" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*
+            (roundStatus[1][0] - roundStatus[3][AblageListe[3][0] - 37][i][0]))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+            if (AblageListe[3][1] == "ArrowRight" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*
+            (roundStatus[1][0] - roundStatus[3][AblageListe[3][0] - 37][i][0]))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+          }
+          else {
+            if (AblageListe[3][1] == "ArrowUp" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius -
+             ((roundStatus[1][1])-roundStatus[3][AblageListe[3][0] - 37][i][1])))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+             if (AblageListe[3][1] == "ArrowDown" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius -
+              ((roundStatus[1][1])+roundStatus[3][AblageListe[3][0] - 37][i][1])))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+              if (AblageListe[3][1] == "ArrowLeft" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius -
+               ((roundStatus[1][1])-roundStatus[3][AblageListe[3][0] - 37][i][1])))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+               if (AblageListe[3][1] == "ArrowRight" && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= (spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damagePerField.damage*(spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.radius -
+                ((roundStatus[1][1])+roundStatus[3][AblageListe[3][0] - 37][i][1])))*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+          }
+        }
+        else {
+          if (!(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player.livesNow -= spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.damage*spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.loaded;
+        }
+      }
+      if ((AblageListe[3][1] == "ArrowDown" || AblageListe[3][1] == "ArrowUp") && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) AblageListe[0].push(roundStatus[3][AblageListe[3][0] - 37][i][0]);
+      if ((AblageListe[3][1] == "ArrowRight" || AblageListe[3][1] == "ArrowLeft") && !(spielfeld[roundStatus[3][AblageListe[3][0] - 37][i][0]][roundStatus[3][AblageListe[3][0] - 37][i][1]].player == false)) AblageListe[0].push(roundStatus[3][AblageListe[3][0] - 37][i][1]);
+      }
+        FinishRound();
+        }
         Layout(false);
   //     else {
   //       roundStatus[3][1]++;
@@ -694,16 +808,60 @@ function folgenKeyDown() {
   });
   ids = "inProgress";
 }
+var time = 0;
+var running = 0;
+
+function startPause() {
+if (running == 0) {
+  running = 1;
+  time = 0;
+  increment();
+}
+else {
+  running = 0;
+  if (roundStatus[0] == "placePlayer" && tenths > 3 && !(spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false)) {
+    player[spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number].anzahl++;
+    spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = false;
+    Layout(false);
+  }
+}
+}
+function reset() {
+running = 0;
+timer = 0;
+}
+function increment() {
+if (running == 1) {
+setTimeout(function () {
+  time++;
+  mins = Math.floor(time/10/60);
+  secs = Math.floor(time/10);
+      secs -= 60*mins;
+  tenths = time % 10;
+  if (mins < 10) {
+    mins = "0" + mins
+  }
+  if (secs < 10) {
+    secs = "0" + secs;
+  }
+  increment();
+}, 100);
+}
+}
+  window.addEventListener('mouseup', function() {
+    startPause();
+  });
   window.addEventListener('mousedown', function() {
+    startPause();
     checkClickedField();
-    if (roundStatus[0] == "movePlayer" && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2 && roundStatus[1][0] == AblageListe[0][0] && roundStatus[1][1] == AblageListe[0][1]) FinishRound();
+  //  if (roundStatus[0] == "movePlayer" && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2 && roundStatus[1][0] == AblageListe[0][0] && roundStatus[1][1] == AblageListe[0][1]) FinishRound();
     if (!(roundStatus[1] == 12)) {
     if (roundStatus[0] == "placePlayer" && !(AblageListe[0] == "none") && !(roundStatus[1] == undefined) && player[[roundStatus[1]]].anzahl > 0 && ((myId == idsBleibt[0] && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)) && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false) {
       spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = {id: myId, number: roundStatus[1]}
       for (var i = 0; i < Object.keys(player[roundStatus[1]]).length; i++) {
         spielfeld[AblageListe[0][0]][AblageListe[0][1]].player[Object.keys(player[roundStatus[1]])[i]] = player[roundStatus[1]][Object.keys(player[roundStatus[1]])[i]]
       }
-      spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.livesNow = spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.lives;
+      spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.livesNow = JSON.parse(JSON.stringify(spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.lives));
       player[[roundStatus[1]]].anzahl--;
       Layout(false);
     /*  syncData();*/
@@ -807,8 +965,13 @@ function checkClickedField() {
   for (var i = 0; i < spielfeld.length; i++) {
     for (var i1 = 0; i1 < spielfeld.length; i1++) {
       if (xMaus > 476 + 70*i && xMaus < 476 + 70*i + 60 && yMaus > 17 + 70*i1 && yMaus < 17 + 70*i1 + 60) {
-        console.log(1 + " - " + i1);
+        //console.log(1 + " - " + i1);
         AblageListe[0] = [i, i1];
+        if (!(roundStatus[0] == "placePlayer")) Layout(false);
+        if (roundStatus[0] == "shoot" && roundStatus[1] + "" == AblageListe[0] + "" && spielfeld[i][i1].player.number == "loader" && spielfeld[i][i1].player.loaded < spielfeld[i][i1].player.maxLoaded) {
+          spielfeld[i][i1].player.loaded++;
+          FinishRound();
+        }
       }
   }
   }
@@ -830,10 +993,25 @@ function readMouseMove(e) {
   xMaus = e.clientX + hinzufügenX;
   yMaus = e.clientY + hinzufügenY;
   //  console.log(xMaus + " - " + yMaus);
+  if (roundStatus[0] == "placePlayer" && !(roundStatus[1] == undefined) && xMaus > 481 && xMaus < 1177) {
+    AblageListe[5] = AblageListe[0]
+    checkClickedField();
+    if (gerät == "PC" && !(AblageListe[0] == "none") && !(AblageListe[5][0] == AblageListe[0][0] && AblageListe[5][1] == AblageListe[0][1]) && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false && spielfeld[AblageListe[0][0]][AblageListe[0][1]].type == "land" && ((myId == idsBleibt[0] && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4))) {
+      spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = {id: myId, number: roundStatus[1], vorschau: 0}
+      for (var i = 0; i < Object.keys(player[roundStatus[1]]).length; i++) {
+        spielfeld[AblageListe[0][0]][AblageListe[0][1]].player[Object.keys(player[roundStatus[1]])[i]] = player[roundStatus[1]][Object.keys(player[roundStatus[1]])[i]]
+      }
+      spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.livesNow = spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.lives;
+      Layout(false, "vorschau");
+      setTimeout(function () {
+        spielfeld[AblageListe[0][0]][AblageListe[0][1]].player = false;
+      }, 10);
+  }
+}
 }
 document.onmousemove = readMouseMove
 
-// Tranzparentz: canvas.fillStyle = "rgba(0, 0, 210, 0.7)"; (blue)
+// Tranzparentz: canvas.fillStyle = "rgba(0, 0, 210, 0.5)"; (blue)
 
 // Handy swipe direction:
 
@@ -864,20 +1042,21 @@ function handleTouchMove(evt) {
   if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
       if ( xDiff > 0 ) {
           /* left swipe */
-          AblageListe[3] = [37, "none"];
+          AblageListe[3] = [37, "ArrowLeft"];
       } else {
           /* right swipe */
-          AblageListe[3] = [39, "none"];
+          AblageListe[3] = [39, "ArrowRight"];
       }
   } else {
       if ( yDiff > 0 ) {
           /* up swipe */
-          AblageListe[3] = [38, "none"];
+          AblageListe[3] = [38, "ArrowUp"];
       } else {
           /* down swipe */
-          AblageListe[3] = [40, "none"];
+          AblageListe[3] = [40, "ArrowDown"];
       }
   }
+  AblageListe[3].push(event.type);
   if (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && !((Math.round(swipeCoordinates[0])/10 + "").includes(".")) || !((Math.round(swipeCoordinates[1])/10 + "").includes("."))) {
     folgenKeyDown();
   }
