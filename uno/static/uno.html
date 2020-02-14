@@ -12,7 +12,7 @@
   var AblageListe = [];
   var Bild = new Image();
   var sperren = [false];
-  var messages = []
+  var messages = [];
   Notification.requestPermission()
   // var imgData = canvas.getImageData(0,0,textur.width,textur.height);
   // var imgDataData = imgData.data;
@@ -107,18 +107,18 @@
     sperren[0] = true;
     if (spielerIch == gewinner) {
       console.log("Du hast gewonnen!!!");
-      if (times == 0) audio = new Audio("http://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+      if (times == 0) audio = new Audio("https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
         canvas.fillStyle = "green";
         canvas.fillRect(0, 0, 1847, 973);
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
         canvas.drawImage(Bild, 260, 0);
     } else {
       console.log("Du hast verloren!!!");
       canvas.fillStyle = "red";
       canvas.fillRect(0, 0, 1847, 973)
-      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
       canvas.drawImage(Bild, 260, 0);
-      if (times == 0)  audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+      if (times == 0)  audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
     }
     setTimeout(function () {
       if (times < 5) showResults(gewinner, times + 1);
@@ -172,10 +172,16 @@
       Layout(0)
       if (spielerAktuell == spielerIch) {
       new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
-      var notification = new Notification("It's your turn again! ", {
-        icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
-        body: "Come back to destroy the enemy(s)!",
-      });
+      try {
+        var notification = new Notification("It's your turn again! ", {
+          icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+          body: "Come back to destroy the enemy(s)!",
+        });
+      } catch (e) {
+        if (!(localStorage.getItem("firefoxHint") == "true")) {
+        alert("Für Benachrichtigungen, wenn sie dran kommen, bitte Firefox nutzen, oder es mit einem anderen Browser versuchen!");
+        localStorage.setItem("firefoxHint", true); }
+      }
       autoZiehen();
     }
   }
@@ -351,7 +357,7 @@ function playCard(data, card) {
   }
 }
 function farbwunsch() {
-  AblageListe[0] = prompt("Welche Farbe wünschen sie sich? (bitte in Englisch eingeben)");
+  AblageListe[0] = prompt("Welche Farbe wünschen sie sich? (bitte in Englisch eingeben)").toLowerCase();
   if (AblageListe[0] == "red" || AblageListe[0] == "green" || AblageListe[0] == "blue" || AblageListe[0] == "yellow") return AblageListe[0];
   else {
     alert("Eingabe ungültig! Bitte erneut eingeben!");
@@ -392,7 +398,7 @@ window.addEventListener('mousedown', function() {
   document.onkeydown = function(event) {
     if (event.key == "ArrowUp") window.scroll(textur.width, 0);
     if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
-      window.scroll(textur.width, 10000);
+      window.scroll(textur.width, 742);
       setTimeout(function () {
         window.scroll(textur.width, 0);
       }, 1777);
@@ -402,7 +408,7 @@ window.addEventListener('mousedown', function() {
 window.addEventListener("dblclick", dbClick)
 
 function dbClick() {
-  window.scroll(textur.width, 10000);
+  window.scroll(textur.width, 742);
   setTimeout(function () {
     window.scroll(textur.width, 0);
   }, 1777);
