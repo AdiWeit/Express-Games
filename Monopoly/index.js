@@ -47,6 +47,8 @@ app.post('/logout', function(req, res) {
   monopolyInstance.onLeave({
     sessionId: clientId
   });
+  console.log("clientIds: " + clientIds);
+  console.log("clientId: " + clientId);
 });
 app.post('/message-queue', function(req, res) {
   let messages = messageQueue[req.body.clientId];

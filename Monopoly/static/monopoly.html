@@ -193,6 +193,9 @@
   }
 
   room.setOnMessageListener(function(message) {
+    if (message.type == "spielerAktuell" && message.empfänger == spielerIch) spielerAktuell = message.data;
+    if (message.type == "setAblageListe[4]AfterRejoin") AblageListe[4][0] = ["beendet"];
+    if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
     if (message.type == "messages") {
       messages = message.data
 
@@ -1426,7 +1429,7 @@
       }
     });
   }
-  function datenAktuallisieren() {
+  function datenAktuallisieren(rejoin) {
     if (spieler[AnzahlSpieler - 1].name == undefined == false) {
       localStorage.setItem(AblageListe[9] + " kartenZiehen", JSON.stringify(kartenZiehen));
       localStorage.setItem(AblageListe[9] + " spieler", JSON.stringify(spieler));
@@ -1451,6 +1454,15 @@
     });
     while (zählerListe[0] < AnzahlSpieler) {
       // {"type":"kartenSpieler", "data":kartenSpieler[sender], "sender":sender}
+      if (rejoin) {
+        room.send({
+          message: {
+            "type": "spielerAktuell",
+            "data": spielerAktuell,
+            empfänger: zählerListe[0]
+          }
+        });
+      }
       room.send({
         message: {
           "type": "kartenSpieler",
