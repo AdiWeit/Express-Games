@@ -31,6 +31,11 @@ class monopolyKartenspiel {
     };
     //let newPlayer = client;
 
+    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
+      console.warn("Rejoin, skipping usual onJoin…");
+      return;
+    }
+
     console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if (!this.player1) {
       this.player1 = newPlayer;
