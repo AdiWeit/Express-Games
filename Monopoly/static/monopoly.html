@@ -29,7 +29,10 @@
     return content;
   }
 
-  const clientId = makeid(10);
+  let oldId = localStorage.getItem('CLIENTID');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTID', clientId);
+
   var messageListener = null;
 
   async function register() {
