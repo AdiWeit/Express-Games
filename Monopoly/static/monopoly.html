@@ -1,14 +1,10 @@
 <!-- <script type="text/javascript" src="colyseus.js"></script> -->
 <!-- <script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script> -->
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script> -->
-<ul id="spielstände" font-size:30px>
-</ul>
-<button type="button" name="button" id="keinenSpielstandLaden" onclick="keinenSpielstandLaden()">keinen Spielstand laden</button>
 <canvas id="textur" width="3310" height="790" style="opacity:1"></canvas>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
 <meta charset="utf-8">
-<h2 id="aktivitätstext"></h2>
 <script>
   window.onbeforeunload = function(){
     console.log("Leave Website");
@@ -136,13 +132,9 @@
     y = w.innerHeight || e.clientHeight || g.clientHeight;
   console.log(x + ' × ' + y);
 
-  Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
-  Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+  Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+  Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg";
   Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/regenbogen004_1024x768.jpg";
-  //    setInterval(sendNumber, 100);
-  setTimeout(function() {
-    ServerLaden();
-  }, 1000);
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
     navigator.userAgent.match(/iPhone/i) ||
@@ -172,25 +164,6 @@
         document.getElementById('message').select();
     }, 3000);
   }
-  function keinenSpielstandLaden() {
-    document.getElementById("spielstände").style.display = "none";
-    document.getElementById("keinenSpielstandLaden").style.display = "none";
-  }
-
-//  setInterval(Test, 1000)
-
-  function Test() {
-    canvas.fillStyle = "red" //"#FF8000"
-    canvas.fillRect(koordinaten[3], koordinaten[3], 100, 100);
-    setTimeout(function() {
-      room.send({
-        message: {
-          "type": "test",
-          "Koordinaten": Math.floor(Math.random() * (1000))
-        }
-      });
-    }, 500);
-  }
 
   room.setOnMessageListener(function(message) {
     if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
@@ -208,78 +181,10 @@
         AblageListe[1] = "beendet";
       }, 3777);
     };
-    if (message.type == "namen") {
-      spieler[0].name = message.data.toString().split(',')[0];
-      spieler[1].name = message.data.toString().split(',')[1];
-      spieler[2].name = message.data.toString().split(',')[2];
-      spieler[3].name = message.data.toString().split(',')[3];
-    }
-    if (message.type == "spielstände") {
-      spielstände = message.data;
-      localStorage.setItem("spielstände", JSON.stringify(spielstände));
-      AblageListe[9] = nameSpiel;
-    }
-    if (message.type == "ReihenfolgeSpielstandLaden") {
-      spielerAktuell = message.data;
-      AblageListe[1] = "ReihenfolgeSpielstandLaden";
-    }
-    if (message.type == "namenSpieler") {
-      alert("Das Spiel wurde unter dem Namen " + message.data + " gespeichert.");
-      nameSpiel = message.data;
-      if (message.nameSpielerVorher == undefined == false) {
-        spieler[message.Empfänger - 1].name = message.nameSpielerVorher;
-      }
-      spieler[spielerIch].name = prompt("Unter welchen Namen wollen sie sich abspeichern? (Der Name muss später zum Laden des Spielstandes wieder eingegeben werden!)");
-      //  dbSet("monopolyKartenspiel", nameSpiel + spieler[spielerIch].name + " 1-stellige", [spielerIch, spielerGegner, restlicheZüge, spielerAktuell]);
-      datenAktuallisieren();
-      if (message.Empfänger > AnzahlSpieler - 2) {
-        console.log(spieler);
-        //  dbGet("monopolyKartenspiel", "spielstände", function(result) {
-        /*  if (result == "NOPE" == false && result == "" == false) {
-            spielstände = result.toString().split(',');
-          } */
-        spielstände[spielstände.length] = nameSpiel;
-        //  dbSet("monopolyKartenspiel", "spielstände", spielstände);
-        localStorage.setItem("spielstände", JSON.stringify(spielstände));
-        room.send({
-          message: {
-            "type": "namen",
-            "data": [spieler[0].name, spieler[1].name, spieler[2].name, spieler[3].name]
-          }
-        });
-        room.send({
-          message: {
-            "type": "spielstände",
-            "data": spielstände
-          }
-        });
-      } else {
-        room.send({
-          message: {
-            "type": "namenSpieler",
-            "data": nameSpiel,
-            "Empfänger": (message.Empfänger + 1),
-            "nameSpielerVorher": spieler[spielerIch].name
-          }
-        });
-      }
-    }
 
     if (message.type == "reloadPage") {
       location.reload();
       audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
-    }
-    if (message.type == "test") {
-      if (message.Koordinaten > 500) {
-        koordinaten[3]++;
-      } else {
-        koordinaten[3]--;
-      }
-      if (koordinaten[3] <= 0) {
-        koordinaten[3] += 3;
-      }
-      canvas.fillStyle = "blue" //"#DF7401"
-      canvas.fillRect(koordinaten[3], koordinaten[3], 100, 100);
     }
     if (message.type == undefined && message == spielerIch + " hat gewonnen!!!") {
       console.log("Du hast gewonnen!!!");
@@ -694,158 +599,11 @@
     });
   }
 
-  function speichernServer() {
-    nameSpiel = prompt("Wie wollen sie diese Runde benennen?");
-    room.send({
-      message: {
-        "type": "namenSpieler",
-        "data": nameSpiel,
-        "Empfänger": 0
-      }
-    });
-    AblageListe[9] = nameSpiel;
-  }
-
   function serverDatenLöschen() {
     localStorage.setItem('spielerMonopoly', undefined);
     localStorage.setItem('spielerAktuellMonopoly', undefined);
     localStorage.setItem('restlicheZügeMonopoly', undefined);
     localStorage.setItem('kartenZiehenMonopoly', undefined);
-    // if (AblageListe[9] == undefined == false) {
-    //   // localStorage.removeItem("Test1")
-    //   localStorage.removeItem(AblageListe[9] + " spieler");
-    //   localStorage.removeItem(AblageListe[9] + " kartenZiehen");
-    //   //  dbSet("monopolyKartenspiel", AblageListe[9] + " spieler", "NOPE");
-    //   //    setTimeout(function () {
-    //   //    dbSet("monopolyKartenspiel", AblageListe[9] + " kartenZiehen", "NOPE");
-    //   zählerListe[0] = 0;
-    //   //    dbGet("monopolyKartenspiel", "spielstände", function(result) {
-    //   //    spielstände = result.toString().split(',');
-    //   spielstände = JSON.parse(localStorage.getItem("spielstände"));
-    //   while (zählerListe[0] < spielstände.length) {
-    //     if (spielstände[zählerListe[0]] == AblageListe[9]) {
-    //       spielstände.splice([zählerListe[0]], 1);
-    //       localStorage.setItem("spielstände", JSON.stringify(spielstände));
-    //       setTimeout(function() {
-    //         //  dbSet("monopolyKartenspiel", "spielstände", spielstände);
-    //       }, 500);
-    //     }
-    //     zählerListe[0]++;
-    //   }
-    //   //  });
-    //   //  }, 500);
-    // }
-  }
-
-  function ServerLaden() {
-    //  dbGet("monopolyKartenspiel", "spielstände", function(result) {
-    //  spielstände = result.toString().split(',');
-    spielstände = JSON.parse(localStorage.getItem("spielstände"));
-    zählerListe[0] = 0;
-    if (spielstände == null || spielstände.length < 1) {
-      document.getElementById("keinenSpielstandLaden").style.display = "none";
-      window.scroll(0, 73);
-      spielstände = [];
-    } else {
-      window.scroll(0, 0);
-    }
-    while (zählerListe[0] < spielstände.length) {
-      var ul = document.getElementById("spielstände");
-      var li = document.createElement("li");
-      li.appendChild(document.createTextNode(spielstände[zählerListe[0]]));
-      li.setAttribute("id", zählerListe[0]);
-      ul.appendChild(li);
-      zählerListe[0]++;
-    }
-
-    items = document.querySelectorAll("#spielstände li")
-    tab = [];
-
-
-    for (i = 0; i < items.length; i++) {
-      tab.push(items[i].innerHTML);
-    }
-
-
-    for (var i = 0; i < items.length; i++) {
-
-      items[i].onclick = function() {
-
-        AblageListe[0] = prompt("Wie haben sie sich für den Spielstand genannt?")
-        liIndex = tab.indexOf(this.innerHTML);
-        console.log(spielstände[liIndex]);
-        AblageListe[9] = spielstände[liIndex]
-        //      dbGet("monopolyKartenspiel",AblageListe[9] + " spieler" , function(result) {
-        if (JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[0].name == AblageListe[0] || JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[1].name == AblageListe[0] || (JSON.parse(localStorage.getItem(AblageListe[9] +
-            " spieler"))[2].name == undefined == false && JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[2].name == AblageListe[0]) || (JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[3].name == undefined == false &&
-            JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[3].name == AblageListe[0])) {
-          //  spieler = JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"));
-          zählerListe[0] = 0;
-          while (zählerListe[0] < 4) {
-            spieler[zählerListe[0]].einkommen = /*JSON.parse(result)*/ JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[zählerListe[0]].einkommen;
-            spieler[zählerListe[0]].kartenIch = /*JSON.parse(result)*/ JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[zählerListe[0]].kartenIch;
-            spieler[zählerListe[0]].kartenMitte = /*JSON.parse(result)*/ JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[zählerListe[0]].kartenMitte;
-            spieler[zählerListe[0]].name = /*JSON.parse(result)*/ JSON.parse(localStorage.getItem(AblageListe[9] + " spieler"))[zählerListe[0]].name;
-            zählerListe[0]++;
-          }
-          /*      spieler[0] = JSON.parse(result)[0];
-                spieler[1] = JSON.parse(result)[1];
-                spieler[2] = JSON.parse(result)[2];
-                spieler[3] = JSON.parse(result)[3]; */
-          console.log(spieler);
-          //    dbGet("monopolyKartenspiel",AblageListe[9] + " kartenZiehen" , function(result) {
-          kartenZiehen = /*JSON.parse(result)*/ JSON.parse(localStorage.getItem(AblageListe[9] + " kartenZiehen"));
-          //  dbGet("monopolyKartenspiel",AblageListe[9] + AblageListe[0] + " 1-stellige" , function(result) {
-          restlicheZüge = JSON.parse(localStorage.getItem(AblageListe[9] + AblageListe[0] + " 1-stellige"))[2];
-          spielerGegner = JSON.parse(localStorage.getItem(AblageListe[9] + AblageListe[0] + " 1-stellige"))[1];
-          spielerIch = JSON.parse(localStorage.getItem(AblageListe[9] + AblageListe[0] + " 1-stellige"))[0];
-          if (AblageListe[1] == "ReihenfolgeSpielstandLaden" == false) {
-            spielerAktuell = JSON.parse(localStorage.getItem(AblageListe[9] + AblageListe[0] + " 1-stellige"))[3];
-          } else {
-            setTimeout(function() {
-              AblageListe[1] = "beendet";
-            }, 1000);
-          }
-          zählerListe[0] = 0;
-          zählerListe[3] = -1;
-          while (zählerListe[0] < AnzahlSpieler) {
-            if (JSON.parse(localStorage.getItem(AblageListe[9] + spieler[zählerListe[0]].name + " 1-stellige"))[2] > 0 && JSON.parse(localStorage.getItem(AblageListe[9] + spieler[zählerListe[0]].name + " 1-stellige"))[2] < 3) {
-              zählerListe[3] = zählerListe[0];
-            }
-            zählerListe[0]++;
-          }
-          if (JSON.parse(localStorage.getItem(AblageListe[9] + spieler[spielerAktuell].name + " 1-stellige"))[2] == 0) {
-            Spielerwechsel();
-            room.send({
-              message: {
-                "type": "ReihenfolgeSpielstandLaden",
-                "data": spielerAktuell
-              }
-            });
-          }
-          if (zählerListe[3] > -1 && zählerListe[3] == spielerAktuell == false && AblageListe[1] == "ReihenfolgeSpielstandLaden" == false) {
-            spielerAktuell = zählerListe[3];
-            room.send({
-              message: {
-                "type": "ReihenfolgeSpielstandLaden",
-                "data": spielerAktuell
-              }
-            });
-          }
-          window.scroll(0, 73);
-          document.getElementById("keinenSpielstandLaden").style.display = "none";
-          document.getElementById("spielstände").style.display = "none";
-          Layout();
-          //  });
-          //  });
-        } else {
-          alert("Ihr Name ist in der gespeicherten Datei nicht vorhanden!")
-        }
-        //  });
-      };
-
-    }
-    //  });
   }
   AblageListe[10] = "none"
 
@@ -892,7 +650,6 @@
     if (AblageListe[10][0] == "right" && (textur.width - scrollX) > 681) {
       window.scroll(scrollX + 2, scrollY);
       // console.log("scroll");
-      // FRESSE!!!!!!!!!!!!! MfG Nicolai
     } else {
       clearInterval(IntervalScroll);
       console.log("clearInterval");
@@ -957,25 +714,6 @@
       }
     }
     if (AblageListe[4][0] == "Schlau Geklaut" && AblageListe[3] > -1 && AblageListe[2] > -1 && AblageListe[2] < spieler[AblageListe[3]].kartenMitte.length && AblageListe[3] == spielerIch == false && AblageListe[3] < AnzahlSpieler) {
-      /*      zählerListe[0] = 0;
-            zählerListe[1] = -1;
-            while (zählerListe[0] < spieler[spielerIch].kartenMitte.length) {
-              if (spieler[spielerIch].kartenMitte[zählerListe[0]].includes(spieler[spielerGegner].kartenMitte[AblageListe[2]][4])) {
-                zählerListe[1] = zählerListe[0];
-              }
-              zählerListe[0]++;
-            }
-            if (zählerListe[1] > -1) {
-              spieler[spielerIch].kartenMitte[zählerListe[1]][5][spieler[spielerIch].kartenMitte[zählerListe[1]][5].length] = spieler[spielerGegner].kartenMitte[0][3];
-              spieler[AblageListe[3]].kartenMitte.splice(AblageListe[2], 1);
-            } else if (spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length > 1) {
-              spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
-              spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][3] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0);
-              spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].pop();
-            } else {
-              spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
-              spieler[AblageListe[3]].kartenMitte.splice(AblageListe[2], 1);
-            } */
       if (spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length == spieler[AblageListe[3]].kartenMitte[AblageListe[2]][2].length) {
         alert("Aus vollständigen Sätzen klauen ist leider nicht erlaubt!")
       } else if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
@@ -1331,58 +1069,6 @@
               MieteAlle();
             }
           }
-          /*      zählerListe[0] = 0;
-                zählerListe[1] = [];
-                if (spieler[spielerIch].kartenIch[AblageListe[2]][1].length > 1) {
-                while (zählerListe[0] < spieler[spielerIch].kartenMitte.length) {
-                  if (spieler[spielerIch].kartenMitte[zählerListe[0]][4] == spieler[spielerIch].kartenIch[AblageListe[2]][1][0] || spieler[spielerIch].kartenMitte[zählerListe[0]][4] == spieler[spielerIch].kartenIch[AblageListe[2]][1][1]) {
-                    zählerListe[1][zählerListe[1].length] = zählerListe[0];
-                  }
-                  zählerListe[0]++;
-                }
-                if (zählerListe[1].length > 1) {
-                  AblageListe[4][0] = "Miete";
-                  AblageListe[4][1] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
-                }
-                else {
-                  AblageListe[0] = spieler[spielerIch].kartenMitte[zählerListe[1][0]][2][spieler[spielerIch].kartenMitte[zählerListe[1][0]][5].length - 1];
-                  AblageListe[3] = spielerGegner;
-                  bezahlen();
-                  if (spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1] <= 5 && spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1] == 10 == false) {
-                    spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1];
-                    spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1];
-                  }
-                  else {
-                    zählerListe[0] = 0;
-                    while (AblageListe[5].length > 0) {
-                      spieler[spielerIch].einkommen[0] += AblageListe[5][0];
-                      spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[5][0];
-                      AblageListe[5].shift();
-                    }
-                  }
-                }
-              }
-              else if (spieler[spielerIch].kartenMitte.length == 1 && AnzahlSpieler == 2) {
-                AblageListe[0] = spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1];
-                AblageListe[3] = spielerGegner;
-                bezahlen();
-                if (spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1] <= 5 && spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1] == 10 == false) {
-                  spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1];
-                  spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenMitte[0][2][spieler[spielerIch].kartenMitte[0][5].length - 1];
-                }
-                else {
-                  zählerListe[0] = 0;
-                  while (AblageListe[5].length > 0) {
-                    spieler[spielerIch].einkommen[0] += AblageListe[5][0];
-                    spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[5][0];
-                    AblageListe[5].shift();
-                  }
-                }
-              }
-              else if (spieler[spielerIch].kartenMitte.length > 1) {
-                AblageListe[4][0] = "Miete";
-                AblageListe[4][1] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
-              } */
         }
         if (AblageListe[4][0] == "beendet" && spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Übernahme") {
           zählerListe[0] = 0;
@@ -1444,8 +1130,6 @@
     alert("NixDa am laufen! Sie müssen die Entscheidung des Gegners abwarten, bevor sie weiter machen können!")
   }
   });
-  // localStorage.setItem("Test", JSON.stringify([1,2,3]));
-  // console.log(JSON.parse(localStorage.getItem("Test"));
   function askNixDa() {
     room.send({
       message: {
@@ -1460,21 +1144,6 @@
     });
   }
   function datenAktuallisieren(rejoin) {
-    if (spieler[AnzahlSpieler - 1].name == undefined == false) {
-      localStorage.setItem(AblageListe[9] + " kartenZiehen", JSON.stringify(kartenZiehen));
-      localStorage.setItem(AblageListe[9] + " spieler", JSON.stringify(spieler));
-      //    dbSet("monopolyKartenspiel", AblageListe[9] + " spieler", JSON.stringify(spieler));
-      //  dbSet("monopolyKartenspiel", AblageListe[9] + " kartenZiehen", JSON.stringify(kartenZiehen));
-      localStorage.setItem(AblageListe[9] + spieler[spielerIch].name + " 1-stellige", JSON.stringify([spielerIch, spielerGegner, restlicheZüge, spielerAktuell]));
-      //    dbSet("monopolyKartenspiel", AblageListe[9] + spieler[spielerIch].name + " 1-stellige", [spielerIch, spielerGegner, restlicheZüge, spielerAktuell]);
-      //     setTimeout(function () {
-      // //    dbSet("monopolyKartenspiel", AblageListe[9] + " kartenZiehen", JSON.stringify(kartenZiehen));
-      //     setTimeout(function () {
-      //   //    dbSet("monopolyKartenspiel", AblageListe[9] + spieler[spielerIch].name + " 1-stellige", [spielerIch, spielerGegner, restlicheZüge, spielerAktuell]);
-      //     }, 1500);
-      //     /* neu */
-      //   }, 1500);
-    }
     zählerListe[0] = 0;
     room.send({
       message: {
@@ -1520,10 +1189,6 @@
     Layout();
   }
 
-  function finishedSave(err) {
-    alert("Ihre Daten wurden gespeichert!");
-  }
-
   function MieteAlle() {
     if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
       if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
@@ -1555,34 +1220,6 @@
       MieteAlle();
     }
   }
-  // function MieteAlle() {
-  //   if (zählerListe[2] > -1 && zählerListe[2] < AnzahlSpieler && zählerListe[2] == spielerIch == false) {
-  //     AblageListe[3] = zählerListe[2];
-  //     Miete();
-  //   }
-  //   zählerListe[2]++;
-  //
-  //   if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da")) && zählerListe[2] == spielerIch == false) {
-  //     AblageListe[11] = zählerListe[2];
-  //     AblageListe[4][0] = "Miete für alle";
-  //     askNixDa();
-  //   } else if (zählerListe[2] < AnzahlSpieler) {
-  //     if (AblageListe[8] == "NixDaVollendet") {
-  //       AblageListe[8] = "beendet";
-  //     }
-  //     MieteAlle();
-  //   }
-  //
-  //   /*   while (zählerListe[2] < AnzahlSpieler) {
-  //        if (zählerListe[2] == spielerIch == false) {
-  //          AblageListe[3] = zählerListe[2];
-  //          Miete();
-  //        }
-  //        zählerListe[2]++;
-  //      } */
-  //   // datenAktuallisieren();
-  // }
-
   function Miete() {
     zählerListe[0] = 0;
     AblageListe[0] = 0;
