@@ -29,9 +29,9 @@
     return content;
   }
 
-  let oldId = localStorage.getItem('CLIENTID');
+  let oldId = localStorage.getItem('CLIENTIDMonopoly');
   const clientId = oldId ? oldId : makeid(10);
-  localStorage.setItem('CLIENTID', clientId);
+  localStorage.setItem('CLIENTIDMonopoly', clientId);
 
   var messageListener = null;
 
@@ -193,6 +193,7 @@
   }
 
   room.setOnMessageListener(function(message) {
+    if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "spielerAktuell" && message.empfänger == spielerIch) spielerAktuell = message.data;
     if (message.type == "setAblageListe[4]AfterRejoin") AblageListe[4][0] = ["beendet"];
     if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
@@ -350,7 +351,29 @@
         }
     }
     }
-    if (message.type == "spielerDu") spielerIch = message.data;
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      if (message.newRound != true)
+       {
+        if (confirm("wollen sie die vorherige Runde weiterspielen?"))  {
+          for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))).length; i++) {
+            for (var i1 = 0; i1 < Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]]).length; i1++) {
+              spieler[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]][Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]])[i1]] = JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]][Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]])[i1]];
+            }
+          }
+      //    spieler[0] = JSON.parse(localStorage.getItem('spielerMonopoly'))[0]; spieler[1] = JSON.parse(localStorage.getItem('spielerMonopoly'))[1]; spieler[2] = JSON.parse(localStorage.getItem('spielerMonopoly'))[2]; spieler[3] = JSON.parse(localStorage.getItem('spielerMonopoly'))[3];
+          spielerAktuell = JSON.parse(localStorage.getItem('spielerAktuellMonopoly')); restlicheZüge = JSON.parse(localStorage.getItem('restlicheZügeMonopoly')); Layout();
+          kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenMonopoly'));
+        }
+        else {
+          room.send({
+            message: {
+              "type": "endGame"
+            }
+          });
+        }
+      }
+    }
     if (message.type == "Bezahlen vollständig" && spielerIch == spielerAktuell) {
       AblageListe[4][0] = ["beendet"];
       alert("Bezahlung vollendet! Sie können nun weiterspielen, wenn sie noch Züge zur Verfügung haben.")
@@ -363,7 +386,10 @@
     }
     if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
     if (message.type == "kartenMitte") spieler[message.sender].kartenMitte = message.data;
-    if (message.type == "einkommenSpieler") spieler[message.sender].einkommen = message.data;
+    if (message.type == "einkommenSpieler") {
+      spieler[message.sender].einkommen = message.data;
+      if (message.datenAktuallisieren) localStorage.setItem('spielerMonopoly', JSON.stringify(spieler)); localStorage.setItem('spielerAktuellMonopoly', spielerAktuell); localStorage.setItem('kartenZiehenMonopoly', JSON.stringify(kartenZiehen)); localStorage.setItem('restlicheZügeMonopoly', restlicheZüge);
+    }
     if (message.type == "Auswahl bezahlen" && message.sender == spielerIch) {
       AblageListe[4][0] = "bezahlen Gegner";
       AblageListe[4][1] = message.data;
@@ -681,30 +707,34 @@
   }
 
   function serverDatenLöschen() {
-    if (AblageListe[9] == undefined == false) {
-      // localStorage.removeItem("Test1")
-      localStorage.removeItem(AblageListe[9] + " spieler");
-      localStorage.removeItem(AblageListe[9] + " kartenZiehen");
-      //  dbSet("monopolyKartenspiel", AblageListe[9] + " spieler", "NOPE");
-      //    setTimeout(function () {
-      //    dbSet("monopolyKartenspiel", AblageListe[9] + " kartenZiehen", "NOPE");
-      zählerListe[0] = 0;
-      //    dbGet("monopolyKartenspiel", "spielstände", function(result) {
-      //    spielstände = result.toString().split(',');
-      spielstände = JSON.parse(localStorage.getItem("spielstände"));
-      while (zählerListe[0] < spielstände.length) {
-        if (spielstände[zählerListe[0]] == AblageListe[9]) {
-          spielstände.splice([zählerListe[0]], 1);
-          localStorage.setItem("spielstände", JSON.stringify(spielstände));
-          setTimeout(function() {
-            //  dbSet("monopolyKartenspiel", "spielstände", spielstände);
-          }, 500);
-        }
-        zählerListe[0]++;
-      }
-      //  });
-      //  }, 500);
-    }
+    localStorage.setItem('spielerMonopoly', undefined);
+    localStorage.setItem('spielerAktuellMonopoly', undefined);
+    localStorage.setItem('restlicheZügeMonopoly', undefined);
+    localStorage.setItem('kartenZiehenMonopoly', undefined);
+    // if (AblageListe[9] == undefined == false) {
+    //   // localStorage.removeItem("Test1")
+    //   localStorage.removeItem(AblageListe[9] + " spieler");
+    //   localStorage.removeItem(AblageListe[9] + " kartenZiehen");
+    //   //  dbSet("monopolyKartenspiel", AblageListe[9] + " spieler", "NOPE");
+    //   //    setTimeout(function () {
+    //   //    dbSet("monopolyKartenspiel", AblageListe[9] + " kartenZiehen", "NOPE");
+    //   zählerListe[0] = 0;
+    //   //    dbGet("monopolyKartenspiel", "spielstände", function(result) {
+    //   //    spielstände = result.toString().split(',');
+    //   spielstände = JSON.parse(localStorage.getItem("spielstände"));
+    //   while (zählerListe[0] < spielstände.length) {
+    //     if (spielstände[zählerListe[0]] == AblageListe[9]) {
+    //       spielstände.splice([zählerListe[0]], 1);
+    //       localStorage.setItem("spielstände", JSON.stringify(spielstände));
+    //       setTimeout(function() {
+    //         //  dbSet("monopolyKartenspiel", "spielstände", spielstände);
+    //       }, 500);
+    //     }
+    //     zählerListe[0]++;
+    //   }
+    //   //  });
+    //   //  }, 500);
+    // }
   }
 
   function ServerLaden() {
@@ -1454,20 +1484,20 @@
     });
     while (zählerListe[0] < AnzahlSpieler) {
       // {"type":"kartenSpieler", "data":kartenSpieler[sender], "sender":sender}
-      if (rejoin) {
-        room.send({
-          message: {
-            "type": "spielerAktuell",
-            "data": spielerAktuell,
-            empfänger: zählerListe[0]
-          }
-        });
-      }
+      // if (rejoin) {
+      //   room.send({
+      //     message: {
+      //       "type": "spielerAktuell",
+      //       "data": spielerAktuell,
+      //       empfänger: zählerListe[0]
+      //     }
+      //   });
+      // }
       room.send({
         message: {
           "type": "kartenSpieler",
           "data": spieler[zählerListe[0]].kartenIch,
-          "sender": zählerListe[0],
+          "sender": zählerListe[0]
         }
       });
       room.send({
@@ -1482,6 +1512,7 @@
           "type": "einkommenSpieler",
           "data": spieler[zählerListe[0]].einkommen,
           "sender": zählerListe[0],
+          datenAktuallisieren: true
         }
       });
       zählerListe[0]++;

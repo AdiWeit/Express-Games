@@ -19,11 +19,8 @@ class monopolyKartenspiel {
   // this.player2 = null;
   // this.player3 = null;
   // this.player4 = null;
-  onInit(options) {
-    console.log("BasicRoom created!", options);
-  }
   onJoin(client) {
-    console.log(`${client.sessionId} joined.`);
+//    console.log(`${client.sessionId} joined.`);
     let newPlayer = {
       id: client.sessionId,
       //client: client,
@@ -35,36 +32,40 @@ class monopolyKartenspiel {
     console.log("spielerOnlineGleich0: " + this.spielerOnlineGleich0);
     if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
       console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
+      if (client.sessionId == this.player1.id) {
       this.send(this.player1.client, {
         "type": "spielerDu",
         "data": 0
       });
+    }
+    if (client.sessionId == this.player2.id) {
       this.send(this.player2.client, {
         "type": "spielerDu",
         "data": 1
       });
-    if (this.player3 != null) {
+    }
+    if (this.player3 != null && client.sessionId == this.player3.id) {
       this.send(this.player3.client, {
         "type": "spielerDu",
         "data": 2
       });
     }
-    if (this.player4 != null) {
+    if (this.player4 != null && client.sessionId == this.player4.id) {
       this.send(this.player4.client, {
         "type": "spielerDu",
         "data": 3
       });
     }
-      if (client.sessionId == this.player1.id) {
-        this.send(this.player2.client, {
-          "type": "sendDataToRejoinedPlayer"
-        });
-      }
-      else {
-        this.send(this.player1.client, {
-          "type": "sendDataToRejoinedPlayer"
-        });
-      }
+      // if (client.sessionId == this.player1.id) {
+      //   this.send(this.player2.client, {
+      //     "type": "sendDataToRejoinedPlayer"
+      //   });
+      // }
+      // else {
+      //   this.send(this.player1.client, {
+      //     "type": "sendDataToRejoinedPlayer"
+      //   });
+      // }
       this.broadcast({
         "type": "setAblageListe[4]AfterRejoin"
       });
@@ -275,23 +276,27 @@ class monopolyKartenspiel {
       if (this.spielerOnline > 2) {
         this.send(this.player3.client, {
           "type": "spielerDu",
-          "data": 2
+          "data": 2,
+          newRound: true
         });
       }
       if (this.spielerOnline > 3) {
         this.send(this.player4.client, {
           "type": "spielerDu",
-          "data": 3
+          "data": 3,
+          newRound: true
         });
       }
       var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
       this.send(this.player1.client, {
         "type": "spielerDu",
-        "data": 0
+        "data": 0,
+        newRound: true
       });
       this.send(this.player2.client, {
         "type": "spielerDu",
-        "data": 1
+        "data": 1,
+        newRound: true
       });
       this.broadcast({
         "type": "Reihenfolge",
@@ -396,7 +401,7 @@ class monopolyKartenspiel {
     //   else this.player4 = null; */
     // this.spielerOnline--;
     if (this.player2 != undefined) this.spielerOnlineGleich0--;
-    if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remve room");}
+    //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     // /*  if (!this.player2) {
     //     Reihenfolge = [];
     //     var j, x, i;
@@ -455,7 +460,7 @@ class monopolyKartenspiel {
       if (AblageListe[0][data.message.sender] > 0) {
         console.log(AblageListe[0][data.message.sender] + " Straßen vollständig Spieler " + data.message.sender);
       }
-      if (AblageListe[0][data.message.sender] > 2) {this.broadcast(data.message.sender + " hat gewonnen!!!"); this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remve room");}
+      if (AblageListe[0][data.message.sender] > 2) {this.broadcast(data.message.sender + " hat gewonnen!!!"); this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     }
     if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
@@ -466,6 +471,7 @@ class monopolyKartenspiel {
     } else {
       this.broadcast(data.message);
     }
+    if (data.message.type == "endGame") {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
   }
   onDispose() {
     console.log("Dispose BasicRoom");
