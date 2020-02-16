@@ -581,20 +581,51 @@
         bieter++;
       }
       if (zählerListe[1] > 1) {
-        gebotAnServer();
-      }
-    }
-
-  }
-
-  function gebotAnServer() {
-    room.send({
-      message: {
+        /*
         "type": "Gebot",
         "data": AblageListe[1][1],
         "Empfänger": bieter,
         "Straße": AblageListe[1][0],
         "Sender": AblageListe[1][2]
+        */
+        gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
+      }
+    }
+
+  }
+
+  function vorbereitungGebot() {
+    zählerListe[0] = 0;
+    while (zählerListe[0] < AnzahlSpieler) {
+      if (spieler[zählerListe[0]].einkommen[0] <= JSON.parse(gebote[0])) {
+        gebote[zählerListe[0] + 1] = false;
+      }
+      zählerListe[0]++;
+    }
+    if (AnzahlSpieler > 2) {
+      bieter = 0;
+      if (bieter + 1 == spielerIch == false) {
+        bieter++;
+      }
+      gebote = [0, true, true];
+      if (AnzahlSpieler > 2) {
+        gebote[3] = true;
+        if (AnzahlSpieler > 3) {
+          gebote[4] = true;
+        }
+      }
+      gebote[spielerIch + 1] = false;
+  }
+  return gebote.includes(true)
+}
+  function gebotAnServer(data, Empfänger, Straße, Sender) {
+    room.send({
+      message: {
+        "type": "Gebot",
+        "data": data,
+        "Empfänger": Empfänger,
+        "Straße": Straße,
+        "Sender": Sender
       }
     });
   }
@@ -690,6 +721,9 @@
     AblageListe[2] = -1;
     koordinatenCheck();
     if (AblageListe[4][0] == "Auswahl Karten ablegen" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
+      if (vorbereitungGebot()) {
+        gebotAnServer(gebote, bieter, spieler[spielerIch].kartenIch[AblageListe[2]], spielerIch);
+      }
       spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
       Layout();
       if (spieler[spielerIch].kartenIch.length < 8) {
@@ -698,6 +732,10 @@
     }
     if (AblageListe[4][0] == "bezahlen Gegner" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false) {
       AblageListe[4][1] -= spieler[spielerIch].kartenMitte[AblageListe[2]][1];
+
+        if (vorbereitungGebot()) {
+          gebotAnServer(gebote, bieter, spieler[AblageListe[3]].kartenMitte[AblageListe[2]], spielerIch);
+        }
       if (spieler[spielerIch].kartenMitte[AblageListe[2]][5].length < 2) {
         spieler[spielerIch].kartenMitte.splice([AblageListe[2]], 1);
       } else {
@@ -787,38 +825,19 @@
          */
         AblageListe[1] = spieler[spielerIch].kartenIch[AblageListe[2]];
         setTimeout(function() {
-          zählerListe[0] = 0;
-          while (zählerListe[0] < AnzahlSpieler) {
-            if (spieler[zählerListe[0]].einkommen[0] <= JSON.parse(gebote[0])) {
-              gebote[zählerListe[0] + 1] = false;
+            if (vorbereitungGebot()) {
+              gebotAnServer(gebote, bieter, AblageListe[1], spielerIch);
+              // room.send({
+              //   message: {
+              //     "type": "Gebot",
+              //     "data": gebote,
+              //     "Empfänger": bieter,
+              //     "Straße": AblageListe[1],
+              //     "Sender": spielerIch
+              //   }
+              // });
             }
-            zählerListe[0]++;
-          }
-          if (AnzahlSpieler > 2) {
-            bieter = 0;
-            if (bieter + 1 == spielerIch == false) {
-              bieter++;
-            }
-            gebote = [0, true, true];
-            if (AnzahlSpieler > 2) {
-              gebote[3] = true;
-              if (AnzahlSpieler > 3) {
-                gebote[4] = true;
-              }
-            }
-            gebote[spielerIch + 1] = false;
-            if (gebote.includes(true)) {
-              room.send({
-                message: {
-                  "type": "Gebot",
-                  "data": gebote,
-                  "Empfänger": bieter,
-                  "Straße": AblageListe[1],
-                  "Sender": spielerIch
-                }
-              });
-            }
-          }
+          // }
         }, 500);
         if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "A Straße") {
           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
