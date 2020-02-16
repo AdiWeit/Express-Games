@@ -1,6 +1,8 @@
 <meta charset="utf-8">
 <h2 id="aktivitätstext"></h2>
 <canvas id="textur" width="2570" height="800"></canvas>
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
 <script>
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
@@ -61,6 +63,7 @@
   var SteineIch = ["#FF8000", "#FF8000", "#FF8000", "#FF8000"];
   var messages;
   var SpielerId;
+  var messagesText = [];
   // var host = window.document.location.host.replace(/:.*/, '');
   // var client = new Colyseus.Client(location.protocol.replace("http", "ws") + host + (location.port ? ':' + location.port : ''));
   // var room = client.join("heldenDesOlymp");
@@ -104,7 +107,7 @@
     sendJson('/heldenDesOlymp/message-queue', {
       clientId
     }).then(messages => {
-      console.log("MESSAGES", messages);
+      if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -139,6 +142,16 @@
 
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
+    if (message.type == "messagesText") {
+      messagesText = message.data
+      textur.height = 750 + messagesText.length*50;
+      LayoutMitte();
+      if (!(SpielerId == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      AblageListe[1] = "warten Message angucken";
+      setTimeout(function () {
+        AblageListe[1] = "beendet";
+      }, 3777);
+    };
     if (message.type == "player1" || message.type == "player2") SpielerId = message.data;
     if (message.type == "karteAbgebenPeleus" && SpielerIds[0] == SpielerId) {
       if (SpielerIdBleibt[0] == SpielerId) {
@@ -163,6 +176,7 @@
         if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && !(MitteSpieler2[i][10] == undefined) && !(MitteSpieler2[i][10][1] == undefined) && MitteSpieler2[i][10][1][0] == "1 attack lost" && MitteSpieler2[i][10][1][1] > 0) alert("Da der Gegner einen Adron ausgespielt hat, wurde ihrem " + (i + 1) + ". Spieler für " + MitteSpieler2[i][10][1][1] + " verbleibende Runden ein Angriffsschadenn weggenommen!")
       }
       SpielerIds = message.data;
+      if (!(SpielerIdBleibt.includes(SpielerIds[0]) && SpielerIdBleibt.includes(SpielerIds[1]))) SpielerIdBleibt = SpielerIds
       if (kartenSpieler1.length == 0 && kartenSpieler2.length == 0) {
         Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
         Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
@@ -184,11 +198,17 @@
         SpielerIdBleibt = SpielerIds
       } else {
         ttsOut = new Audio("http://www.orangefreesounds.com/wp-content/uploads/2019/03/Elevator-ding-dong-sound-effect.mp3").play();
-        if (spielerIds[0] == spielerId) {
-        var notification = new Notification("It's your turn again! ", {
-          icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
-          body: "Come back to destroy the enemy(s)!",
-        });
+        if (SpielerIds[0] == SpielerId) {
+          try {
+            var notification = new Notification("It's your turn again! ", {
+              icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
+              body: "Come back to destroy the enemy(s)!",
+            });
+          } catch (e) {
+            if (!(localStorage.getItem("firefoxHint") == "true")) {
+            alert("Für Benachrichtigungen, wenn sie dran kommen, bitte Firefox nutzen, oder es mit einem anderen Browser versuchen!");
+            localStorage.setItem("firefoxHint", true); }
+          }
       }
       }
     } else if (message.type == "kartenSpieler1") kartenSpieler1 = message.data;
@@ -262,7 +282,20 @@
     console.log("PC");
   }
 
-
+  function submit() {
+    messagesText.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messagesText",
+      data: messagesText,
+      sender: SpielerId
+    }
+    });
+    setTimeout(function () {
+        window.scroll(scrollX, 10000)
+        document.getElementById('message').select();
+    }, 3000);
+  }
   function DranCheck() {
     dbGet("Olymp", "Zustand" + SpielerIdBleibt[0] + SpielerIdBleibt[1], function(result) {
       result = result.toString().split(',');
@@ -545,8 +578,16 @@
   function LayoutMitte() {
     LayoutMitteSpieler1();
     LayoutMitteSpieler2();
+    showChat();
   }
-
+  function showChat() {
+    for (var i = 0; i < messagesText.length; i++) {
+      // if (!(messagesText[messagesText.length - 1 - i] == undefined)) {
+      canvas.fillStyle = "#FF8000";
+      canvas.font = "33px Georgia";
+      canvas.fillText(messagesText[messagesText.length - 1 - i], 33, 788 + 44*i);
+    }
+    }
   function LayoutMitteSpieler1() {
     //  canvas.fillStyle = "white"
     //canvas.fillRect(0,470,2000, 800);
@@ -650,6 +691,7 @@
             }
         } */
       if (MitteSpieler1[zähler][0] == "z" == false) {
+        if (MitteSpieler1[zähler][2] == "yellow" || MitteSpieler1[zähler][2] == "silver") {canvas.fillStyle = "black";}
         canvas.fillText("         " + MitteSpieler1[zähler][4] + "💀", Koordinaten[3] + 120 + 250 * zähler, 665);
         canvas.fillText(MitteSpieler1[zähler][3] + "🔫", Koordinaten[3] + 120 + 250 * zähler, 665);
         canvas.font = "29px Georgia";
@@ -737,7 +779,7 @@
       // Werte Karte Gegner (Angriff/Verteidigung/Einheit)
       //      if (SpielerIdsBleibt[0] == SpielerId == false) {
       if (MitteSpieler2[zähler][0] == "z" == false) {
-
+        if (MitteSpieler2[zähler][2] == "yellow" || MitteSpieler2[zähler][2] == "silver") {canvas.fillStyle = "black";}
         canvas.fillText("         " + MitteSpieler2[zähler][4] + "💀", Koordinaten[3] + 120 + 250 * zähler, 195);
         canvas.fillText(MitteSpieler2[zähler][3] + "🔫", Koordinaten[3] + 120 + 250 * zähler, 195);
         canvas.font = "29px Georgia";
@@ -983,6 +1025,7 @@ function checkAndromeda() {
           // Werte Karte ich (Angriff/Verteidigung/Einheit)
           canvas.fillStyle = "white";
           canvas.font = "37px Georgia";
+          if (kartenSpieler1[zähler][2] == "yellow" || kartenSpieler1[zähler][2] == "silver") {canvas.fillStyle = "black";}
           canvas.fillText("         " + kartenSpieler1[zähler][4] + "💀", 120 + 250 * zähler, 665);
           canvas.fillText(kartenSpieler1[zähler][3] + "🔫", 120 + 250 * zähler, 665);
           canvas.font = "29px Georgia";
@@ -1050,6 +1093,7 @@ function checkAndromeda() {
         // Werte Karte ich (Angriff/Verteidigung/Einheit)
         canvas.fillStyle = "white";
         canvas.font = "37px Georgia";
+        if (kartenSpieler2[zähler][2] == "yellow" || kartenSpieler2[zähler][2] == "silver") {canvas.fillStyle = "black";}
         canvas.fillText("         " + kartenSpieler2[zähler][4] + "💀", 120 + 250 * zähler, 665 - 475);
         canvas.fillText(kartenSpieler2[zähler][3] + "🔫", 120 + 250 * zähler, 665 - 475);
         canvas.font = "29px Georgia";
@@ -3515,6 +3559,24 @@ function gegnerKarteZiehen() {
   room.send({
     message: "gegnerKartenZiehen"
   });
+}
+document.onkeydown = function(event) {
+  if (event.key == "ArrowUp") window.scroll(scrollX, 0);
+  if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
+    window.scroll(scrollX, 742);
+    // setTimeout(function () {
+    //   window.scroll(scrollX, 0);
+    // }, 1777);
+  }
+}
+
+window.addEventListener("dblclick", dbClick)
+
+function dbClick() {
+window.scroll(scrollX, 742);
+// setTimeout(function () {
+//   window.scroll(scrollX, 0);
+// }, 1777);
 }
 
 </script>
