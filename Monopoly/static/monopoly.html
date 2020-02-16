@@ -1954,11 +1954,13 @@ function showChat() {
         if (zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false) {
           AblageListe[3] = -1;
           alert("Straßensatz bereits komplett! Sie können die Seite des Jokers jedoch trotzdem noch nutzen, sowie die Staße für Geld ablegen. ")
-        } else {
+        } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][1]] + " einsetzen wollen?")) || (confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][1] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]);
           spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][1], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][1]];
         }
-
+        else {
+          AblageListe[3] = -1;
+        }
       } else {
         zählerListe[0] = 0;
         zählerListe[1] = -1;
@@ -1971,9 +1973,12 @@ function showChat() {
         if (zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false) {
           alert("Straßensatz bereits komplett! Sie können die Seite des Jokers jedoch trotzdem noch nutzen, sowie die Staße für Geld ablegen. ")
           AblageListe[3] = -1;
-        } else {
+        } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][0]] + " einsetzen wollen?")) || (confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][0] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]);
           spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][0], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][0]];
+        }
+        else {
+          AblageListe[3] = -1;
         }
       }
     }
