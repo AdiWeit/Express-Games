@@ -17,16 +17,47 @@ class heldenDesOlymp {
   // player1 = null;
   // player2 = null;
 
-  onInit(options) {
-    console.log("BasicRoom created!", options);
-  }
-
   onJoin(client) {
     console.log(`${client.sessionId} joined.`);
     let newPlayer = {
       id: client.sessionId,
       client: client,
     };
+    if ([this.player1, this.player2].some(p => p && p.id && (p.id == client.sessionId))) {
+      console.warn("Rejoin, skipping usual onJoin…");
+      if (client.sessionId == this.player1.id) {
+      this.send(this.player1.client, {
+        "type": "player1",
+        "data": this.player1.id,
+        rejoin: true
+      });
+      // this.send(this.player1.client, {
+      //   "type": "spielerIds",
+      //   "data": [this.player1.id, this.player2.id]
+      // });
+    }
+    else {
+      this.send(this.player2.client, {
+        "type": "player2",
+        "data": this.player2.id,
+        rejoin: true
+      });
+    }
+    if (reihenfolge[0] == "player2") {
+      this.broadcast({
+        "type": "spielerIds",
+        "data": [this.player2.id, this.player1.id],
+        rejoin: true
+      });
+    } else {
+      this.broadcast({
+        "type": "spielerIds",
+        "data": [this.player1.id, this.player2.id],
+        rejoin: true
+      });
+    }
+      return;
+    }
     if (!this.player1) this.player1 = newPlayer;
     else this.player2 = newPlayer;
     if (this.player1 && this.player2) {
@@ -208,13 +239,13 @@ class heldenDesOlymp {
   }
 
   onLeave(client) {
-    if (client.sessionId == undefined == false) {
-    //  console.log(client.ix);
-      console.log(`${client.sessionId} left.`);
-      this.broadcast(`${client.sessionId} left`);
-      if (client.sessionId === this.player1.id) this.player1 = null;
-      else this.player2 = null;
-    }
+    // if (client.sessionId == undefined == false) {
+    // //  console.log(client.ix);
+    //   console.log(`${client.sessionId} left.`);
+    //   this.broadcast(`${client.sessionId} left`);
+    //   if (client.sessionId === this.player1.id) this.player1 = null;
+    //   else this.player2 = null;
+    // }
   }
 
   onMessage(client, data) {
@@ -254,9 +285,8 @@ class heldenDesOlymp {
     else {
       this.broadcast(data.message)
     }
-  }
-  onDispose() {
-    console.log("Dispose BasicRoom");
+    if (data.message.type == "Zustand" && data.message.data[data.message.data.length - 1].includes("gewonnen")) console.log("gewonnen!!!");
+    if (data.message.type == "endGame" || (data.message.data == undefined && data.message.includes("gewonnen"))) {this.player1 = null; this.player2 = null; console.log("roomRemoved");}
   }
 
 }

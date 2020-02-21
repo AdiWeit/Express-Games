@@ -61,6 +61,7 @@
   var SteineMitte = [];
 
   var SteineIch = ["#FF8000", "#FF8000", "#FF8000", "#FF8000"];
+  var zweiXAngriffDurch = false;
   var messages;
   var SpielerId;
   var messagesText = [];
@@ -91,7 +92,9 @@
   //   clientId
   // });
 
-  const clientId = makeid(10);
+  let oldId = localStorage.getItem('CLIENTIDHeldenDesOlymp');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDHeldenDesOlymp', clientId);
   var messageListener = null;
 
   async function register() {
@@ -139,9 +142,21 @@
     }
   };
 
-
+function serverDatenLöschen() {
+  localStorage.setItem('kartenZiehenOlymp', undefined);
+  localStorage.setItem('MitteSpieler2Olymp', undefined);
+  localStorage.setItem('MitteSpieler1Olymp', undefined);
+  localStorage.setItem('kartenSpieler1Olymp', undefined);
+  localStorage.setItem('kartenSpieler2Olymp', undefined);
+  localStorage.setItem('SiegpunkteOlymp', undefined);
+  localStorage.setItem('ZustandOlymp', undefined);
+  localStorage.setItem('SteineIchOlymp', undefined);
+  localStorage.setItem('SteineMitteOlymp', undefined);
+  localStorage.setItem('SpielerIdsBleibtOlymp', undefined);
+}
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
+    if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "messagesText") {
       messagesText = message.data
       textur.height = 750 + messagesText.length*50;
@@ -152,7 +167,36 @@
         AblageListe[1] = "beendet";
       }, 3777);
     };
-    if (message.type == "player1" || message.type == "player2") SpielerId = message.data;
+    if (message.type == "player1" || message.type == "player2") {
+      SpielerId = message.data;
+      if (message.rejoin && confirm("wollen sie die vorherige Runde weiterspielen?")) {
+        kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenOlymp'));
+        MitteSpieler2 = JSON.parse(localStorage.getItem('MitteSpieler2Olymp'));
+        MitteSpieler1 = JSON.parse(localStorage.getItem('MitteSpieler1Olymp'));
+        kartenSpieler1 = JSON.parse(localStorage.getItem('kartenSpieler1Olymp'));
+        kartenSpieler2 = JSON.parse(localStorage.getItem('kartenSpieler2Olymp'));
+        for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('colourStonesPlayer1Olymp'))).length; i++) {
+          kartenSpieler1[Object.keys(JSON.parse(localStorage.getItem('colourStonesPlayer1Olymp')))[i]] = JSON.parse(localStorage.getItem('colourStonesPlayer1Olymp'))[Object.keys(JSON.parse(localStorage.getItem('colourStonesPlayer1Olymp')))[i]];
+          kartenSpieler2[Object.keys(JSON.parse(localStorage.getItem('colourStonesPlayer2Olymp')))[i]] = JSON.parse(localStorage.getItem('colourStonesPlayer2Olymp'))[Object.keys(JSON.parse(localStorage.getItem('colourStonesPlayer2Olymp')))[i]];
+        }
+        Siegpunkte = JSON.parse(localStorage.getItem('SiegpunkteOlymp'));
+        ZustandOlymp = JSON.parse(localStorage.getItem('ZustandOlymp'));
+        SteineIch = JSON.parse(localStorage.getItem('SteineIchOlymp'));
+        SpielerIdsBleibt = JSON.parse(localStorage.getItem('SpielerIdsBleibtOlymp'));
+        SpielerIdBleibt = SpielerIdsBleibt;
+        SteineMitte = JSON.parse(localStorage.getItem('SteineMitteOlymp'));
+        setTimeout(function () {
+          koordinatenCheck = setInterval(KoordinatenCheck, 700);
+        }, 1000);
+      }
+      else if (message.rejoin) {
+        room.send({
+          message: {
+            "type": "endGame"
+          }
+        });
+      }
+    }
     if (message.type == "karteAbgebenPeleus" && SpielerIds[0] == SpielerId) {
       if (SpielerIdBleibt[0] == SpielerId) {
         karteGezogen[0] = kartenSpieler1.length;
@@ -180,7 +224,7 @@
       if (kartenSpieler1.length == 0 && kartenSpieler2.length == 0) {
         Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
         Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
-        koordinatenCheck = setInterval(KoordinatenCheck, 700)
+        koordinatenCheck = setInterval(KoordinatenCheck, 700);
         SpielerIdsBleibt = SpielerIds;
         if (SpielerIds[0] == SpielerId) SpielerIdGegner = SpielerIds[1];
         else SpielerIdGegner = SpielerIds[0];
@@ -211,6 +255,22 @@
           }
       }
       }
+      if (!message.rejoin) {
+      localStorage.setItem('kartenZiehenOlymp', JSON.stringify(kartenZiehen));
+      localStorage.setItem('MitteSpieler2Olymp', JSON.stringify(MitteSpieler2));
+      localStorage.setItem('MitteSpieler1Olymp', JSON.stringify(MitteSpieler1));
+      localStorage.setItem('kartenSpieler1Olymp', JSON.stringify(kartenSpieler1));
+      localStorage.setItem('kartenSpieler2Olymp', JSON.stringify(kartenSpieler2));
+      localStorage.setItem('SiegpunkteOlymp', JSON.stringify(Siegpunkte));
+      localStorage.setItem('ZustandOlymp', JSON.stringify(Zustand));
+      localStorage.setItem('SteineIchOlymp', JSON.stringify(SteineIch));
+      localStorage.setItem('SteineMitteOlymp', JSON.stringify(SteineMitte));
+      localStorage.setItem('SpielerIdsBleibtOlymp', JSON.stringify(SpielerIdsBleibt));
+      var colourStonesPlayer1Olymp = {green: kartenSpieler1.green, red: kartenSpieler1.red, yellow: kartenSpieler1.yellow, blue: kartenSpieler1.blue};
+      localStorage.setItem('colourStonesPlayer1Olymp', JSON.stringify(colourStonesPlayer1Olymp));
+      var colourStonesPlayer2Olymp = {green: kartenSpieler2.green, red: kartenSpieler2.red, yellow: kartenSpieler2.yellow, blue: kartenSpieler2.blue};
+      localStorage.setItem('colourStonesPlayer2Olymp', JSON.stringify(colourStonesPlayer2Olymp));
+    }
     } else if (message.type == "kartenSpieler1") kartenSpieler1 = message.data;
     else if (message.type == "kartenSpieler2") kartenSpieler2 = message.data;
     else if (message.type == "MitteSpieler1") {
@@ -1655,19 +1715,24 @@ function checkAndromeda() {
                 kartenSpieler1[AblageListe[1]] = "z";
               }
               if (kartenSpieler1[SteineIch[zählerListe[9]]] == true) {
-                if ([SteineIch[zählerListe[9]]] == "red") {
+                var passenderStein = false;
+                if ([SteineIch[zählerListe[9]]] == "red" && farbenGebraucht[1].length > 0) {
                   farbenGebraucht[1].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "green") {
+                if ([SteineIch[zählerListe[9]]] == "green" && farbenGebraucht[2].length > 0) {
                   farbenGebraucht[2].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "blue") {
+                if ([SteineIch[zählerListe[9]]] == "blue" && farbenGebraucht[3].length > 0) {
                   farbenGebraucht[3].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "yellow") {
+                if ([SteineIch[zählerListe[9]]] == "yellow" && farbenGebraucht[4].length > 0) {
                   farbenGebraucht[4].pop();
+                  passenderStein = true;
                 }
-                if (zählerListe[9] < 4) {
+                if (zählerListe[9] < 4 && passenderStein) {
                   kartenSpieler1[SteineIch[zählerListe[9]]] = false;
                   SteineMitte[zählerListe[9]] = SteineIch[zählerListe[9]];
                   SteineIch[zählerListe[9]] = "#FF8000";
@@ -1715,19 +1780,24 @@ function checkAndromeda() {
                 kartenSpieler2[AblageListe[1]] = "z";
               }
               if (kartenSpieler2[SteineIch[zählerListe[9]]] == true) {
-                if ([SteineIch[zählerListe[9]]] == "red") {
+                var passenderStein = false;
+                if ([SteineIch[zählerListe[9]]] == "red" && farbenGebraucht[1].length > 0) {
                   farbenGebraucht[1].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "green") {
+                if ([SteineIch[zählerListe[9]]] == "green" && farbenGebraucht[2].length > 0) {
                   farbenGebraucht[2].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "blue") {
+                if ([SteineIch[zählerListe[9]]] == "blue" && farbenGebraucht[3].length > 0) {
                   farbenGebraucht[3].pop();
+                  passenderStein = true;
                 }
-                if ([SteineIch[zählerListe[9]]] == "yellow") {
+                if ([SteineIch[zählerListe[9]]] == "yellow" && farbenGebraucht[4].length > 0) {
                   farbenGebraucht[4].pop();
+                  passenderStein = true;
                 }
-                if (zählerListe[9] < 4) {
+                if (zählerListe[9] < 4 && passenderStein) {
                   kartenSpieler2[SteineIch[zählerListe[9]]] = false;
                   SteineMitte[zählerListe[9]] = SteineIch[zählerListe[9]];
                   SteineIch[zählerListe[9]] = "#FF8000";
@@ -1771,10 +1841,15 @@ function checkAndromeda() {
     }
     if (AblageListe[2] == "Spieler1AuswahleinSchadenZufügen" && !(MitteSpieler2[AblageListe[1]] == "z")) {
       MitteSpieler2[AblageListe[1]][4]--;
-    }
+      AblageListe[2] = "beendet";
+      AblageListe[8] = "beendet";
+      VorAngriffBeenden();
+      }
     if (AblageListe[2] == "Spieler2AuswahleinSchadenZufügen" && !(MitteSpieler1[AblageListe[1]] == "z")) {
       MitteSpieler1[AblageListe[1]][4]--;
-
+      AblageListe[2] = "beendet";
+      AblageListe[8] = "beendet";
+      VorAngriffBeenden();
     }
     if (AblageListe[2] == "Spieler1AuswahlLebenPlus") {
       MitteSpieler1[AblageListe[1]][4] += AblageListe[8];
@@ -1919,19 +1994,19 @@ function checkAndromeda() {
       Spieler2AuswahlKarteGegnerZurrücknehmen();
       AblageListe[2] = "beendet";
     }
-    if (AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" && MitteSpieler2[AblageListe[1]] == undefined == false && MitteSpieler2[AblageListe[1]][0] == "z" == false && (MitteSpieler2[AblageListe[1] + 1][5] ==
+    if (AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" && MitteSpieler2[AblageListe[1]] == undefined == false && MitteSpieler2[AblageListe[1]][0] == "z" == false && (AblageListe[1] + 1 == 6 || MitteSpieler2[AblageListe[1] + 1][5] ==
         "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " || MitteSpieler2[AblageListe[1] - 1][5] ==
         "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. ")) {
+      wiederholung = true;
       zählerListe[10] = AblageListe[1];
-      AblageListe[2] = "beendet";
       AuswahlKarte2XAngreifen();
       nachAngriffBeenden();
     }
-    if (AblageListe[2] == "Spieler1AuswahlKarte2XAngreifen" && MitteSpieler1[AblageListe[1]] == undefined == false && MitteSpieler1[AblageListe[1]] == "z" == false && (MitteSpieler1[AblageListe[1] + 1][5] ==
+    if (AblageListe[2] == "Spieler1AuswahlKarte2XAngreifen" && MitteSpieler1[AblageListe[1]] == undefined == false && MitteSpieler1[AblageListe[1]] == "z" == false && (AblageListe[1] + 1 == 6 || MitteSpieler1[AblageListe[1] + 1][5] ==
         "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " || MitteSpieler1[AblageListe[1] - 1][5] ==
         "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. ")) {
+      wiederholung = true;
       zählerListe[10] = AblageListe[1];
-      AblageListe[2] = "beendet";
       AuswahlKarte2XAngreifen();
       nachAngriffBeenden();
     }
@@ -1987,7 +2062,7 @@ function checkAndromeda() {
         //    SteineMitte[zählerListe[2]] = "z";
         //  SteineMitte.sort();
         //    SteineMitte.pop();
-        if (zählerListe[6] > 1) {
+        if (zählerListe[6] > 1 && !(SteineMitte[0] == "#FF8000" && SteineMitte[1] == "#FF8000" && SteineMitte[2] == "#FF8000" && SteineMitte[3] == "#FF8000")) {
           zählerListe[6]--;
         } else {
           Spielerwechsel();
@@ -2352,8 +2427,8 @@ function checkAndromeda() {
             if (MitteSpieler2[i][2] == "green") MitteSpieler2[i][4]--;
           }
         }
-      else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Cheiron")) {
-          AblageListe[3] = "Spieler1AuswahleinSchadenZufügen";
+      else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Cheiron") && !(!MitteSpieler2[0][5] && !MitteSpieler2[1][5] && !MitteSpieler2[2][5] && !MitteSpieler2[3][5] && !MitteSpieler2[4][5] && !MitteSpieler2[5][5])) {
+          AblageListe[2] = "Spieler1AuswahleinSchadenZufügen";
         }
         else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Herakles")) {
           zählerListe[0] = [];
@@ -2452,8 +2527,8 @@ function checkAndromeda() {
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && ((MitteSpieler2[zählerListe[11]][5].includes("Kastor") && MitteSpieler1[zählerListe[11]][6] == "Soldat/-in") || (MitteSpieler2[zählerListe[11]][5].includes("Pollux") && MitteSpieler1[zählerListe[11]][6] == "Held/-in"))) {
           eineKarteZiehen();
         }
-        else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Cheiron")) {
-          AblageListe[3] = "Spieler2AuswahleinSchadenZufügen";
+        else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Cheiron") && !(!MitteSpieler1[0][5] && !MitteSpieler1[1][5] && !MitteSpieler1[2][5] && !MitteSpieler1[3][5] && !MitteSpieler1[4][5] && !MitteSpieler1[5][5])) {
+          AblageListe[2] = "Spieler2AuswahleinSchadenZufügen";
         }
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Herakles")) {
           zählerListe[0] = [];
@@ -2516,6 +2591,12 @@ function checkAndromeda() {
 
   function nachAngriff() {
     if (zählerListe[9] < 6) {
+      if (zweiXAngreifen[1]) {zweiXAngreifen[0]++;
+        if (zweiXAngreifen[0] > 1) {
+          wiederholung = false;
+          zweiXAngreifen = [0, false];
+        }
+      }
       zählerListe[11] = zählerListe[8] - 1;
       zählerListe[8] = 6;
       if (zählerListe[11] == AblageListe[3]) {
@@ -2529,6 +2610,12 @@ function checkAndromeda() {
         else {
           AblageListe[10] = 0;
         } */
+      // if (zweiXAngriffDurch == "amLaufen") {
+      //   AblageListe[10] = -1;
+      //   zählerListe[11] += 3;
+      //   AblageListe[2] = "VorAngriffDurch" + (zählerListe[11] + 3);
+      //   zweiXAngriffDurch = true;
+      // }
       if (SpielerIdsBleibt[0] == SpielerId) {
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "1 life lost")  MitteSpieler1[zählerListe[11]][10][0][1]--;
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "1 life lost" && MitteSpieler1[zählerListe[11]][10][0][1] == 0) MitteSpieler1[zählerListe[11]][4]++;
@@ -2536,17 +2623,17 @@ function checkAndromeda() {
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][1] == undefined) && MitteSpieler1[zählerListe[11]][10][1][0] == "1 attack lost")  MitteSpieler1[zählerListe[11]][10][1][1]--;
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][1] == undefined) && MitteSpieler1[zählerListe[11]][10][1][0] == "1 attack lost" && MitteSpieler1[zählerListe[11]][10][1][1] == 0) MitteSpieler1[zählerListe[11]][3]++;
 
-        if (zählerListe[11] == 5 == false && (MitteSpieler1[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler1[zählerListe[11] - 1] == undefined == false &&
+        if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler1[zählerListe[11] - 1] == undefined == false &&
             MitteSpieler1[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false) {
           AblageListe[3] = zählerListe[11];
           zählerListe[11]--;
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined ==
-            false && MitteSpieler1[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined ==
+            false && MitteSpieler1[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false && !wiederholung) {
           AblageListe[2] = "Spieler1AuswahlKarte2XAngreifen";
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined ==
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined ==
             false && MitteSpieler1[zählerListe[11] + 2][5] == undefined) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11];
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined &&
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined &&
             MitteSpieler1[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11] + 2;
         } else if (MitteSpieler1[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && AblageListe[9] == false && confirm("Möchten sie Helena verschieben?")) {
@@ -2579,17 +2666,17 @@ function checkAndromeda() {
         if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][1] == undefined) && MitteSpieler2[zählerListe[11]][10][1][0] == "1 attack lost")  MitteSpieler2[zählerListe[11]][10][1][1]--;
         if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][1] == undefined) && MitteSpieler2[zählerListe[11]][10][1][0] == "1 attack lost" && MitteSpieler2[zählerListe[11]][10][1][1] == 0) MitteSpieler2[zählerListe[11]][3]++;
 
-        if (zählerListe[11] == 5 == false && (MitteSpieler2[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler2[zählerListe[11] - 1] == undefined == false &&
+        if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler2[zählerListe[11] - 1] == undefined == false &&
             MitteSpieler2[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false) {
           AblageListe[3] = zählerListe[11];
           zählerListe[11]--;
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined ==
-            false && MitteSpieler2[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined ==
+            false && MitteSpieler2[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false && !wiederholung) {
           AblageListe[2] = "Spieler2AuswahlKarte2XAngreifen";
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined ==
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined ==
             false && MitteSpieler2[zählerListe[11] + 2][5] == undefined) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11];
-        } else if (zählerListe[11] == 5 == false && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined &&
+        } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined &&
             MitteSpieler2[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11] + 2;
         } else if (MitteSpieler2[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && AblageListe[9] == false && confirm("Möchten sie Helena verschieben?") &&
@@ -2618,16 +2705,16 @@ function checkAndromeda() {
         }
       }
       AuswahlKarte2XAngreifen();
-      zählerListe[11]++;
+      if (AblageListe[2] != "Spieler1AuswahlKarte2XAngreifen" && AblageListe[2] != "Spieler2AuswahlKarte2XAngreifen") zählerListe[11]++;
       nachAngriffBeenden();
     }
   }
 
   function nachAngriffBeenden() {
-    if (AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" == false && (AblageListe[2] == "beendet" || AblageListe[2].includes("VorAngriffDurch"))) {
+    if (/*AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" == false && */(AblageListe[2] == "beendet" || AblageListe[2].includes("VorAngriffDurch"))) {
       zählerListe[8] = zählerListe[11];
       angreifen();
-      if (zählerListe[11] > 4 && Sperren[4] == false && AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" == false && (AblageListe[2] == "beendet" || AblageListe[2].includes("VorAngriffDurch"))) {
+      if (zählerListe[11] > 4 && Sperren[4] == false/* && AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" == false*/ && (AblageListe[2] == "beendet" || AblageListe[2].includes("VorAngriffDurch"))) {
         Sperren[4] = true;
         zählerListe[0] = -1;
         for (var i = 0; i < MitteSpieler2.length; i++) {
@@ -2655,13 +2742,25 @@ function checkAndromeda() {
   }
 
   function AuswahlKarte2XAngreifen() {
-    if (zählerListe[11] == zählerListe[10] && AblageListe[10] == -1 == false) {
+    if ((AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" || AblageListe[2] == "Spieler1AuswahlKarte2XAngreifen") && zählerListe[10]  > zählerListe[11]) {AblageListe[2] = "beendet"; zählerListe[11]++;}
+    if ((zählerListe[11] == zählerListe[10]) && AblageListe[10] == -1 == false) {
       AblageListe[10] = -1;
-      zählerListe[11]--;
-      AblageListe[2] = "VorAngriffDurch" + (zählerListe[11] - 1);
+      if (AblageListe[2] != "Spieler2AuswahlKarte2XAngreifen" && AblageListe[2] != "Spieler1AuswahlKarte2XAngreifen") {
+        zählerListe[11]--;
+        AblageListe[2] = "VorAngriffDurch" + (zählerListe[11] - 1);
+        wiederholung = false;
+        if (zählerListe[8] == 6) AblageListe[9] = false;
+      }
+      else {
+      //  zählerListe[11]++;
+        zweiXAngreifen = [0, true];
+        wiederholung = true;
+        AblageListe[2] = "VorAngriffDurch" + (zählerListe[11]/* - 1*/);
+      }
     }
   }
-
+  var wiederholung = false;
+  var zweiXAngreifen = [0, false];
   function FarbsteineKlickCheck() {
     if (xMaus - scrollX > 647 + 385 && xMaus - scrollX < 647 + 45 + 385 && yMaus > 349 && yMaus < 349 + 45) {
       zählerListe[2] = 0;
@@ -3532,9 +3631,6 @@ function checkAndromeda() {
         "data": MitteSpieler1
       }
     });
-    room.send({
-      message: "Spielerwechsel"
-    });
     setTimeout(function () {
       getMessages();
     }, 10);
@@ -3549,6 +3645,9 @@ function checkAndromeda() {
         "type": "Zustand",
         "data": Zustand
       }
+    });
+    room.send({
+      message: "Spielerwechsel"
     });
     AblageListe[2] = "beendet";
     AblageListe[12] = "beendet";
