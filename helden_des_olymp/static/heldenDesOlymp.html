@@ -1963,12 +1963,14 @@ function checkAndromeda() {
     if (AblageListe[2] == "Spieler1eigeneEinheitNeuHinlegen" && MitteSpieler1[AblageListe[1]][0] == "z") {
       MitteSpieler1[AblageListe[1]] = AblageListe[11];
       AblageListe[2] = "beendet";
+      AblageListe[9] = AblageListe[1];
       nachAngriffBeenden();
       //  AblageListe[4] = "beendet";
     }
     if (AblageListe[2] == "Spieler2eigeneEinheitNeuHinlegen" && MitteSpieler2[AblageListe[1]][0] == "z") {
       MitteSpieler2[AblageListe[1]] = AblageListe[11];
       AblageListe[2] = "beendet";
+      AblageListe[9] = AblageListe[1];
       nachAngriffBeenden();
       //  AblageListe[4] = "beendet";
     }
@@ -2147,7 +2149,7 @@ function checkAndromeda() {
       while (zählerListe[8] < 3) {
         if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
           VorAngriff();
-        } else if (AblageListe[9] == false) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           console.log("Siegpunkte");
           if (MitteSpieler1[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler1[zählerListe[8]][0][10] == undefined) && !(MitteSpieler1[zählerListe[8]][0][10][2] == undefined) && MitteSpieler1[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler1[zählerListe[8]][0][10] == undefined || MitteSpieler1[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler2[zählerListe[8]][0] == "z" || MitteSpieler1[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
@@ -2185,7 +2187,7 @@ function checkAndromeda() {
       while (zählerListe[8] < 5) {
         if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
           VorAngriff();
-        } else if (AblageListe[9] == false) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           console.log("Farbsteine");
           if (MitteSpieler1[zählerListe[11]][5] == "Immer wenn Telemachos an- greift und den Ge- biets- bonus er- hält, zie- he zu- sätz- lich 1 Karte. ") {
             kartenSpieler1[kartenSpieler1.length] = kartenZiehen[0];
@@ -2240,7 +2242,7 @@ function checkAndromeda() {
       }
       if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
         VorAngriff();
-      } else if (AblageListe[9] == false) {
+      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
         console.log("Nachziehen");
         if (MitteSpieler1[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler1[zählerListe[8]][0][10] == undefined) && !(MitteSpieler1[zählerListe[8]][0][10][2] == undefined) && MitteSpieler1[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler1[zählerListe[8]][0][10] == undefined || MitteSpieler1[zählerListe[8]][0][10][2] == undefined)*/) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" || MitteSpieler1[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
@@ -2281,7 +2283,7 @@ function checkAndromeda() {
       while (zählerListe[8] < 3) {
         if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
           VorAngriff();
-        } else if (AblageListe[9] == false) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
               SiegpunktePlus();
@@ -2323,7 +2325,7 @@ function checkAndromeda() {
       while (zählerListe[8] < 5) {
         if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
           VorAngriff();
-        } else if (AblageListe[9] == false) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
               //  if (SteineMitte.length > 1) {
@@ -2372,7 +2374,7 @@ function checkAndromeda() {
       }
       if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
         VorAngriff();
-      } else if (AblageListe[9] == false) {
+      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
         if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
           if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
             zweiKartenZiehen();
@@ -2636,8 +2638,8 @@ function checkAndromeda() {
         } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined &&
             MitteSpieler1[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11] + 2;
-        } else if (MitteSpieler1[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && AblageListe[9] == false && confirm("Möchten sie Helena verschieben?")) {
-          AblageListe[9] = true;
+        } else if (MitteSpieler1[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && (!zählerListe[11] || AblageListe[9] != zählerListe[11]) && confirm("Möchten sie Helena verschieben?")) {
+          // AblageListe[9] = true;
           zählerListe[2] = 0;
           zählerListe[12] = [];
           while (zählerListe[2] < 6) {
@@ -2656,7 +2658,7 @@ function checkAndromeda() {
           }
         }
 
-        else if (!(MitteSpieler1[zählerListe[11]][0] == "z") && MitteSpieler1[zählerListe[11]][5].includes("Laodike") && AblageListe[9] == false) {
+        else if (!(MitteSpieler1[zählerListe[11]][0] == "z") && MitteSpieler1[zählerListe[11]][5].includes("Laodike") && (!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           MitteSpieler1[zählerListe[11]] = ["z", 0, ""];
         }
       } else {
@@ -2679,9 +2681,9 @@ function checkAndromeda() {
         } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined &&
             MitteSpieler2[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false) {
           zählerListe[10] = zählerListe[11] + 2;
-        } else if (MitteSpieler2[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && AblageListe[9] == false && confirm("Möchten sie Helena verschieben?") &&
-          AblageListe[9] == false) {
-          AblageListe[9] = true;
+        } else if (MitteSpieler2[zählerListe[11]][5] == "Nachdem Helena an- ge- grif- fen hat, darfst du sie auf ei- nen frei- en Platz auf dei- ner Sei- te ver- schie- ben. " && (!zählerListe[11] || AblageListe[9] != zählerListe[11]) && confirm("Möchten sie Helena verschieben?")/* &&
+          (!zählerListe[11] || AblageListe[9] != zählerListe[11])*/) {
+          // AblageListe[9] = true;
           zählerListe[2] = 0;
           zählerListe[12] = [];
           while (zählerListe[2] < 6) {
@@ -2700,7 +2702,7 @@ function checkAndromeda() {
           }
         }
 
-        else if (!(MitteSpieler2[zählerListe[11]][0] == undefined) && MitteSpieler2[zählerListe[11]].includes("Laodike") && AblageListe[9] == false) {
+        else if (!(MitteSpieler2[zählerListe[11]][0] == undefined) && MitteSpieler2[zählerListe[11]].includes("Laodike") && (!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           MitteSpieler2[zählerListe[11]] = ["z", 0, ""];
         }
       }
@@ -2749,7 +2751,7 @@ function checkAndromeda() {
         zählerListe[11]--;
         AblageListe[2] = "VorAngriffDurch" + (zählerListe[11] - 1);
         wiederholung = false;
-        if (zählerListe[8] == 6) AblageListe[9] = false;
+    //    if (zählerListe[8] == 6) AblageListe[9] = false;
       }
       else {
       //  zählerListe[11]++;
@@ -2942,7 +2944,7 @@ function checkAndromeda() {
         if (zählerListe[5].length == 1) {
           MitteSpieler2[AblageListe[6]] = "z";
         }
-        else {
+        else if (zählerListe[5].length > 1) {
           setTimeout(function () {
             AblageListe[2] = "Spieler1AuswahlSoldatZerstören";
           }, 500);
@@ -3093,7 +3095,7 @@ function checkAndromeda() {
         if (zählerListe[5].length == 1) {
           MitteSpieler1[AblageListe[6]] = "z";
         }
-        else {
+        else if (zählerListe[5].length > 2) {
           setTimeout(function () {
             AblageListe[2] = "Spieler2AuswahlSoldatZerstören";
           }, 500);
