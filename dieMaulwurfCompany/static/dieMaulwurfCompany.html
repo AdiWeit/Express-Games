@@ -77,7 +77,7 @@
   var spielerIch;
   var Reihenfolge;
   var ReihenfolgeBleibt = [];
-  var cards = [1, 2, 2, 3, 3, 4];
+//  var player = [1, 2, 2, 3, 3, 4];
   var xMaus = 0;
   var yMaus = 0;
   var field = [];
@@ -162,7 +162,7 @@
   ]
   var colours = ["green", "brown", "#FFBF00", "#0174DF"];
   var fieldAktuell = 0;
-  var player = {movement: "", chosenCard: -1};
+  var player = {};
   for (var i2 = 0; i2 < wholeSpots.length; i2++) {
   for (var i = 0; i < 9; i++) {
     field[i] = [];
@@ -185,7 +185,8 @@
       fields = message.data;
       Layout();
       if (message.figurePlaced && ReihenfolgeBleibt[message.empfänger] == spielerIch) {
-        player.movement = "placePlayer";
+        if (player[spielerIch].figuresPlaced > 10) {spielerKommtDran();}
+        else player[spielerIch].movement = "placePlayer";
       }
     }
     if (message.type == "nextField") {
@@ -200,24 +201,43 @@
       }
       Layout();
     }
+    if (message.type == "player") {
+      player[message.player] = message.data;
+    }
     if (message.type == "Reihenfolge") {
-      if (!Reihenfolge) {ReihenfolgeBleibt = message.data; player.figuresPlaced = 0}
-      if (!Reihenfolge && ReihenfolgeBleibt[0] == spielerIch) {player.movement = "placePlayer";}
+      if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
+      if (!Reihenfolge) {
+        ReihenfolgeBleibt = message.data; player[spielerIch] = {}; player[spielerIch].figuresPlaced = 0
+        player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
+      }
+      if (!Reihenfolge && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
       Reihenfolge = message.data;
-      if (Reihenfolge[0] == spielerIch && player.movement != "placePlayer") {
+      if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
         spielerKommtDran();
       }
+      room.send({
+        message: {
+          "type": "player",
+          data: player[spielerIch],
+          player: spielerIch
+        }
+      });
+      player = {};
+      setTimeout(function () {
+        Layout();
+      }, 1333);
     }
   });
   function spielerKommtDran() {
-    player.movement = "movePlayer";
-    var randomNumber = Math.floor(Math.random() * (cards.length - 1));
-    player.chosenCard = cards[randomNumber];
-    cards.splice(randomNumber, 1);
-    if (cards.length < 1) cards = [1, 2, 2, 3, 3, 4];
-    player.moving = undefined;
+    player[spielerIch].movement = "movePlayer";
+    var randomNumber = Math.floor(Math.random() * (player[spielerIch].cards.length - 1));
+    player[spielerIch].chosenCard = player[spielerIch].cards[randomNumber];
+    player[spielerIch].cards.splice(randomNumber, 1);
+    if (player[spielerIch].cards.length < 1) player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
+    player[spielerIch].moving = undefined;
+    Layout();
   }
-
+  // repeat: ⟲
   function Layout() {
     canvas.fillStyle = colours[fieldAktuell];
     if (window.innerWidth > 1055 && innerHeight > 777) canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
@@ -229,7 +249,7 @@
         if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[1]) canvas.fillStyle = "yellow";
         if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[2]) canvas.fillStyle = "#00FF00";
         if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[3]) canvas.fillStyle = "blue";
-        if (player.moving != undefined && player.movement == "movePlayer" && i + "" + i1 == player.moving[0] + "" + player.moving[1]) canvas.fillStyle = "#24D1DB";
+        if (player[spielerIch] && player[spielerIch].moving != undefined && player[spielerIch].movement == "movePlayer" && i + "" + i1 == player[spielerIch].moving[0] + "" + player[spielerIch].moving[1]) canvas.fillStyle = "#24D1DB";
         if (fields[fieldAktuell][i][i1]) {
           canvas.beginPath();
           canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
@@ -243,6 +263,23 @@
         }
       }
     }
+  var plusCoordinates = [{x: 0, y: 0}, {x: 950, y: 0}, {x: 950, y: 600}, {x: 0, y: 600}];
+  var coloursLayout = ["red", "orange", "#00FF00", "blue"];
+  for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+    if (ReihenfolgeBleibt[i] == spielerIch) canvas.fillStyle = "#02A1FD";
+    if (Reihenfolge[0] == Object.keys(player)[i]) canvas.fillStyle = "#DF0101";
+    else if (ReihenfolgeBleibt[i] != spielerIch) canvas.fillStyle = "white";
+    canvas.fillRect(10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y, 66, 100);
+    canvas.font = "50px Georgia";
+    canvas.fillStyle = coloursLayout[i];//"green";
+    if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].cards) canvas.fillText(player[ReihenfolgeBleibt[i]].cards.length ,33 + plusCoordinates[i].x, 77 + plusCoordinates[i].y);
+    canvas.beginPath();
+    canvas.arc(27 + plusCoordinates[i].x, 27 + plusCoordinates[i].y, 13, 0, Math.PI * 2, false);
+    canvas.fill();
+    canvas.fillStyle = "white";
+    canvas.font = "30px Georgia";
+    if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
+  }
   }
 
 
@@ -283,47 +320,45 @@
   document.onmousemove = readMouseMove
     window.addEventListener('mousedown', function() {
       console.log(checkClickedField());
-      if (player.moving != undefined) {
-        var xTest = [player.moving[1], player.moving[1], player.moving[1], player.moving[1]];
-      var yTest = [player.moving[0], player.moving[0], player.moving[0], player.moving[0]];
-      for (var i = 0; i < player.chosenCard; i++) {
+      if (player[spielerIch].moving != undefined) {
+        var xTest = [player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1]];
+      var yTest = [player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0]];
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[0]++;
         yTest[0]++;
       }
-      for (var i = 0; i < player.chosenCard; i++) {
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[1]--;
         yTest[1]--;
       }
-      for (var i = 0; i < player.chosenCard; i++) {
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[2]--;
         yTest[2]++;
       }
-      for (var i = 0; i < player.chosenCard; i++) {
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[3]++;
         yTest[3]--;
       }
-      if (player.movement == "movePlayer" && player.moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
+      if (player[spielerIch].movement == "movePlayer" && player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
         console.log("movingPlayer");
-        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player.moving[0]][player.moving[1]].player;
-        fields[fieldAktuell][player.moving[0]][player.moving[1]].player = false;
+        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
+        fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
         Spielerwechsel();
       }
     }
-      if (player.movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
-        player.moving = checkClickedField();
+      if (player[spielerIch].movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
+        player[spielerIch].moving = checkClickedField();
         Layout();
       }
-      if (player.movement == "placePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {
+      if (player[spielerIch].movement == "placePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {
         fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = spielerIch;
-        player.figuresPlaced++;
-        player.movement = "waitingForOpponent";
+        player[spielerIch].figuresPlaced++;
+        player[spielerIch].movement = "waitingForOpponent";
         for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
           if (ReihenfolgeBleibt[i] == spielerIch) var myNumber = i;
         }
         if (myNumber + 1 == ReihenfolgeBleibt.length) myNumber = -1;
-        if (player.figuresPlaced > 10) {spielerKommtDran();}
-        else {
-          player.movement = "waitingForOpponent";
+          player[spielerIch].movement = "waitingForOpponent";
           room.send({
             message: {
               "type": "fields",
@@ -332,7 +367,6 @@
               empfänger: myNumber + 1
             }
           });
-        }
         Layout();
       }
     });
