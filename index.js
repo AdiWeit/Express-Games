@@ -48,6 +48,9 @@ app.use('/vierGewinnt/', vierGewinnt);
 const labyrinth = require('./labyrinth/index.js');
 app.use('/labyrinth/', labyrinth);
 
+const dieMaulwurfCompany = require('./dieMaulwurfCompany/index.js');
+app.use('/dieMaulwurfCompany/', dieMaulwurfCompany);
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname

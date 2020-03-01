@@ -1,0 +1,347 @@
+<canvas id="textur" width="3310" height="790" style="opacity:1"></canvas>
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
+<meta charset="utf-8">
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/dieMaulwurfCompany/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDdieMaulwurfCompany');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDdieMaulwurfCompany', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/dieMaulwurfCompany/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/dieMaulwurfCompany/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/dieMaulwurfCompany/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+  var canvas = textur.getContext('2d'); //Dimension
+  var spielerIch;
+  var Reihenfolge;
+  var ReihenfolgeBleibt = [];
+  var cards = [1, 2, 2, 3, 3, 4];
+  var xMaus = 0;
+  var yMaus = 0;
+  var field = [];
+  var fields = [];
+//  var wholeSpots = [[{x: 1, y: 0}, {x: 6, y: 1}, {x: 3, y: 2}, {x: 0, y: 3}, {x: 2, y: 3}, {x: 7, y: 3}, {x: 4, y: 4}, {x: 0, y: 5}, {x: 5, y: 5}, {x: 2, y: 6}, {x: 3, y: 6}, {x: 6, y: 6}, {x: 2, y: 8}]];
+  var wholeSpots = [
+    {
+      0: {
+        1: true
+      },
+      1: {
+        6: true
+      },
+      2: {
+        3: true
+      },
+      3: {
+        0: true,
+        2: true,
+        7: true
+      },
+      4: {
+        4: true,
+        10: true
+      },
+      5: {
+        0: true,
+        5: true
+      },
+      6: {
+        2: true,
+        3: true,
+        6: true
+      },
+      8: {
+        2: true
+      }
+    },
+    {
+      1: {
+        3: true
+      },
+      2: {
+        1: true
+      },
+      4: {
+        0: true,
+        11: true
+      },
+      5: {
+        1: true
+      },
+      6: {
+        7: true
+      },
+      7: {
+        2: true
+      },
+      8: {
+        4: true
+      }
+    },
+    {
+      0: {
+        3: true
+      },
+      3: {
+        2: true
+      },
+      6: {
+        8: true
+      },
+      7: {
+        0: true
+      }
+    },
+    {
+      4: {
+        6: true
+      }
+    }
+  ]
+  var colours = ["green", "brown", "#FFBF00", "#0174DF"];
+  var fieldAktuell = 0;
+  var player = {movement: "", chosenCard: -1};
+  for (var i2 = 0; i2 < wholeSpots.length; i2++) {
+  for (var i = 0; i < 9; i++) {
+    field[i] = [];
+    for (var i1 = 0; (i < 5 && i1 < 9 + i || i1 < 9 - i + 8); i1++) {
+      if ((i < 5 && i1 > 3 - i) || (i > 4 && i1 > i - 5)) {
+      if ((i < 5 && (!wholeSpots[i2][i] || !wholeSpots[i2][i][i1 - 4 + i/* - i - 4*/]) || i > 4 && (!wholeSpots[i2][i] || !wholeSpots[i2][i][i1/* - i + 4*/ - (i - 4)]))) field[i][i1] = {player: false, whole: false};
+      else field[i][i1] = {player: false, whole: true};
+    }
+    else field[i][i1] = undefined;
+    }
+  }
+  fields.push(field);
+  field = [];
+  Layout();
+}
+  room.setOnMessageListener(function(message) {
+    console.log(message);
+    if (message.type == "spielerDu") spielerIch = message.data;
+    if (message.type == "fields") {
+      fields = message.data;
+      Layout();
+      if (message.figurePlaced && ReihenfolgeBleibt[message.empfänger] == spielerIch) {
+        player.movement = "placePlayer";
+      }
+    }
+    if (message.type == "nextField") {
+      fieldAktuell++;
+      if (fieldAktuell > colours.length) {
+        console.log("sb finished!");
+      }
+      for (var i = 0; i < 9; i++) {
+        for (var i1 = 0; i1 < 9 + i; i1++) {
+          if (fields[fieldAktuell - 1][i][i1] != undefined && fields[fieldAktuell - 1][i][i1].player != false && fields[fieldAktuell - 1][i][i1].whole) fields[fieldAktuell][i][i1].player = fields[fieldAktuell - 1][i][i1].player;
+        }
+      }
+      Layout();
+    }
+    if (message.type == "Reihenfolge") {
+      if (!Reihenfolge) {ReihenfolgeBleibt = message.data; player.figuresPlaced = 0}
+      if (!Reihenfolge && ReihenfolgeBleibt[0] == spielerIch) {player.movement = "placePlayer";}
+      Reihenfolge = message.data;
+      if (Reihenfolge[0] == spielerIch && player.movement != "placePlayer") {
+        spielerKommtDran();
+      }
+    }
+  });
+  function spielerKommtDran() {
+    player.movement = "movePlayer";
+    var randomNumber = Math.floor(Math.random() * (cards.length - 1));
+    player.chosenCard = cards[randomNumber];
+    cards.splice(randomNumber, 1);
+    if (cards.length < 1) cards = [1, 2, 2, 3, 3, 4];
+    player.moving = undefined;
+  }
+
+  function Layout() {
+    canvas.fillStyle = colours[fieldAktuell];
+    if (window.innerWidth > 1055 && innerHeight > 777) canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    else canvas.fillRect(0, 0, 1055, 800);
+    for (var i = 0; i < 9; i++) {
+      for (var i1 = 0; i1 < 9 + i; i1++) {
+        canvas.fillStyle = "black";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[0]) canvas.fillStyle = "red";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[1]) canvas.fillStyle = "yellow";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[2]) canvas.fillStyle = "#00FF00";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[3]) canvas.fillStyle = "blue";
+        if (player.moving != undefined && player.movement == "movePlayer" && i + "" + i1 == player.moving[0] + "" + player.moving[1]) canvas.fillStyle = "#24D1DB";
+        if (fields[fieldAktuell][i][i1]) {
+          canvas.beginPath();
+          canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+          canvas.fill();
+          if (fields[fieldAktuell][i][i1].whole) {
+            canvas.fillStyle = colours[fieldAktuell];
+            canvas.beginPath();
+            canvas.arc(50 + 77*i1, 50 + 77*i, 22, 0, Math.PI * 2, false);
+            canvas.fill();
+          }
+        }
+      }
+    }
+  }
+
+
+  function Spielerwechsel() {
+    var wholes = 0;
+    var wholesFilled = 0;
+    for (var i = 0; i < 9; i++) {
+      for (var i1 = 0; i1 < 9 + i; i1++) {
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].whole) wholes++;
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player != false && fields[fieldAktuell][i][i1].whole) wholesFilled++;
+      }
+    }
+    room.send({
+      message: {
+        "type": "fields",
+        data: fields
+      }
+    });
+    room.send({
+      message: {
+        "type": "Spielerwechsel",
+        data: Reihenfolge
+      }
+    });
+    if (wholesFilled == wholes) {
+      room.send({
+        message: {
+          "type": "nextField"
+        }
+      });
+    }
+  }
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY + 23;
+    //    console.log(xMaus + " - " + yMaus);
+  }
+  document.onmousemove = readMouseMove
+    window.addEventListener('mousedown', function() {
+      console.log(checkClickedField());
+      if (player.moving != undefined) {
+        var xTest = [player.moving[1], player.moving[1], player.moving[1], player.moving[1]];
+      var yTest = [player.moving[0], player.moving[0], player.moving[0], player.moving[0]];
+      for (var i = 0; i < player.chosenCard; i++) {
+        xTest[0]++;
+        yTest[0]++;
+      }
+      for (var i = 0; i < player.chosenCard; i++) {
+        xTest[1]--;
+        yTest[1]--;
+      }
+      for (var i = 0; i < player.chosenCard; i++) {
+        xTest[2]--;
+        yTest[2]++;
+      }
+      for (var i = 0; i < player.chosenCard; i++) {
+        xTest[3]++;
+        yTest[3]--;
+      }
+      if (player.movement == "movePlayer" && player.moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
+        console.log("movingPlayer");
+        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player.moving[0]][player.moving[1]].player;
+        fields[fieldAktuell][player.moving[0]][player.moving[1]].player = false;
+        Spielerwechsel();
+      }
+    }
+      if (player.movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
+        player.moving = checkClickedField();
+        Layout();
+      }
+      if (player.movement == "placePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {
+        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = spielerIch;
+        player.figuresPlaced++;
+        player.movement = "waitingForOpponent";
+        for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+          if (ReihenfolgeBleibt[i] == spielerIch) var myNumber = i;
+        }
+        if (myNumber + 1 == ReihenfolgeBleibt.length) myNumber = -1;
+        if (player.figuresPlaced > 10) {spielerKommtDran();}
+        else {
+          player.movement = "waitingForOpponent";
+          room.send({
+            message: {
+              "type": "fields",
+              data: fields,
+              figurePlaced: true,
+              empfänger: myNumber + 1
+            }
+          });
+        }
+        Layout();
+      }
+    });
+    // canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+    function checkClickedField() {
+      for (var i = 0; i < 9; i++) {
+        for (var i1 = 0; i1 < 9 + i; i1++) {
+          if (xMaus > 50 + 77*i1 && xMaus < 50 + 77*i1 + 66 && yMaus > 50 + 77*i && yMaus < 50 + 77*i + 66) return [i, i1];
+        }
+      }
+    }
+  </script>
