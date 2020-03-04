@@ -78,85 +78,115 @@
   var Reihenfolge;
   var ReihenfolgeBleibt = [];
 //  var player = [1, 2, 2, 3, 3, 4];
+  var Bild = new Image();
   var xMaus = 0;
   var yMaus = 0;
   var field = [];
   var fields = [];
+  var messages = [];
 //  var wholeSpots = [[{x: 1, y: 0}, {x: 6, y: 1}, {x: 3, y: 2}, {x: 0, y: 3}, {x: 2, y: 3}, {x: 7, y: 3}, {x: 4, y: 4}, {x: 0, y: 5}, {x: 5, y: 5}, {x: 2, y: 6}, {x: 3, y: 6}, {x: 6, y: 6}, {x: 2, y: 8}]];
   var wholeSpots = [
     {
       0: {
-        1: true
+        1: "whole"
       },
       1: {
-        6: true
+        6: "whole"
       },
       2: {
-        3: true
+        3: "whole"
       },
       3: {
-        0: true,
-        2: true,
-        7: true
+        0: "whole",
+        2: "whole",
+        7: "whole"
       },
       4: {
-        4: true,
-        10: true
+        4: "whole",
+        10: "whole"
       },
       5: {
-        0: true,
-        5: true
+        0: "whole",
+        5: "whole"
       },
       6: {
-        2: true,
-        3: true,
-        6: true
+        2: "whole",
+        3: "whole",
+        6: "whole"
       },
       8: {
-        2: true
+        2: "whole"
       }
     },
     {
       1: {
-        3: true
+        1: "repeat",
+        3: "whole"
       },
       2: {
-        1: true
+        1: "whole"
+      },
+      3: {
+        6: "repeat"
       },
       4: {
-        0: true,
-        11: true
+        0: "whole",
+        11: "whole",
+        12: "repeat"
       },
       5: {
-        1: true
+        1: "whole"
       },
       6: {
-        7: true
+        7: "whole"
       },
       7: {
-        2: true
+        2: "whole"
       },
       8: {
-        4: true
+        0: "repeat",
+        4: "whole"
       }
     },
     {
       0: {
-        3: true
+        3: "whole"
+      },
+      2: {
+        0: "repeat",
+        8: "repeat"
       },
       3: {
-        2: true
+        2: "whole"
+      },
+      4: {
+        7: "repeat"
       },
       6: {
-        8: true
+        8: "whole"
       },
       7: {
-        0: true
+        0: "whole"
+      },
+      8: {
+        1: "repeat"
       }
     },
     {
+      0: {
+        4: "repeat"
+      },
+      2: {
+        1: "repeat"
+      },
       4: {
-        6: true
+        6: "whole"
+      },
+      6: {
+        7: "repeat"
+      },
+      8: {
+        0: "repeat"
       }
     }
   ]
@@ -168,8 +198,10 @@
     field[i] = [];
     for (var i1 = 0; (i < 5 && i1 < 9 + i || i1 < 9 - i + 8); i1++) {
       if ((i < 5 && i1 > 3 - i) || (i > 4 && i1 > i - 5)) {
-      if ((i < 5 && (!wholeSpots[i2][i] || !wholeSpots[i2][i][i1 - 4 + i/* - i - 4*/]) || i > 4 && (!wholeSpots[i2][i] || !wholeSpots[i2][i][i1/* - i + 4*/ - (i - 4)]))) field[i][i1] = {player: false, whole: false};
+      if ((i < 5 && (!wholeSpots[i2][i] || wholeSpots[i2][i][i1 - 4 + i/* - i - 4*/] != "whole") || i > 4 && (!wholeSpots[i2][i] || wholeSpots[i2][i][i1/* - i + 4*/ - (i - 4)] != "whole"))) field[i][i1] = {player: false, whole: false};
       else field[i][i1] = {player: false, whole: true};
+      if ((i < 5 && (!wholeSpots[i2][i] || wholeSpots[i2][i][i1 - 4 + i/* - i - 4*/] != "repeat") || i > 4 && (!wholeSpots[i2][i] || wholeSpots[i2][i][i1/* - i + 4*/ - (i - 4)] != "repeat"))) field[i][i1].repeat = false;
+      else field[i][i1].repeat = true;
     }
     else field[i][i1] = undefined;
     }
@@ -178,9 +210,35 @@
   field = [];
   Layout();
 }
+  var AblageListe = [];
   room.setOnMessageListener(function(message) {
     console.log(message);
-    if (message.type == "spielerDu") spielerIch = message.data;
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      if (message.newRound != true)
+       {
+        if (confirm("wollen sie die vorherige Runde weiterspielen?"))  {
+          fields = JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields'));
+          Reihenfolge = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolge'));
+          ReihenfolgeBleibt = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolgeBliebt'));
+          fieldAktuell = JSON.parse(localStorage.getItem('dieMaulwurfCompanyFieldAktuell'));
+      //    player = JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'));
+          for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'))).length; i++) {
+            player[Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer')))[i]] = JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'))[Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer')))[i]];
+          }
+          Layout();
+        }
+        else {
+          room.send({
+            message: {
+              "type": "endGame"
+            }
+          });
+        }
+      }
+    }
+    if (message.type == "gewonnen") {showResults(message.data, 0);/* removeGame(true);*/}
+    if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "fields") {
       fields = message.data;
       Layout();
@@ -189,11 +247,19 @@
         else player[spielerIch].movement = "placePlayer";
       }
     }
+    if (message.type == "messages") {
+      window.scroll(0, 0);
+      messages = message.data
+      textur.height = 777 + messages.length*44;
+      Layout();
+      if (!(spielerIch == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      AblageListe[1] = "warten Message angucken";
+      setTimeout(function () {
+        AblageListe[1] = "beendet";
+      }, 3777);
+    };
     if (message.type == "nextField") {
       fieldAktuell++;
-      if (fieldAktuell > colours.length) {
-        console.log("sb finished!");
-      }
       for (var i = 0; i < 9; i++) {
         for (var i1 = 0; i1 < 9 + i; i1++) {
           if (fields[fieldAktuell - 1][i][i1] != undefined && fields[fieldAktuell - 1][i][i1].player != false && fields[fieldAktuell - 1][i][i1].whole) fields[fieldAktuell][i][i1].player = fields[fieldAktuell - 1][i][i1].player;
@@ -206,11 +272,11 @@
     }
     if (message.type == "Reihenfolge") {
       if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
-      if (!Reihenfolge) {
+      if (!Reihenfolge/* || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3]))*/) {
         ReihenfolgeBleibt = message.data; player[spielerIch] = {}; player[spielerIch].figuresPlaced = 0
         player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
       }
-      if (!Reihenfolge && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
+      if ((!Reihenfolge/* || (!Reihenfolge || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3])))*/) && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
       Reihenfolge = message.data;
       if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
         spielerKommtDran();
@@ -228,6 +294,34 @@
       }, 1333);
     }
   });
+  function serverDatenLöschen() {
+    localStorage.setItem("dieMaulwurfCompanyFields", undefined);
+    localStorage.setItem("dieMaulwurfCompanyReihenfolge", undefined);
+    localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", undefined);
+    localStorage.setItem("dieMaulwurfCompanyFieldAktuell", undefined);
+    localStorage.setItem("dieMaulwurfCompanyPlayer", undefined);
+    localStorage.setItem('CLIENTIDdieMaulwurfCompany', undefined);
+  }
+  function showResults(gewinner, times) {
+    if (spielerIch == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) audio = new Audio("https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+    }
+    setTimeout(function () {
+      if (times < 5) showResults(gewinner, times + 1,);
+    }, 500);
+  }
   function spielerKommtDran() {
     player[spielerIch].movement = "movePlayer";
     var randomNumber = Math.floor(Math.random() * (player[spielerIch].cards.length - 1));
@@ -240,8 +334,7 @@
   // repeat: ⟲
   function Layout() {
     canvas.fillStyle = colours[fieldAktuell];
-    if (window.innerWidth > 1055 && innerHeight > 777) canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
-    else canvas.fillRect(0, 0, 1055, 800);
+    canvas.fillRect(0, 0, textur.width, textur.height);
     for (var i = 0; i < 9; i++) {
       for (var i1 = 0; i1 < 9 + i; i1++) {
         canvas.fillStyle = "black";
@@ -261,13 +354,18 @@
             canvas.fill();
           }
         }
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].repeat) {
+          canvas.fillStyle = colours[fieldAktuell];
+          canvas.font = "50px Georgia";
+          canvas.fillText("⟲", 25 + 77*i1, 66 + 77*i);
+        }
       }
     }
   var plusCoordinates = [{x: 0, y: 0}, {x: 950, y: 0}, {x: 950, y: 600}, {x: 0, y: 600}];
   var coloursLayout = ["red", "orange", "#00FF00", "blue"];
   for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
     if (ReihenfolgeBleibt[i] == spielerIch) canvas.fillStyle = "#02A1FD";
-    if (Reihenfolge[0] == Object.keys(player)[i]) canvas.fillStyle = "#DF0101";
+    if (Reihenfolge[0] == ReihenfolgeBleibt[i]) canvas.fillStyle = "#DF0101";
     else if (ReihenfolgeBleibt[i] != spielerIch) canvas.fillStyle = "white";
     canvas.fillRect(10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y, 66, 100);
     canvas.font = "50px Georgia";
@@ -280,18 +378,33 @@
     canvas.font = "30px Georgia";
     if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
   }
+  showChat();
   }
-
+  function showChat() {
+    for (var i = 0; i < messages.length; i++) {
+      canvas.fillStyle = "white";
+      canvas.font = "33px Georgia";
+      canvas.fillText(messages[messages.length - 1 - i], 1111, 33 + 44*i);
+    }
+  }
 
   function Spielerwechsel() {
     var wholes = 0;
     var wholesFilled = 0;
+    setTimeout(function () {
+    localStorage.setItem("dieMaulwurfCompanyFields", JSON.stringify(fields));
+    localStorage.setItem("dieMaulwurfCompanyReihenfolge", JSON.stringify(Reihenfolge));
+    localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", JSON.stringify(ReihenfolgeBleibt));
+    localStorage.setItem("dieMaulwurfCompanyFieldAktuell", JSON.stringify(fieldAktuell));
+    localStorage.setItem("dieMaulwurfCompanyPlayer", JSON.stringify(player));
+    }, 3000);
     for (var i = 0; i < 9; i++) {
       for (var i1 = 0; i1 < 9 + i; i1++) {
         if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].whole) wholes++;
         if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player != false && fields[fieldAktuell][i][i1].whole) wholesFilled++;
       }
     }
+    gewonnenCheck();
     room.send({
       message: {
         "type": "fields",
@@ -312,6 +425,32 @@
       });
     }
   }
+  function gewonnenCheck() {
+    if (fieldAktuell + 1 >= colours.length && fields[fieldAktuell][4][6].player != false) {
+      room.send({
+        message: {
+          type: "gewonnen",
+          data: spielerIch/*,
+          siegDurch: "Niederlage"*/
+        }
+      });
+    }
+  }
+  function submit() {
+    messages.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messages",
+      data: messages,
+      sender: spielerIch
+    }
+    });
+    window.scroll(0, 0);
+    // setTimeout(function () {
+    //     window.scroll(scrollX, 10000)
+    //     document.getElementById('message').select();
+    // }, 5000);
+  }
   function readMouseMove(e) {
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY + 23;
@@ -323,27 +462,33 @@
       if (player[spielerIch].moving != undefined) {
         var xTest = [player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1]];
       var yTest = [player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0]];
+      var spielerPassiert = [false, false, false, false];
       for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[0]++;
         yTest[0]++;
+        if (fields[fieldAktuell][yTest[0]] && fields[fieldAktuell][yTest[0]][xTest[0]] && fields[fieldAktuell][yTest[0]][xTest[0]].player != false) spielerPassiert[0] = true;
       }
       for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[1]--;
         yTest[1]--;
+        if (fields[fieldAktuell][yTest[1]] && fields[fieldAktuell][yTest[1]][xTest[1]] && fields[fieldAktuell][yTest[1]][xTest[1]].player != false) spielerPassiert[1] = true;
       }
       for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[2]--;
         yTest[2]++;
+        if (fields[fieldAktuell][yTest[2]] && fields[fieldAktuell][yTest[2]][xTest[2]] && fields[fieldAktuell][yTest[2]][xTest[2]].player != false) spielerPassiert[2] = true;
       }
       for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[3]++;
         yTest[3]--;
+        if (fields[fieldAktuell][yTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]].player != false) spielerPassiert[3] = true;
       }
-      if (player[spielerIch].movement == "movePlayer" && player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] || xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
+      if (player[spielerIch].movement == "movePlayer" && (player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[0]) || (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[1]) || (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[2]) || (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[3])) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
         console.log("movingPlayer");
         fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
         fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
-        Spielerwechsel();
+        if (fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].repeat) spielerKommtDran();
+        else Spielerwechsel();
       }
     }
       if (player[spielerIch].movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
@@ -376,6 +521,12 @@
         for (var i1 = 0; i1 < 9 + i; i1++) {
           if (xMaus > 50 + 77*i1 && xMaus < 50 + 77*i1 + 66 && yMaus > 50 + 77*i && yMaus < 50 + 77*i + 66) return [i, i1];
         }
+      }
+    }
+    document.onkeydown = function(event) {
+      if (event.key == "ArrowUp") window.scroll(scrollX, 0);
+      if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
+        window.scroll(scrollX, 742);
       }
     }
   </script>

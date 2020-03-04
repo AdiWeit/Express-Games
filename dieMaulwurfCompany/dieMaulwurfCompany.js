@@ -65,9 +65,6 @@ class dieMaulwurfCompany {
       //     "type": "sendDataToRejoinedPlayer"
       //   });
       // }
-      this.broadcast({
-        "type": "setAblageListe[4]AfterRejoin"
-      });
 
       console.warn("Rejoin, skipping usual onJoin…");
       return;
