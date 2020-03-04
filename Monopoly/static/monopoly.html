@@ -2,6 +2,20 @@
 <!-- <script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script> -->
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script> -->
 <canvas id="textur" width="3310" height="790" style="opacity:1"></canvas>
+<table id="scores">
+  <!-- <tr>
+  <td>Row1 cell1</td>
+  <td>Row1 cell2</td>
+</tr>
+<tr>
+  <td>Row2 cell1</td>
+  <td>Row2 cell2</td>
+</tr>
+<tr>
+  <td>Row3 cell1</td>
+  <td>Row3 cell2</td>
+</tr> -->
+</table>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
 <meta charset="utf-8">
@@ -170,6 +184,28 @@
     if (message.type == "spielerAktuell" && message.empfänger == spielerIch) spielerAktuell = message.data;
     if (message.type == "setAblageListe[4]AfterRejoin") AblageListe[4][0] = ["beendet"];
     if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
+    if (message.type == "countingPoints") {
+      for (var i = 0; i < AnzahlSpieler; i++) {
+        points[i] = {karten: 0, geld: 0, insgesamt: 0};
+        for (var i1 = 0; i1 < spieler[i].kartenMitte.length; i1++) {
+          points[i].karten += 10 + 15*(spieler[i].kartenMitte[i1][5].length - 1);
+        }
+        points[i].geld += spieler[i].einkommen[0];
+        points[i].insgesamt = points[i].karten + points[i].geld;
+      }
+         var highest = {insgesamt: 0, spieler: -1, geld: 0, karten: 0};
+         for (var i = 0; i < points.length; i++) {
+           if (points[i].insgesamt > highest.insgesamt) {highest.insgesamt = points[i].insgesamt; highest.spieler = i;}
+           if (points[i].geld > highest.geld) {highest.geld = points[i].geld}
+           if (points[i].karten > highest.karten) {highest.karten = points[i].karten}
+         }
+         alert("Da keine Karten übrig sind, wurden Punkte gezählt und ein Gewinner wurde ermittelt.");
+         showPoints(highest);
+         room.send({
+           message:
+            highest.spieler + " hat gewonnen!!!"
+         });
+    }
     if (message.type == "messages") {
       messages = message.data
 
@@ -226,11 +262,7 @@
       spielerAktuell = message.data;
       setTimeout(function() {
         if (spielerAktuell == spielerIch /* && spieler[spielerIch].kartenIch.length == 5 */ ) {
-          console.log("2 Karten gezogen");
-          spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
-          kartenZiehen.shift();
-          spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
-          kartenZiehen.shift();
+          zweiKartenZiehen();
           if (AnzahlSpieler < 4) {
             window.scroll(0, 73);
             setTimeout(function() {
@@ -269,6 +301,7 @@
       //    spieler[0] = JSON.parse(localStorage.getItem('spielerMonopoly'))[0]; spieler[1] = JSON.parse(localStorage.getItem('spielerMonopoly'))[1]; spieler[2] = JSON.parse(localStorage.getItem('spielerMonopoly'))[2]; spieler[3] = JSON.parse(localStorage.getItem('spielerMonopoly'))[3];
           spielerAktuell = JSON.parse(localStorage.getItem('spielerAktuellMonopoly')); restlicheZüge = JSON.parse(localStorage.getItem('restlicheZügeMonopoly')); Layout();
           kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenMonopoly'));
+          AnzahlSpieler = localStorage.getItem('AnzahlSpielerMonopoly');
         }
         else {
           room.send({
@@ -293,7 +326,7 @@
     if (message.type == "kartenMitte") spieler[message.sender].kartenMitte = message.data;
     if (message.type == "einkommenSpieler") {
       spieler[message.sender].einkommen = message.data;
-      if (message.datenAktuallisieren) localStorage.setItem('spielerMonopoly', JSON.stringify(spieler)); localStorage.setItem('spielerAktuellMonopoly', spielerAktuell); localStorage.setItem('kartenZiehenMonopoly', JSON.stringify(kartenZiehen)); localStorage.setItem('restlicheZügeMonopoly', restlicheZüge);
+      if (message.datenAktuallisieren) {localStorage.setItem('spielerMonopoly', JSON.stringify(spieler)); localStorage.setItem('spielerAktuellMonopoly', spielerAktuell); localStorage.setItem('kartenZiehenMonopoly', JSON.stringify(kartenZiehen)); localStorage.setItem('restlicheZügeMonopoly', restlicheZüge); localStorage.setItem('AnzahlSpielerMonopoly', AnzahlSpieler);}
     }
     if (message.type == "Auswahl bezahlen" && message.sender == spielerIch) {
       AblageListe[4][0] = "bezahlen Gegner";
@@ -384,7 +417,7 @@
               datenAktuallisieren();
             }, 500); */
             /* Fehlerquelle? */
-            if (!(message.data == "Miete gegen sie" || message.data == "Miete für alle" || message.data == "einen Geldhai" || message.data == "einen Geburtstag")) {
+          if (!(message.data == "Miete gegen sie" || message.data == "Miete für alle" || message.data == "einen Geldhai" || message.data == "einen Geburtstag") && AblageListe[4][0] != "beendet") {
               setTimeout(function() {
                 datenAktuallisieren();
               }, 500);
@@ -497,7 +530,79 @@
       }, 700);
     }
   });
-
+  function showPoints(highest) {
+//document.getElementById('textur').style.display = "none";
+var cell = [ /*row.insertCell(0)*/ ];
+//  var highestLives = {lives: 0, number: 0};
+var i2 = AnzahlSpieler;
+for (var i = 0; i < AnzahlSpieler ; i++) { // Name
+  // if (!(Object.keys(highscores)[i] == "allMaps")) {
+    var table = document.getElementById("scores");
+    var row = table.insertRow(i);
+    cell.push(row.insertCell(0));
+    cell[cell.length - 1].innerHTML = (i + 1);
+    if (i == spielerIch) cell[cell.length - 1].style.color = "blue";
+    else if (i == highest.spieler) cell[cell.length - 1].style.color = "green";
+    else cell[cell.length - 1].style.color = "red";
+    i2--;
+  // }
+  //  var cell = [/*row.insertCell(0)*/];
+  for (var i1 = 1; i1 < Object.keys(points[i]).length + 1; i1++) { // Werte
+    // if (!(Object.keys(highscores)[i] == "allMaps")) {
+      if (i1 < Object.keys(points[i]).length + 1) {
+        cell[cell.length - 2] = row.insertCell(i1);
+        // if (level[level.mode].levelType == "worldWideLevel" && i1 == 0) {
+        //   i1--;
+        // }
+        cell[cell.length - 2].innerHTML = points[i][Object.keys(points[i])[i1 - 1]];
+        if (highest[Object.keys(points[0])[i1 - 1]] == points[i][Object.keys(points[i])[i1 - 1]]) cell[cell.length - 2].style.color = "green";
+        else cell[cell.length - 2].style.color = "red";
+      } else {
+        cell[cell.length - 2] = row.insertCell(i1);
+        //  cell[cell.length - 2].innerHTML = "unmade";
+        //  cell[cell.length - 2].style.color = "black";
+      }
+    // }
+  }
+  var row = table.insertRow(i);
+  //  var row = table.insertRow(i+1);
+  // var row = table.insertRow(i + 1);
+//    if (Object.keys(highscores[Object.keys(highscores)[i]][mode]).length > highestLives.lives) highestLives = {number: i, lives: Object.keys(highscores[Object.keys(highscores)[i]][mode]).length}
+}
+//  var row = table.insertRow(0);
+//  var cell = [/*row.insertCell(0)*/];
+// cell.push(row.insertCell(0));
+// cell[cell.length - 1].innerHTML = "name";
+var row = table.insertRow(0);
+cell.push(row.insertCell(0));
+for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
+  cell.push(row.insertCell(i1));
+  if (i1 == 0) cell[cell.length - 1].innerHTML = "Spieler";
+  else cell[cell.length - 1].innerHTML = Object.keys(points[0])[i1 - 1];
+}
+  }
+  var finished = false;
+  function zweiKartenZiehen() {
+    if (kartenZiehen.length == 0)  {punkteAuszählen(); finished = true}
+    else {
+    spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
+    kartenZiehen.shift();
+  }
+    if (kartenZiehen.length == 0 && !finished) punkteAuszählen();
+    else if (!finished) {
+    spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
+    kartenZiehen.shift();
+  }
+    console.log("2 Karten gezogen");
+  }
+  var points = [];
+  function punkteAuszählen() {
+    room.send({
+      message: {
+        "type": "countingPoints"
+      }
+    });
+  }
   function bieten() {
     zählerListe[0] = 0;
     zählerListe[1] = 0;
@@ -721,7 +826,7 @@
     AblageListe[2] = -1;
     koordinatenCheck();
     if (AblageListe[4][0] == "Auswahl Karten ablegen" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
-      if (vorbereitungGebot()) {
+      if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "Straße" && vorbereitungGebot()) {
         gebotAnServer(gebote, bieter, spieler[spielerIch].kartenIch[AblageListe[2]], spielerIch);
       }
       spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
@@ -920,10 +1025,7 @@
           GeburtstagFunction();
         }
         if (spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Los!") {
-          spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
-          kartenZiehen.shift();
-          spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
-          kartenZiehen.shift();
+          zweiKartenZiehen();
         }
         if (spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Schlau Geklaut" /* && spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length == spieler[AblageListe[3]].kartenMitte[AblageListe[2]][2].length */ ) {
           zählerListe[0] = 0;
@@ -1973,11 +2075,11 @@ function showChat() {
         if (zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false) {
           AblageListe[3] = -1;
           alert("Straßensatz bereits komplett! Sie können die Seite des Jokers jedoch trotzdem noch nutzen, sowie die Staße für Geld ablegen. ")
-        } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][1]] + " einsetzen wollen?")) || (confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][1] + " einsetzen wollen?"))) {
+        } else if (AblageListe[2] != "beendet" && (Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]) && textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][1]] + " einsetzen wollen?")) || (textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][1] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]);
           spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][1], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][1]];
         }
-        else {
+        else if (textButton == "Spielfeld") {
           AblageListe[3] = -1;
         }
       } else {
@@ -1992,11 +2094,11 @@ function showChat() {
         if (zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false) {
           alert("Straßensatz bereits komplett! Sie können die Seite des Jokers jedoch trotzdem noch nutzen, sowie die Staße für Geld ablegen. ")
           AblageListe[3] = -1;
-        } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][0]] + " einsetzen wollen?")) || (confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][0] + " einsetzen wollen?"))) {
+        } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]) && (textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][0]] + " einsetzen wollen?"))) || (textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][0] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]);
           spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][0], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][0]];
         }
-        else {
+        else if (textButton == "Spielfeld") {
           AblageListe[3] = -1;
         }
       }
