@@ -3,7 +3,7 @@
 <canvas id="textur" width="1566" height="744"></canvas>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
-<h1>gespeicherte Aufstellungen</h1>
+<h1 id="aufstellungsText">gespeicherte Aufstellungen</h1>
 <div id="app">
 <li v-for="title in db" id="kathegorien">
   {{ title }}
@@ -50,7 +50,7 @@ var AblageListe = [];
 var zählerListe = [];
 var messages = [];
 var viewingMessages = false;
-if (localStorage.getItem("aufstellungenStratego") != undefined) {
+if (localStorage.getItem("aufstellungenStratego") != undefined && localStorage.getItem("aufstellungenStratego") != "undefined") {
 var app = new Vue({
   el: '#app',
   data: {
@@ -60,6 +60,7 @@ var app = new Vue({
 }
 else {
   kathegorien.style.display = "none";
+  aufstellungsText.innerHTML = "Keine gespeicherte Aufstellungen";
 }
 // Ausschreiben
 for (var i = 0; i < spielfeld.length; i++) {
@@ -172,7 +173,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     if (message.type == "gewonnen") {showResults(message.data, 0, message.siegDurch); removeGame(true);}
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
-    if (message.type.includes("player") && message.rejoin && confirm("wollen sie die vorherige Runde weiterspielen?")) {
+    if (message.type.includes("player") && message.rejoin && JSON.parse(localStorage.getItem('spielfeldStratego')) != undefined && JSON.parse(localStorage.getItem('spielfeldStratego')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
       spielfeld = JSON.parse(localStorage.getItem("spielfeldStratego"));
       player = JSON.parse(localStorage.getItem("playerStratego"));
     }
