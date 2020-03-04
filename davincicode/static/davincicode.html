@@ -150,6 +150,29 @@
   room.setOnMessageListener(function(message) {
     if (message.type == "messages") {
       messages = message.data;
+      for (var i = 0; i < messages.length; i++) {
+        var i2 = 0;
+        while(messages[i].length > 103) {
+          var messageChat = "";
+          for (var i1 = 0; i1 < 103; i1++) {
+            messageChat += messages[i][0];
+            messages[i] = messages[i].replace(messages[i][0], "");
+          }
+          messages.push(messageChat);
+          // i++;
+          i2++;
+          var switching = "";
+          if (!(messages[i].length > 103) && i2 > 0) {messages.push(messages[i]); messages.splice(i, 1);
+            for (var i1 = 0; i1 < (messages.length - i)/2; i1++) {
+              var verschieben = "";
+              verschieben = messages[i + i1];
+              messages[i + i1] = messages[-i1+messages.length - 1];
+              messages[-i1 + messages.length - 1] = verschieben;
+            }
+          }
+        }
+        // messages.pop();
+      }
       textur.height = 750 + messages.length*50;
       LayoutIch();
       if (!(name == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
@@ -557,7 +580,7 @@ else {
             Ablage = false;
             AblageList[1] = zähler;
             if (tipp == null == false) {
-              if (tipp == kartenSpieler2[zähler][0]) {
+              if (tipp == kartenSpieler2[zähler][0] && kartenSpieler2[zähler][2] != true) {
                 console.log("richtig!");
                 kartenSpieler2[zähler][2] = true;
                 LayoutGegner();
