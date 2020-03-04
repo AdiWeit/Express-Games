@@ -2,7 +2,7 @@
 <h2 id="info">klick to choose a field</h2>
 
 <h2 id="Name"></h2>
-<button id="B1" onclick='B("0-0")'>reinschmeißen</button>
+<!-- <button id="B1" onclick='B("0-0")'>reinschmeißen</button>
 <button id="B2" onclick='B("1-0")'>reinschmeißen</button>
 <button id="B3" onclick='B("2-0")'>reinschmeißen</button>
 <button id="B4" onclick='B("3-0")'>reinschmeißen</button>
@@ -10,7 +10,7 @@
 <button id="B6" onclick='B("5-0")'>reinschmeißen</button>
 <button id="B7" onclick='B("6-0")'>reinschmeißen</button>
 
-<link href="http://adi.nicolaiweitkemper.de/JS_Grafik/TEST.css" rel="stylesheet" type="text/css">
+<link href="https://adi.nicolaiweitkemper.de/JS_Grafik/TEST.css" rel="stylesheet" type="text/css"> -->
 
 <canvas id="textur" width="1582" height="750"></canvas>
 <select name="course" id="modi">
@@ -278,19 +278,19 @@
 
 
   zähler = 1;
-  Buttons();
-
-  function Buttons() {
-
-    Ablage = document.getElementById("B" + zähler)
-    Ablage.style.display = Zustand;
-    zähler++;
-    if (zähler == 8) {
-      zähler = 0;
-    } else {
-      Buttons();
-    }
-  }
+  // Buttons();
+  //
+  // function Buttons() {
+  //
+  //   Ablage = document.getElementById("B" + zähler)
+  //   Ablage.style.display = Zustand;
+  //   zähler++;
+  //   if (zähler == 8) {
+  //     zähler = 0;
+  //   } else {
+  //     Buttons();
+  //   }
+  // }
 
   function varZurrücksetzen() {
     KoordinatenY = 65;
@@ -376,14 +376,16 @@
         }, 100);
         zähler = 1;
         Zustand = "inline"
-        Buttons();
-        document.getElementById('info').style.display = "none";
+        // Buttons();
+        document.getElementById('info').innerHTML = "click on the field, you want your stone to be. it will fall down as far as possible.";
+      //  document.getElementById('info').style.display = "none";
       }
       else {
         zähler = 1;
         Zustand = "none"
-        Buttons();
-        document.getElementById('info').style.display = "inline";
+        //Buttons();
+        document.getElementById('info').innerHTML = "klick to choose a field";
+  //      document.getElementById('info').style.display = "inline";
       }
     }
     else {
