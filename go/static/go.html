@@ -330,12 +330,12 @@ function checkUmzingelt(idUmzingeltCheck, idUmzingeltUmgekehrtCheck, removeDirec
         AblageListe[3] = 0;
         if ((i1 != i2 || i2 == 0) && (field[i1][i] == idUmzingeltUmgekehrtCheck/* || field[i1][i] == "fieldFree?"*/) && /*i2 != "closed" && */(field[i2][i] == idUmzingeltCheck) || (i2 == 0 && (directionBorder == "left" || directionBorder == "none" || (i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0)))) {
           AblageListe[4].push(/*"closed"*/i1 + " - " + i);
-        if ((i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0)) console.log("Ecke weg! " + i + " - " + i1);
+        if ((i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0)) {console.log("Ecke weg! " + i + " - " + i1); AblageListe[1].push("ecke")}
          if (directionBorder == "none" && i2 == 0 && !(field[i2][i] == idUmzingeltCheck)) {
            directionBorder = "left";
          }
        }
-        else if (i1 != i2) checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
+        else/* if (i1 != i2) */if (!(((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) || (i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0) || (i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1) || (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)))))checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
       }
       console.log(AblageListe[4].length > AblageListe[2]);
       AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -346,13 +346,13 @@ function checkUmzingelt(idUmzingeltCheck, idUmzingeltUmgekehrtCheck, removeDirec
           fieldsChecked++;
           AblageListe[3] = 0;
           if ((i1 != i2 || i2 == fieldParameters[0] - 1) && (field[i2][i] == idUmzingeltCheck || (i2 == fieldParameters[0] - 1 && (directionBorder == "none" || directionBorder == "right" || (i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1))))) {
-            if ((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) console.log("Ecke weg! " + i + " - " + i1);
+            if ((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) {console.log("Ecke weg! " + i + " - " + i1); AblageListe[1].push("ecke")}
             AblageListe[4].push(/*"closed"*/i2 + " - " + i);
             if (i2 == fieldParameters[0] - 1 && directionBorder == "none" && !(field[i2][i] == idUmzingeltCheck)) {
               directionBorder = "right";
             }
           }
-          else if (i1 != i2) checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
+          else/* if (i1 != i2) */if (!(((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) || (i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0) || (i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1) || (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)))))checkUmzingeltEinFeld(i2, i, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
         }
         console.log(AblageListe[4].length > AblageListe[2]);
         AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
@@ -363,13 +363,13 @@ function checkUmzingelt(idUmzingeltCheck, idUmzingeltUmgekehrtCheck, removeDirec
             fieldsChecked++;
             AblageListe[3] = 0;
             if ((i != i2 || i2 == 0) && (field[i1][i2] == idUmzingeltCheck || (i2 == 0 && (directionBorder == "none" || directionBorder == "up" || (i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1))))) {
-              if ((i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1)) console.log("Ecke weg! " + i + " - " + i1);
+              if ((i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1)) {console.log("Ecke weg! " + i + " - " + i1); AblageListe[1].push("ecke")}
               AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
               if (i2 == 0 && directionBorder == "none" && !(field[i1][i2] == idUmzingeltCheck)) {
                 directionBorder = "up";
               }
             }
-            else if (i != i2) checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
+            else/* if (i != i2) */if (!(((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) || (i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0) || (i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1) || (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)))))checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
           }
           // if (AblageListe[4] == "closed") {
           console.log(AblageListe[4].length > AblageListe[2]);
@@ -380,19 +380,23 @@ function checkUmzingelt(idUmzingeltCheck, idUmzingeltUmgekehrtCheck, removeDirec
              fieldsChecked++;
               AblageListe[3] = 0;
               if ((i != i2 || i2 == fieldParameters[1] - 1) && (field[i1][i2] == idUmzingeltCheck || (i2 == fieldParameters[1] - 1 && (directionBorder == "down" || directionBorder == "none" || ((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)))))) {
-                if (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1))) console.log("Ecke weg! " + i + " - " + i1);
+                if (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1))) {console.log("Ecke weg! " + i + " - " + i1); AblageListe[1].push("ecke")}
                 AblageListe[4].push(/*"closed"*/i1 + " - " + i2);
                 if (i2 == fieldParameters[1] - 1 && directionBorder == "none" && !(field[i1][i2] == idUmzingeltCheck)) {
                   directionBorder = "down";
                 }
               }
-              else if (i != i2) checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
+              else/* if (i != i2) */if (!(((i == 0 && i1 == fieldParameters[0] - 1) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)) || (i == 0 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == 0) || (i == 0 && i1 == 0) || (i == 0 && i1 == fieldParameters[0] - 1) || (((i == fieldParameters[1] - 1 && i1 == 0) || (i == fieldParameters[1] - 1 && i1 == fieldParameters[0] - 1)))))checkUmzingeltEinFeld(i1, i2, idUmzingeltCheck, idUmzingeltUmgekehrtCheck,false, true);
             }
             console.log(AblageListe[4].length > AblageListe[2]);
             AblageListe[1].push(AblageListe[4].length > AblageListe[2]);
             AblageListe[2] = AblageListe[4].length;
             console.log(AblageListe[4].length + " - " + (fieldsChecked - 3)*4);
-            if (/*AblageListe[4] == "closed"*//*AblageListe[4].length == (fieldsChecked - 3)*4*/!(AblageListe[1].includes(false))) {
+            AblageListe[0] = [];
+            // for (var i3 = 0; i3 < AblageListe[1].length; i3++) {
+            //   if (AblageListe[1][i3] == "ecke") AblageListe[0].push("Ecke")
+            // }
+            if (/*AblageListe[4] == "closed"*//*AblageListe[4].length == (fieldsChecked - 3)*4*/!(AblageListe[1].includes(false))/* || AblageListe[0].length == 2*/) {
               // if (!(AblageListe[1].includes(false))) console.log("removeFieldTry2");
               // if (AblageListe[4].length == (fieldsChecked - 3)*4) console.log("removeField");
               /*if (AblageListe[6] == "fieldFree?") AblageListe[6] = [i1, i];
