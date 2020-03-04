@@ -174,9 +174,10 @@ class heldenDesOlymp {
                  [3, ["red", "blue", "blue"], "blue", 1, 4, "Wenn Peleus ins Spiel kommt, wählt dein Gge- ner ei- ne seiner Hand- karten und gibt sie dir auf die Hand. ", "Held/-in"],
         /* Ideen eigene Fähigkeiten/Karten */
         [4, ["green", "yellow", "red", "blue"], "silver", 1, 5, "Immer wenn Nelos an- ge- grif- fen wird, wird dem An- grei- fer 1 Scha- den zu- ge- fügt. ", "Held/-in"],
-        [2, ["red", "blue"], "blue", 1, 2, "Wenn Adrus ins Spiel kommt, kannst du ei- nen geg- ne- ri- chen Hel- den aus- wäh- len, wes- sen Le- ben für 2 Run- den um 1 ge- senkt werden. ", "Held/-in"],
-        [2, ["red", "blue", "yellow", "green"], "silver", 1, 3, "Wenn Adron ins Spiel kommt, kannst du ei- ne geg- ne- ri- che Ein- heit aus- wäh- len, wes- sen An- griff für 3 Run- den um 1 ge- senkt wird. ", "Held/-in"],
-        [2, ["red", "blue", "yellow", "green"], "silver", 1, 3, "Wenn Arnus ins Spiel kommt, kannst du ei- ne geg- ne- ri- che Ein- heit aus- wäh- len, wel- che für 2 Run- den aussetzt. ", "Held/-in"]
+        [2, ["red", "yellow", "blue"], "blue", 1, 2, "Wenn Adrus ins Spiel kommt, kannst du ei- nen geg- ne- ri- chen Hel- den aus- wäh- len, der mindes- tens 4 Le- ben hat, wes- sen Le- ben für 2 Run- den um 2 ge- senkt werden. ", "Held/-in"],
+        [2, ["red", "blue", "yellow", "green"], "silver", 1, 3, "Wenn Adron ins Spiel kommt, kannst du ei- ne geg- ne- ri- che Ein- heit aus- wäh- len, wes- sen An- griff um 1 ge- senkt wird. ", "Held/-in"],
+        [2, ["red", "blue", "yellow"], "blue", 1, 2, "Wenn Aron ins Spiel kommt, kannst du ei- ne geg- ne- ri- che Ein- heit aus- wäh- len, wes- sen An- griff für 2 Run- den um 1 ge- senkt wird. ", "Held/-in"],
+        [2, ["red", "blue", "yellow", "green", "green"], "silver", 1, 3, "Wenn Arnus ins Spiel kommt, kannst du ei- ne geg- ne- ri- che Ein- heit aus- wäh- len, wel- che für 2 Run- den aussetzt. ", "Held/-in"]
       /*  wenn gegner (bestimmte Farbe) angreift, wird auch/nur ihm Schaden zugefügt
           Gegnerische/-r Leben/Schaden wird für (2) Runden um 1 verringert
 
@@ -286,7 +287,7 @@ class heldenDesOlymp {
       this.broadcast(data.message)
     }
     if (data.message.type == "Zustand" && data.message.data[data.message.data.length - 1].includes("gewonnen")) console.log("gewonnen!!!");
-    if (data.message.type == "endGame" || (data.message.data == undefined && data.message.includes("gewonnen"))) {this.player1 = null; this.player2 = null; console.log("roomRemoved");}
+    if (data.message.type == "endGame" || (/*data.message.data == undefined && data.message.includes("gewonnen")*/data.message.type == "Zustand" && data.message.data[data.message.data.length - 1].includes("gewonnen"))) {this.player1 = null; this.player2 = null; console.log("roomRemoved");}
   }
 
 }

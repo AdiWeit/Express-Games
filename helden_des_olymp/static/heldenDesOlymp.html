@@ -213,11 +213,14 @@ function serverDatenLöschen() {
     if (message.type == "fähigkeitPeleus" && SpielerIds[1] == SpielerId) {alert("Da der Gegner einen Peleus ausgespielt hat, müssen sie ihm eine Karte überlassen, die er kostenlos ausspielen darf. "); AblageListe[2] = "AuswahlKarteAbgeben"; textButton = "Spielfeld"; Sperren[1] = true;}
     else if (message.type == "spielerIds") {
       for (var i = 0; i < 6; i++) {
-        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[0] == SpielerId && !(MitteSpieler1[i][10] == undefined) && !(MitteSpieler1[i][10][0] == undefined) && MitteSpieler1[i][10][0][0] == "1 life lost" && MitteSpieler1[i][10][0][1] > 0) alert("Da der Gegner einen Adrus ausgespielt hat, wurde ihrem " + (i + 1) + ". Spieler für " + MitteSpieler1[i][10][0][1] + " verbleibende Runden ein Leben weggenommen!")
-        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && !(MitteSpieler2[i][10] == undefined) && !(MitteSpieler2[i][10][0] == undefined) && MitteSpieler2[i][10][0][0] == "1 life lost" && MitteSpieler2[i][10][0][1] > 0) alert("Da der Gegner einen Adrus ausgespielt hat, wurde ihrem " + (i + 1) + ". Spieler für " + MitteSpieler2[i][10][0][1] + " verbleibende Runden ein Leben weggenommen!")
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[0] == SpielerId && !(MitteSpieler1[i][10] == undefined) && !(MitteSpieler1[i][10][0] == undefined) && MitteSpieler1[i][10][0][0] == "2 life lost" && MitteSpieler1[i][10][0][1] > 0) alert("Da der Gegner einen Adrus ausgespielt hat, wurde ihrem Spieler auf dem " + (i + 1) + ". Feld (von rechts) für " + MitteSpieler1[i][10][0][1] + " verbleibende Runden 2 Leben weggenommen!")
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && !(MitteSpieler2[i][10] == undefined) && !(MitteSpieler2[i][10][0] == undefined) && MitteSpieler2[i][10][0][0] == "2 life lost" && MitteSpieler2[i][10][0][1] > 0) alert("Da der Gegner einen Adrus ausgespielt hat, wurde ihrem Spieler auf dem " + (i + 1) + ". Feld (von rechts) für " + MitteSpieler2[i][10][0][1] + " verbleibende Runden 2 Leben weggenommen!")
 
-        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[0] == SpielerId && !(MitteSpieler1[i][10] == undefined) && !(MitteSpieler1[i][10][1] == undefined) && MitteSpieler1[i][10][1][0] == "1 attack lost" && MitteSpieler1[i][10][1][1] > 0) alert("Da der Gegner einen Adron ausgespielt hat, wurde ihrem " + (i + 1) + ". Spieler für " + MitteSpieler1[i][10][1][1] + " verbleibende Runden ein Angriffsschadenn weggenommen!")
-        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && !(MitteSpieler2[i][10] == undefined) && !(MitteSpieler2[i][10][1] == undefined) && MitteSpieler2[i][10][1][0] == "1 attack lost" && MitteSpieler2[i][10][1][1] > 0) alert("Da der Gegner einen Adron ausgespielt hat, wurde ihrem " + (i + 1) + ". Spieler für " + MitteSpieler2[i][10][1][1] + " verbleibende Runden ein Angriffsschadenn weggenommen!")
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[0] == SpielerId && !(MitteSpieler1[i][10] == undefined) && !(MitteSpieler1[i][10][1] == undefined) && MitteSpieler1[i][10][1][0] == "1 attack lost" && MitteSpieler1[i][10][1][1] > 0) alert("Da der Gegner einen Aron ausgespielt hat, wurde ihrem Spieler auf dem " + (i + 1) + ". Feld (von rechts) für " + MitteSpieler1[i][10][1][1] + " verbleibende Runden ein Angriffsschaden weggenommen!")
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && !(MitteSpieler2[i][10] == undefined) && !(MitteSpieler2[i][10][1] == undefined) && MitteSpieler2[i][10][1][0] == "1 attack lost" && MitteSpieler2[i][10][1][1] > 0) alert("Da der Gegner einen Aron ausgespielt hat, wurde ihrem Spieler auf dem " + (i + 1) + ". Feld (von rechts) für " + MitteSpieler2[i][10][1][1] + " verbleibende Runden ein Angriffsschaden weggenommen!")
+
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[0] == SpielerId && MitteSpieler1[i][11] != undefined && MitteSpieler1[i][11] > 0) alert("Da der Gegner einen Arnus ausgespielt hat, muss ihr Spieler auf dem" + (i + 1) + ". Feld (von rechts) für " + MitteSpieler1[i][11] + " verbleibende Runden aussetzen!")
+        if (SpielerIds[1] == SpielerId && SpielerIdBleibt[1] == SpielerId && MitteSpieler2[i][11] != undefined && MitteSpieler2[i][11] > 0) alert("Da der Gegner einen Arnus ausgespielt hat, muss ihr Spieler auf dem " + (i + 1) + ". Feld (von rechts) für " + MitteSpieler2[i][11] + " verbleibende Runden aussetzen!")
       }
       SpielerIds = message.data;
       if (!(SpielerIdBleibt.includes(SpielerIds[0]) && SpielerIdBleibt.includes(SpielerIds[1]))) SpielerIdBleibt = SpielerIds
@@ -1336,7 +1339,7 @@ function checkAndromeda() {
       }
     }
 
-    if (AblageListe[1] > -1 && SpielerIds[0] == SpielerId && Sperren[1] == true && (AblageListe[2] == "beendet" || AblageListe[2] == "karteKostelosAusspielen") /* || AblageListe[2] == undefined*/ ) {
+    if (AblageListe[1] > -1 && SpielerIds[0] == SpielerId && Sperren[1] == true && (AblageListe[2] == "beendet" || AblageListe[2] == "kartekostenlosAusspielen") /* || AblageListe[2] == undefined*/ ) {
       if (SpielerIdsBleibt[0] == SpielerId && kartenSpieler1[AblageListe[1]][6] == "Ausrüstung" && MitteSpieler1[0][0] == "z" && MitteSpieler1[1][0] == "z" && MitteSpieler1[2][0] == "z" && MitteSpieler1[3][0] == "z" && MitteSpieler1[4][0] == "z" &&
         MitteSpieler1[5][0] == "z") {} else if (SpielerIdsBleibt[1] == SpielerId && kartenSpieler2[AblageListe[1]][6] == "Ausrüstung" && MitteSpieler2[0][0] == "z" && MitteSpieler2[1][0] == "z" && MitteSpieler2[2][0] == "z" && MitteSpieler2[3][0] ==
         "z" &&
@@ -1376,8 +1379,8 @@ function checkAndromeda() {
             farbenGebraucht.pop();
           }
           farbenGebraucht[0] = farbenGebraucht.toString().split(',');
-          if (farbenGebraucht[0].length < 4 && AblageListe[2] == "karteKostelosAusspielen")  AblageListe[2] = "beendet";
-          if (KartenAusgewählt == karteGezogen[0] || (farbenGebraucht[0].length < 4 && AblageListe[2] == "karteKostelosAusspielen")) farbenGebraucht[0] = [];
+          if (KartenAusgewählt == karteGezogen[0] || (farbenGebraucht[0].length < 4 && AblageListe[2] == "kartekostenlosAusspielen")) farbenGebraucht[0] = [];
+          if (farbenGebraucht[0].length < 4 && AblageListe[2] == "kartekostenlosAusspielen")  AblageListe[2] = "beendet";
           if (KartenAusgewählt == karteGezogen[0]) karteGezogen[0] = -1;
           farbenGebraucht[1] = [];
           farbenGebraucht[2] = [];
@@ -1861,26 +1864,53 @@ function checkAndromeda() {
       AblageListe[2] = "beendet";
       AblageListe[8] = "beendet";
     }
-    if (AblageListe[2] == "Spieler1Auswahl1Leben2RundenVerloren") {
-      MitteSpieler2[AblageListe[6]][10] = [];
-      MitteSpieler2[AblageListe[6]][10][0] = ["1 life lost", 2];
-      MitteSpieler2[AblageListe[6]][4]--;
+    if (AblageListe[2] == "Spieler1Auswahl2Leben2RundenVerloren") {
+      MitteSpieler2[AblageListe[1]][10] = [];
+      MitteSpieler2[AblageListe[1]][10][0] = ["2 life lost", 2];
+      MitteSpieler2[AblageListe[1]][4]--;
     }
-    if (AblageListe[2] == "Spieler2Auswahl1Leben2RundenVerloren") {
-      MitteSpieler1[AblageListe[6]][10] = [];
-      MitteSpieler1[AblageListe[6]][10][0] = ["1 life lost", 2];
-      MitteSpieler1[AblageListe[6]][4]--;
+    if (AblageListe[2] == "Spieler2Auswahl2Leben2RundenVerloren") {
+      MitteSpieler1[AblageListe[1]][10] = [];
+      MitteSpieler1[AblageListe[1]][10][0] = ["2 life lost", 2];
+      MitteSpieler1[AblageListe[1]][4]--;
       AblageListe[2] = "beendet";
     }
-    if (AblageListe[2] == "Spieler1Auswahl1Angriffsschaden3RundenVerloren") {
-      MitteSpieler2[AblageListe[6]][10][1] = ["1 attack lost", 3];
-      MitteSpieler2[AblageListe[6]][3]--;
+    if (AblageListe[2] == "auswahlKarte2RundenAussetzenSpieler1") {
+      MitteSpieler2[AblageListe[1]][11] = 2;
       AblageListe[2] = "beendet";
     }
-    if (AblageListe[2] == "Spieler2Auswahl1Angriffsschaden3RundenVerloren") {
-      MitteSpieler1[AblageListe[6]][10] = [];
-      MitteSpieler1[AblageListe[6]][10][1] = ["1 attack lost", 3];
-      MitteSpieler1[AblageListe[6]][3]--;
+    if (AblageListe[2] == "auswahlKarte2RundenAussetzenSpieler2") {
+      MitteSpieler1[AblageListe[1]][11] = 2;
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler1Auswahl1Angriffsschaden2RundenVerloren") {
+      MitteSpieler2[AblageListe[1]][10] = [];
+      MitteSpieler2[AblageListe[1]][10][1] = ["1 attack lost", 2];
+      MitteSpieler2[AblageListe[1]][3]--;
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler1Auswahl1Angriffsschaden") {
+      MitteSpieler2[AblageListe[1]][3]--;
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler2Auswahl1Angriffsschaden2RundenVerloren") {
+      MitteSpieler1[AblageListe[1]][10] = [];
+      MitteSpieler1[AblageListe[1]][10][1] = ["1 attack lost", 2];
+      MitteSpieler1[AblageListe[1]][3]--;
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler2Auswahl1Angriffsschaden") {
+      // MitteSpieler1[AblageListe[1]][10] = [];
+      // MitteSpieler1[AblageListe[1]][10][1] = ["1 attack lost", 2];
+      MitteSpieler1[AblageListe[1]][3]--;
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler1AuswahlSoldatZerstören" && !(MitteSpieler2[AblageListe[1]] == "z")) {
+      MitteSpieler2[AblageListe[1]] = "z";
+      AblageListe[2] = "beendet";
+    }
+    if (AblageListe[2] == "Spieler2AuswahlSoldatZerstören" && !(MitteSpieler1[AblageListe[1]] == "z")) {
+      MitteSpieler1[AblageListe[1]] = "z";
       AblageListe[2] = "beendet";
     }
     if (kartenSpieler1[AblageListe[1]] == undefined == false && AblageListe[2] == "Spieler1Auswahl1KarteAblegen") {
@@ -2045,7 +2075,7 @@ function checkAndromeda() {
         //    SteineMitte[zählerListe[2]] = "z";
         //  SteineMitte.sort();
         //    SteineMitte.pop();
-        if (zählerListe[6] > 1 && !(SteineMitte.includes("red") || SteineMitte.includes("green") || SteineMitte.includes("yellow") || SteineMitte.includes("red"))) {
+        if (zählerListe[6] > 1 && (SteineMitte.includes("red") || SteineMitte.includes("green") || SteineMitte.includes("yellow") || SteineMitte.includes("red"))) {
           zählerListe[6]--;
         } else {
           Spielerwechsel();
@@ -2147,9 +2177,9 @@ function checkAndromeda() {
     console.log("Angreifen");
     if (SpielerIdsBleibt[0] == SpielerId) {
       while (zählerListe[8] < 3) {
-        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
           VorAngriff();
-        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
           console.log("Siegpunkte");
           if (MitteSpieler1[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler1[zählerListe[8]][0][10] == undefined) && !(MitteSpieler1[zählerListe[8]][0][10][2] == undefined) && MitteSpieler1[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler1[zählerListe[8]][0][10] == undefined || MitteSpieler1[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler2[zählerListe[8]][0] == "z" || MitteSpieler1[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
@@ -2181,13 +2211,14 @@ function checkAndromeda() {
         }
         if (zählerListe[8] < 6) {
           zählerListe[8]++;
-          nachAngriff();
+          if (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8] - 1] != undefined && (MitteSpieler1[zählerListe[8] - 1][11] == undefined || MitteSpieler1[zählerListe[8] - 1][11] < 1))) nachAngriff();
+          else if (MitteSpieler1[zählerListe[8] - 1][11] != undefined) MitteSpieler1[zählerListe[8] - 1][11]--;
         }
       }
       while (zählerListe[8] < 5) {
-        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
           VorAngriff();
-        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
           console.log("Farbsteine");
           if (MitteSpieler1[zählerListe[11]][5] == "Immer wenn Telemachos an- greift und den Ge- biets- bonus er- hält, zie- he zu- sätz- lich 1 Karte. ") {
             kartenSpieler1[kartenSpieler1.length] = kartenZiehen[0];
@@ -2237,12 +2268,13 @@ function checkAndromeda() {
         }
         if (zählerListe[8] < 6) {
           zählerListe[8]++;
-          nachAngriff();
+          if (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8] - 1] != undefined && (MitteSpieler1[zählerListe[8] - 1][11] == undefined || MitteSpieler1[zählerListe[8] - 1][11] < 1))) nachAngriff();
+          else if (MitteSpieler1[zählerListe[8] - 1][11] != undefined) MitteSpieler1[zählerListe[8] - 1][11]--;
         }
       }
-      if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+      if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
         VorAngriff();
-      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8]] != undefined && (MitteSpieler1[zählerListe[8]][11] == undefined || MitteSpieler1[zählerListe[8]][11] < 1)))) {
         console.log("Nachziehen");
         if (MitteSpieler1[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler1[zählerListe[8]][0][10] == undefined) && !(MitteSpieler1[zählerListe[8]][0][10][2] == undefined) && MitteSpieler1[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler1[zählerListe[8]][0][10] == undefined || MitteSpieler1[zählerListe[8]][0][10][2] == undefined)*/) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" || MitteSpieler1[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
@@ -2274,16 +2306,17 @@ function checkAndromeda() {
       }
       if (zählerListe[8] < 6) {
         zählerListe[8]++;
-        nachAngriff();
+        if (zählerListe[8] == 6 || (MitteSpieler1[zählerListe[8] - 1] != undefined && (MitteSpieler1[zählerListe[8] - 1][11] == undefined || MitteSpieler1[zählerListe[8] - 1][11] < 1))) nachAngriff();
+        else if (MitteSpieler1[zählerListe[8] - 1][11] != undefined) MitteSpieler1[zählerListe[8] - 1][11]--;
       }
 
     } else {
       //  zählerListe[8] = 0;
 
       while (zählerListe[8] < 3) {
-        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
           VorAngriff();
-        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
               SiegpunktePlus();
@@ -2318,14 +2351,15 @@ function checkAndromeda() {
         }
         if (zählerListe[8] < 6) {
           zählerListe[8]++;
-          nachAngriff();
+          if (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8] - 1] != undefined && (MitteSpieler2[zählerListe[8] - 1][11] == undefined || MitteSpieler2[zählerListe[8] - 1][11] < 1))) nachAngriff();
+          else if (MitteSpieler2[zählerListe[8] - 1][11] != undefined) MitteSpieler2[zählerListe[8] - 1][11]--;
         }
       }
       //  zählerListe[6] = 0;
       while (zählerListe[8] < 5) {
-        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+        if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
           VorAngriff();
-        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+        } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
           if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
             if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
               //  if (SteineMitte.length > 1) {
@@ -2369,12 +2403,13 @@ function checkAndromeda() {
         }
         if (zählerListe[8] < 6) {
           zählerListe[8]++;
-          nachAngriff();
+          if (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8] - 1] != undefined && (MitteSpieler2[zählerListe[8] - 1][11] == undefined || MitteSpieler2[zählerListe[8] - 1][11] < 1))) nachAngriff();
+          else if (MitteSpieler2[zählerListe[8] - 1][11] != undefined) MitteSpieler2[zählerListe[8] - 1][11]--;
         }
       }
-      if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false) {
+      if (AblageListe[2] == "VorAngriffDurch" + zählerListe[8] == false && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
         VorAngriff();
-      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+      } else if ((!zählerListe[11] || AblageListe[9] != zählerListe[11]) && (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8]] != undefined && (MitteSpieler2[zählerListe[8]][11] == undefined || MitteSpieler2[zählerListe[8]][11] < 1)))) {
         if (MitteSpieler2[zählerListe[8]][0] == "z" == false && !((!(MitteSpieler2[zählerListe[8]][0][10] == undefined) && !(MitteSpieler2[zählerListe[8]][0][10][2] == undefined) && MitteSpieler2[zählerListe[8]][0][10][2][1] < 1))/* || (MitteSpieler2[zählerListe[8]][0][10] == undefined || MitteSpieler2[zählerListe[8]][0][10][2] == undefined)*/) {
           if (MitteSpieler1[zählerListe[8]][0] == "z" || MitteSpieler2[zählerListe[8]][5] == "Im- mer wenn Kassiopeia an- greift, fügt sie kei- nen Scha- den zu, son- dern er- hält den Ge- biets- bon- nus. ") {
             zweiKartenZiehen();
@@ -2403,7 +2438,8 @@ function checkAndromeda() {
         //    zweiKartenZiehen();
         if (zählerListe[8] < 6) {
           zählerListe[8]++;
-          nachAngriff();
+          if (zählerListe[8] == 6 || (MitteSpieler2[zählerListe[8] - 1] != undefined && (MitteSpieler2[zählerListe[8] - 1][11] == undefined || MitteSpieler2[zählerListe[8] - 1][11] < 1))) nachAngriff();
+          else if (MitteSpieler2[zählerListe[8] - 1][11] != undefined) MitteSpieler2[zählerListe[8] - 1][11]--;
         }
       }
     }
@@ -2423,11 +2459,13 @@ function checkAndromeda() {
           for (var i = 0; i < MitteSpieler2.length; i++) {
             if (MitteSpieler2[i][2] == "red") MitteSpieler2[i][4]--;
           }
+          VorAngriffBeenden();
         }
       else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Priamos")) {
           for (var i = 0; i < MitteSpieler2.length; i++) {
             if (MitteSpieler2[i][2] == "green") MitteSpieler2[i][4]--;
           }
+          VorAngriffBeenden();
         }
       else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Cheiron") && !(!MitteSpieler2[0][5] && !MitteSpieler2[1][5] && !MitteSpieler2[2][5] && !MitteSpieler2[3][5] && !MitteSpieler2[4][5] && !MitteSpieler2[5][5])) {
           AblageListe[2] = "Spieler1AuswahleinSchadenZufügen";
@@ -2446,24 +2484,25 @@ function checkAndromeda() {
             AblageListe[2] = "Spieler1AuswahlHeldSchadenZufügen";
           }
         }
-        else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Elektra")) {
+        else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && MitteSpieler1[zählerListe[11]][5].includes("Elektra")) {
           AblageListe[0] = [];
           for (var i = 0; i < MitteSpieler2.length; i++) {
-            if (!(MitteSpieler2[i] == "z")) {
+            if (!(MitteSpieler1[i] == "z")) {
               AblageListe[0].push(i);
             }
           }
           if (AblageListe[0].length == 1) {
-            MitteSpieler2[i][4]++;
+            MitteSpieler1[i][4]++;
             VorAngriffBeenden();
           }
           else if (AblageListe[0].length > 1) {
-            AblageListe[2] = "Spieler2AuswahlLebenPlus";
+            AblageListe[2] = "Spieler1AuswahlLebenPlus";
             AblageListe[8] = 1;
           }
         }
         else if (!(MitteSpieler1[zählerListe[11]][5] == undefined) && ((MitteSpieler1[zählerListe[11]][5].includes("Kastor") && MitteSpieler2[zählerListe[11]][6] == "Soldat/-in") || (MitteSpieler1[zählerListe[11]][5].includes("Pollux") && MitteSpieler2[zählerListe[11]][6] == "Held/-in"))) {
           eineKarteZiehen();
+          VorAngriffBeenden();
         }
         else if (MitteSpieler1[zählerListe[11]][5] == "Im- mer wenn Hekabe an- greift, kannst du vo- her 1 Hand- kar- te ab- wer- fen, damit sie einer geg- ne- ri- schen Ein- heit 2 Scha- den zufügt. " && kartenSpieler1.length > 0) {
           if (confirm('Möchten sie 1 Handkarte abwerfen, um einer gegnerischen Einheit 2 Schaden zu können?')) {
@@ -2504,11 +2543,13 @@ function checkAndromeda() {
           for (var i = 0; i < MitteSpieler1.length; i++) {
             if (MitteSpieler1[i][2] == "red") MitteSpieler1[i][4]--;
           }
+          VorAngriffBeenden();
         }
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Priamos")) {
           for (var i = 0; i < MitteSpieler1.length; i++) {
             if (MitteSpieler1[i][2] == "green") MitteSpieler1[i][4]--;
           }
+          VorAngriffBeenden();
         }
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Elektra")) {
           AblageListe[0] = [];
@@ -2528,6 +2569,7 @@ function checkAndromeda() {
         }
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && ((MitteSpieler2[zählerListe[11]][5].includes("Kastor") && MitteSpieler1[zählerListe[11]][6] == "Soldat/-in") || (MitteSpieler2[zählerListe[11]][5].includes("Pollux") && MitteSpieler1[zählerListe[11]][6] == "Held/-in"))) {
           eineKarteZiehen();
+          VorAngriffBeenden();
         }
         else if (!(MitteSpieler2[zählerListe[11]][5] == undefined) && MitteSpieler2[zählerListe[11]][5].includes("Cheiron") && !(!MitteSpieler1[0][5] && !MitteSpieler1[1][5] && !MitteSpieler1[2][5] && !MitteSpieler1[3][5] && !MitteSpieler1[4][5] && !MitteSpieler1[5][5])) {
           AblageListe[2] = "Spieler2AuswahleinSchadenZufügen";
@@ -2619,16 +2661,20 @@ function checkAndromeda() {
       //   zweiXAngriffDurch = true;
       // }
       if (SpielerIdsBleibt[0] == SpielerId) {
-        if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "1 life lost")  MitteSpieler1[zählerListe[11]][10][0][1]--;
-        if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "1 life lost" && MitteSpieler1[zählerListe[11]][10][0][1] == 0) MitteSpieler1[zählerListe[11]][4]++;
+        if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "2 life lost")  MitteSpieler1[zählerListe[11]][10][0][1]--;
+        if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][0] == undefined) && MitteSpieler1[zählerListe[11]][10][0][0] == "2 life lost" && MitteSpieler1[zählerListe[11]][10][0][1] == 0) MitteSpieler1[zählerListe[11]][4] += 2;
 
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][1] == undefined) && MitteSpieler1[zählerListe[11]][10][1][0] == "1 attack lost")  MitteSpieler1[zählerListe[11]][10][1][1]--;
         if (zählerListe[11] == 5 == false && !(MitteSpieler1[zählerListe[11]][10] == undefined) && !(MitteSpieler1[zählerListe[11]][10][1] == undefined) && MitteSpieler1[zählerListe[11]][10][1][0] == "1 attack lost" && MitteSpieler1[zählerListe[11]][10][1][1] == 0) MitteSpieler1[zählerListe[11]][3]++;
 
+        if (zählerListe[11] == 5 == false && MitteSpieler1[zählerListe[11]][11] != undefined)  MitteSpieler1[zählerListe[11]][11]--;
+
         if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler1[zählerListe[11] - 1] == undefined == false &&
-            MitteSpieler1[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false) {
-          AblageListe[3] = zählerListe[11];
+            MitteSpieler1[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false && !wiederholung) {
+          // AblageListe[3] = zählerListe[11];
           zählerListe[11]--;
+          zweiXAngreifen = [0, true];
+          wiederholung = true;
         } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler1[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler1[zählerListe[11]][5] == undefined ==
             false && MitteSpieler1[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false && !wiederholung) {
           AblageListe[2] = "Spieler1AuswahlKarte2XAngreifen";
@@ -2662,16 +2708,19 @@ function checkAndromeda() {
           MitteSpieler1[zählerListe[11]] = ["z", 0, ""];
         }
       } else {
-        if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][0] == undefined) && MitteSpieler2[zählerListe[11]][10][0][0] == "1 life lost")  MitteSpieler2[zählerListe[11]][10][0][1]--;
-        if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][0] == undefined) && MitteSpieler2[zählerListe[11]][10][0][0] == "1 life lost" && MitteSpieler2[zählerListe[11]][10][0][1] == 0) MitteSpieler2[zählerListe[11]][4]++;
+        if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][0] == undefined) && MitteSpieler2[zählerListe[11]][10][0][0] == "2 life lost")  MitteSpieler2[zählerListe[11]][10][0][1]--;
+        if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][0] == undefined) && MitteSpieler2[zählerListe[11]][10][0][0] == "2 life lost" && MitteSpieler2[zählerListe[11]][10][0][1] == 0) MitteSpieler2[zählerListe[11]][4] += 2;
 
         if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][1] == undefined) && MitteSpieler2[zählerListe[11]][10][1][0] == "1 attack lost")  MitteSpieler2[zählerListe[11]][10][1][1]--;
         if (zählerListe[11] == 5 == false && !(MitteSpieler2[zählerListe[11]][10] == undefined) && !(MitteSpieler2[zählerListe[11]][10][1] == undefined) && MitteSpieler2[zählerListe[11]][10][1][0] == "1 attack lost" && MitteSpieler2[zählerListe[11]][10][1][1] == 0) MitteSpieler2[zählerListe[11]][3]++;
 
+
         if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. " || MitteSpieler2[zählerListe[11] - 1] == undefined == false &&
-            MitteSpieler2[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false) {
-          AblageListe[3] = zählerListe[11];
+            MitteSpieler2[zählerListe[11] - 1][5] == "Alle Ein- hei- ten auf ei- nem zu Nestor be- nach- bar- ten Platz grei- fen 2X pro Runde an. ") && AblageListe[3] == -1 == false && !wiederholung) {
+          // AblageListe[3] = zählerListe[11];
           zählerListe[11]--;
+          zweiXAngreifen = [0, true];
+          wiederholung = true;
         } else if (zählerListe[11] == 5 == false && zählerListe[11] + 1 < 6 && (MitteSpieler2[zählerListe[11] + 1][5] == "1 Ein- heit auf ei- nem zu Kyknos be- nach- bar- ten Platz kann bis zu 2X pro Runde an- grei- fen. " && MitteSpieler2[zählerListe[11]][5] == undefined ==
             false && MitteSpieler2[zählerListe[11] + 2][5] == undefined == false) && AblageListe[3] == -1 == false && !wiederholung) {
           AblageListe[2] = "Spieler2AuswahlKarte2XAngreifen";
@@ -2745,7 +2794,7 @@ function checkAndromeda() {
 
   function AuswahlKarte2XAngreifen() {
     if ((AblageListe[2] == "Spieler2AuswahlKarte2XAngreifen" || AblageListe[2] == "Spieler1AuswahlKarte2XAngreifen") && zählerListe[10]  > zählerListe[11]) {AblageListe[2] = "beendet"; zählerListe[11]++;}
-    if ((zählerListe[11] == zählerListe[10]) && AblageListe[10] == -1 == false) {
+    if ((zählerListe[11] == zählerListe[10]) && AblageListe[10] == -1 == false && zählerListe[11] > -1) {
       AblageListe[10] = -1;
       if (AblageListe[2] != "Spieler2AuswahlKarte2XAngreifen" && AblageListe[2] != "Spieler1AuswahlKarte2XAngreifen") {
         zählerListe[11]--;
@@ -2867,7 +2916,20 @@ function checkAndromeda() {
           if (kartenSpieler2[i][5] == AblageListe[0]) karteGezogen[0] = i;
         }
     }
-    if (AblageListe[3][5].includes("Argos")) AblageListe[2] = "karteKostelosAusspielen";
+    if (AblageListe[3][5].includes("Argos")) {
+      if (SpielerId == SpielerIdBleibt[0]) {
+        for (var i = 0; i < kartenSpieler1.length; i++) {
+          if (kartenSpieler1[i][1].length < 4) AblageListe[2] = "kartekostenlosAusspielen";
+        }
+      }
+      else {
+        for (var i = 0; i < kartenSpieler2.length; i++) {
+          if (kartenSpieler2[i][1].length < 4) AblageListe[2] = "kartekostenlosAusspielen";
+        }
+      }
+      textButton = "Spielfeld";
+      Sperren[1] = true;
+    }
     if (AblageListe[3][5].includes("Lynkeus") && SpielerIdBleibt[0] == SpielerId) {
       setTimeout(function () {
         MitteSpieler1[AblageListe[10]][11] = "wirkt";
@@ -2892,19 +2954,28 @@ function checkAndromeda() {
     if (AblageListe[3][5] == "Wenn Alkmene ins Spiel kommt, zieht dein Gegner 1 Karte. ") {
       gegnerKarteZiehen();
     }
-    if (AblageListe[3][5] == "Wenn Kassandra ins Spiel kommt, fügt sie al- len Ein- hei- ten 1 Scha- den zu (auch ei- ge- nen). ") {
-      zählerListe[2] = 0;
-      while (zählerListe[2] < 6) {
-        if (!(MitteSpieler1[zählerListe[2]][4] == undefined)) {
-          MitteSpieler1[zählerListe[2]][4]--;
+    // if (AblageListe[3][5] == "Wenn Kassandra ins Spiel kommt, fügt sie al- len Ein- hei- ten 1 Scha- den zu (auch ei- ge- nen). ") {
+    //   zählerListe[2] = 0;
+    //   while (zählerListe[2] < 6) {
+    //     if (!(MitteSpieler1[zählerListe[2]][4] == undefined)) {
+    //       MitteSpieler1[zählerListe[2]][4]--;
+    //     }
+    //     zählerListe[2]++;
+    //   }
+    //   zählerListe[2] = 0;
+    //   while (zählerListe[2] < 6) {
+    //     if (!(MitteSpieler2[zählerListe[2]][4] == undefined)) {
+    //       MitteSpieler2[zählerListe[2]][4]--;
+    //     }
+    //     zählerListe[2]++;
+    //   }
+    // }
+    if (AblageListe[3][5].includes("Peleus")) {
+      room.send({
+        message: {
+          "type": "fähigkeitPeleus",
         }
-      }
-      zählerListe[2] = 0;
-      while (zählerListe[2] < 6) {
-        if (!(MitteSpieler2[zählerListe[2]][4] == undefined)) {
-          MitteSpieler2[zählerListe[2]][4]--;
-        }
-      }
+      });
     }
     if (SpielerIdsBleibt[0] == SpielerId) {
       if (AblageListe[3][5] == "Wenn Paris ins Spiel kommt, fügt er allen geg- ne- ri- schen Ein- hei- ten 2 Scha- den und allen ei- ge- nen Ein- heit- tein 1 Scha- den zu. ") {
@@ -2933,13 +3004,6 @@ function checkAndromeda() {
         }
       }
       zählerListe[2] -= 2;
-      if (AblageListe[3][5].includes("Peleus")) {
-        room.send({
-          message: {
-            "type": "fähigkeitPeleus",
-          }
-        });
-      }
       if (AblageListe[3][5].includes("Aeneas")) {
         if (zählerListe[5].length == 1) {
           MitteSpieler2[AblageListe[6]] = "z";
@@ -2950,27 +3014,49 @@ function checkAndromeda() {
           }, 500);
         }
       }
+      if (AblageListe[3][5].includes("Arnus")) {
+        if (zählerListe[5].length == 1) {
+          MitteSpieler2[AblageListe[6]][11] = 2;
+        }
+        else if (zählerListe[5].length > 1) {
+          setTimeout(function () {
+            AblageListe[2] = "auswahlKarte2RundenAussetzenSpieler1";
+          }, 500);
+        }
+      }
       if (AblageListe[3][5].includes("Adrus")) {
         if (zählerListe[5].length == 1) {
           if (MitteSpieler2[AblageListe[6]][10] == undefined) MitteSpieler2[AblageListe[6]][10] = [];
-          MitteSpieler2[AblageListe[6]][10][0] = ["1 life lost", 2];
-          MitteSpieler2[AblageListe[6]][4]--;
+          MitteSpieler2[AblageListe[6]][10][0] = ["2 life lost", 2];
+          MitteSpieler2[AblageListe[6]][4] -= 2;
         }
-        else {
+        else if (zählerListe[5].length > 1) {
           setTimeout(function () {
-            AblageListe[2] = "Spieler1Auswahl1Leben2RundenVerloren";
+            AblageListe[2] = "Spieler1Auswahl2Leben2RundenVerloren";
+          }, 500);
+        }
+      }
+      if (AblageListe[3][5].includes("Aron")) {
+        if (zählerListe[5].length == 1) {
+          if (MitteSpieler2[AblageListe[6]][10] == undefined) MitteSpieler2[AblageListe[6]][10] = [];
+          MitteSpieler2[AblageListe[6]][10][1] = ["1 attack lost", 2];
+          MitteSpieler2[AblageListe[6]][3]--;
+        }
+        else if (zählerListe[5].length > 1) {
+          setTimeout(function () {
+            AblageListe[2] = "Spieler1Auswahl1Angriffsschaden2RundenVerloren";
           }, 500);
         }
       }
       if (AblageListe[3][5].includes("Adron")) {
         if (zählerListe[5].length == 1) {
-          if (MitteSpieler2[AblageListe[6]][10] == undefined) MitteSpieler2[AblageListe[6]][10] = [];
-          MitteSpieler2[AblageListe[6]][10][1] = ["1 attack lost", 3];
+          // if (MitteSpieler2[AblageListe[6]][10] == undefined) MitteSpieler2[AblageListe[6]][10] = [];
+          // MitteSpieler2[AblageListe[6]][10][1] = ["1 attack lost", 3];
           MitteSpieler2[AblageListe[6]][3]--;
         }
-        else {
+        else if (zählerListe[5].length > 1) {
           setTimeout(function () {
-            AblageListe[2] = "Spieler1Auswahl1Angriffsschaden3RundenVerloren";
+            AblageListe[2] = "Spieler1Auswahl1Angriffsschaden";
           }, 500);
         }
       }
@@ -3095,33 +3181,55 @@ function checkAndromeda() {
         if (zählerListe[5].length == 1) {
           MitteSpieler1[AblageListe[6]] = "z";
         }
-        else if (zählerListe[5].length > 2) {
+        else if (zählerListe[5].length > 1) {
           setTimeout(function () {
             AblageListe[2] = "Spieler2AuswahlSoldatZerstören";
+          }, 500);
+        }
+      }
+      if (AblageListe[3][5].includes("Arnus")) {
+        if (zählerListe[5].length == 1) {
+          MitteSpieler1[AblageListe[6]][11] = 2;
+        }
+        else if (zählerListe[5].length > 1) {
+          setTimeout(function () {
+            AblageListe[2] = "auswahlKarte2RundenAussetzenSpieler2";
           }, 500);
         }
       }
       if (AblageListe[3][5].includes("Adrus")) {
         if (zählerListe[5].length == 1) {
           if (MitteSpieler1[AblageListe[6]][10] == undefined) MitteSpieler1[AblageListe[6]][10] = [];
-          MitteSpieler1[AblageListe[6]][10][0] = ["1 life lost", 2];
-          MitteSpieler2[AblageListe[6]][4]--;
+          MitteSpieler1[AblageListe[6]][10][0] = ["2 life lost", 2];
+          MitteSpieler1[AblageListe[6]][4] -= 2;
         }
         else {
           setTimeout(function () {
-            AblageListe[2] = "Spieler2Auswahl1Leben2RundenVerloren";
+            AblageListe[2] = "Spieler2Auswahl2Leben2RundenVerloren";
+          }, 500);
+        }
+      }
+      if (AblageListe[3][5].includes("Aron")) {
+        if (zählerListe[5].length == 1) {
+          if (MitteSpieler1[AblageListe[6]][10] == undefined) MitteSpieler1[AblageListe[6]][10] = [];
+          MitteSpieler1[AblageListe[6]][10][1] = ["1 attack lost", 2];
+          MitteSpieler1[AblageListe[6]][3]--;
+        }
+        else if (zählerListe[5].length > 1) {
+          setTimeout(function () {
+            AblageListe[2] = "Spieler2Auswahl1Angriffsschaden2RundenVerloren";
           }, 500);
         }
       }
       if (AblageListe[3][5].includes("Adron")) {
         if (zählerListe[5].length == 1) {
-          if (MitteSpieler1[AblageListe[6]][10] == undefined) MitteSpieler1[AblageListe[6]][10] = [];
-          MitteSpieler1[AblageListe[6]][10][1] = ["1 attack lost", 3];
+          // if (MitteSpieler1[AblageListe[6]][10] == undefined) MitteSpieler1[AblageListe[6]][10] = [];
+          // MitteSpieler1[AblageListe[6]][10][1] = ["1 attack lost", 3];
           MitteSpieler1[AblageListe[6]][3]--;
         }
         else {
           setTimeout(function () {
-            AblageListe[2] = "Spieler2Auswahl1Angriffsschaden3RundenVerloren";
+            AblageListe[2] = "Spieler2Auswahl1Angriffsschaden";
           }, 500);
         }
       }
@@ -3203,6 +3311,12 @@ function checkAndromeda() {
           }, 500);
         }
       }
+      if (AblageListe[3][5] == "Wenn Diomedes ins Spiel kommt, kannst du bei al- len dei- nen Hel- den 1 Scha- den hei- len. ") {
+        while (zählerListe[5].length > 0) {
+          MitteSpieler2[zählerListe[5][0]][4]++;
+          zählerListe[5].shift();
+        }
+      }
       if (AblageListe[3][5] == "Wenn die Atlantiden ins Spiel kommen, ziehe 1 Karte. ") {
         eineKarteZiehen();
       }
@@ -3251,7 +3365,7 @@ function checkAndromeda() {
         AblageListe[6] = zählerListe[2];
       }
     }
-    if (AblageListe[3][5] == "Wenn Rhesos ins Spiel kommt, kann er ei- nem geg- ne- rischen Hel- den 1 Scha- den zu- fü- gen. " || AblageListe[3][5] == "Wenn Euphorbos ins Spiel kommt, kann er ei- nem geg- ne- ri- schen Helden 2 Schaden zufügen. " || AblageListe[3][5].includes("Telamon") || AblageListe[3][5].includes("Adrus")) {
+    if (AblageListe[3][5] == "Wenn Rhesos ins Spiel kommt, kann er ei- nem geg- ne- rischen Hel- den 1 Scha- den zu- fü- gen. " || AblageListe[3][5] == "Wenn Euphorbos ins Spiel kommt, kann er ei- nem geg- ne- ri- schen Helden 2 Schaden zufügen. " || AblageListe[3][5].includes("Telamon") || (AblageListe[3][5].includes("Adrus") && MitteSpieler2[zählerListe[2]][4] > 3)) {
       if (MitteSpieler2[zählerListe[2]][6] == "Held/-in") {
         zählerListe[5][zählerListe[5].length] = zählerListe[2];
         AblageListe[6] = zählerListe[2]
@@ -3277,7 +3391,7 @@ function checkAndromeda() {
         AblageListe[6] = zählerListe[2]
       }
     }
-    if (AblageListe[3][5] == "Wenn Perseus ins Spiel kommt, kannst du ei- ne aus- lie- gen- de Ein- heit dei- nes Geg- ners auf den Ab- la- ge- sta- pel le- gen. " || AblageListe[3][5].includes("Adron")) {
+    if (AblageListe[3][5] == "Wenn Perseus ins Spiel kommt, kannst du ei- ne aus- lie- gen- de Ein- heit dei- nes Geg- ners auf den Ab- la- ge- sta- pel le- gen. " || AblageListe[3][5].includes("Adron") || AblageListe[3][5].includes("Aron") || AblageListe[3][5].includes("Arnus")) {
       if (MitteSpieler2[zählerListe[2]][0] == "z" == false) {
         zählerListe[5][zählerListe[5].length] = zählerListe[2];
         AblageListe[6] = zählerListe[2]
@@ -3296,7 +3410,7 @@ function checkAndromeda() {
         AblageListe[6] = zählerListe[2];
       }
     }
-    if (AblageListe[3][5] == "Wenn Rhesos ins Spiel kommt, kann er ei- nem geg- ne- rischen Hel- den 1 Scha- den zu- fü- gen. " || AblageListe[3][5] == "Wenn Euphorbos ins Spiel kommt, kann er ei- nem geg- ne- ri- schen Helden 2 Schaden zufügen. " || AblageListe[3][5].includes("Telamon") || AblageListe[3][5].includes("Adrus")) {
+    if (AblageListe[3][5] == "Wenn Rhesos ins Spiel kommt, kann er ei- nem geg- ne- rischen Hel- den 1 Scha- den zu- fü- gen. " || AblageListe[3][5] == "Wenn Euphorbos ins Spiel kommt, kann er ei- nem geg- ne- ri- schen Helden 2 Schaden zufügen. " || AblageListe[3][5].includes("Telamon") || (AblageListe[3][5].includes("Adrus")  && MitteSpieler1[zählerListe[2]][4] > 3)) {
       if (MitteSpieler1[zählerListe[2]][6] == "Held/-in") {
         zählerListe[5][zählerListe[5].length] = zählerListe[2];
         AblageListe[6] = zählerListe[2]
@@ -3322,7 +3436,7 @@ function checkAndromeda() {
         AblageListe[6] = zählerListe[2]
       }
     }
-    if (AblageListe[3][5] == "Wenn Perseus ins Spiel kommt, kannst du ei- ne aus- lie- gen- de Ein- heit dei- nes Geg- ners auf den Ab- la- ge- sta- pel le- gen. " || AblageListe[3][5].includes("Adron")) {
+    if (AblageListe[3][5] == "Wenn Perseus ins Spiel kommt, kannst du ei- ne aus- lie- gen- de Ein- heit dei- nes Geg- ners auf den Ab- la- ge- sta- pel le- gen. " || AblageListe[3][5].includes("Adron") || AblageListe[3][5].includes("Aron") || AblageListe[3][5].includes("Arnus")) {
       if (MitteSpieler1[zählerListe[2]][0] == "z" == false) {
         zählerListe[5][zählerListe[5].length] = zählerListe[2];
         AblageListe[6] = zählerListe[2]
@@ -3535,14 +3649,6 @@ function checkAndromeda() {
           }
           zählerListe[2] = AblageListe[0]
         }
-        // if (AblageListe[2] == "Spieler1AuswahlSoldatZerstören" && !(MitteSpieler2[AblageListe[1]] == "z")) {
-        //   MitteSpieler2[AblageListe[1]] = "z";
-        //   AblageListe[2] = "beendet";
-        // }
-        // if (AblageListe[2] == "Spieler2AuswahlSoldatZerstören" && !(MitteSpieler1[AblageListe[1]] == "z")) {
-        //   MitteSpieler1[AblageListe[1]] = "z";
-        //   AblageListe[2] = "beendet";
-        // }
         // if (AblageListe[2] == "Spieler1AuswahlLebenPlus" || AblageListe[2] == "Spieler2AuswahlLebenPlus") {
         //   zählerListe[2] = "Auswahl Leben heilen";
         // }
@@ -3569,7 +3675,7 @@ function checkAndromeda() {
         //   canvas.font = "25px Georgia";
         // }
 
-        canvas.fillText(zählerListe[2], Koordinaten[3] + 1370 - 175, 383);
+        canvas.fillText(zählerListe[2].replace("spieler 1", "").replace("spieler 2", "")/*.replace("auswahl", "")*/, Koordinaten[3] + 1370 - 175, 383);
       }
       zähler = 0;
     }
