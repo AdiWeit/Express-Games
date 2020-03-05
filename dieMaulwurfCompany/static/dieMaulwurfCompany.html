@@ -471,9 +471,9 @@
     window.addEventListener('mousedown', function() {
       console.log(checkClickedField());
       if (player[spielerIch].moving != undefined) {
-        var xTest = [player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1]];
-      var yTest = [player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0]];
-      var spielerPassiert = [false, false, false, false];
+        var xTest = [player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1]];
+      var yTest = [player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0]];
+      var spielerPassiert = [false, false, false, false, false, false];
       for (var i = 0; i < player[spielerIch].chosenCard; i++) {
         xTest[0]++;
         yTest[0]++;
@@ -494,7 +494,15 @@
         yTest[3]--;
         if (fields[fieldAktuell][yTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]].player != false) spielerPassiert[3] = true;
       }
-      if (player[spielerIch].movement == "movePlayer" && (player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[0]) || (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[1]) || (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[2]) || (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[3])) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+        xTest[4]++;
+        if (fields[fieldAktuell][yTest[4]] && fields[fieldAktuell][yTest[4]][xTest[4]] && fields[fieldAktuell][yTest[4]][xTest[4]].player != false) spielerPassiert[4] = true;
+      }
+      for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+        xTest[5]--;
+        if (fields[fieldAktuell][yTest[5]] && fields[fieldAktuell][yTest[5]][xTest[5]] && fields[fieldAktuell][yTest[5]][xTest[5]].player != false) spielerPassiert[5] = true;
+      }
+      if (player[spielerIch].movement == "movePlayer" && (player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[0]) || (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[1]) || (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[2]) || (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[3]) || (xTest[4] + "" + yTest[4] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[4]) || (xTest[5] + "" + yTest[5] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[5])) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false) {
         console.log("movingPlayer");
         fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
         fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
