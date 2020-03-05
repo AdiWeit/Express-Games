@@ -217,7 +217,7 @@
       spielerIch = message.data;
       if (message.newRound != true)
        {
-        if (confirm("wollen sie die vorherige Runde weiterspielen?"))  {
+        if (JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields')) != undefined && JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields')) != "undefined" && confirm("wollen sie die vorherige Runde weiterspielen?"))  {
           fields = JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields'));
           Reihenfolge = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolge'));
           ReihenfolgeBleibt = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolgeBliebt'));
@@ -241,11 +241,18 @@
     if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "fields") {
       fields = message.data;
-      Layout();
       if (message.figurePlaced && ReihenfolgeBleibt[message.empfänger] == spielerIch) {
         if (player[spielerIch].figuresPlaced > 10) {spielerKommtDran();}
         else player[spielerIch].movement = "placePlayer";
+        room.send({
+          message: {
+            "type": "player",
+            data: player[spielerIch],
+            player: spielerIch
+          }
+        });
       }
+      // Layout();
     }
     if (message.type == "messages") {
       window.scroll(0, 0);
@@ -269,6 +276,7 @@
     }
     if (message.type == "player") {
       player[message.player] = message.data;
+      Layout();
     }
     if (message.type == "Reihenfolge") {
       if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
@@ -288,10 +296,10 @@
           player: spielerIch
         }
       });
-      player = {};
-      setTimeout(function () {
-        Layout();
-      }, 1333);
+      //player = {};
+      // setTimeout(function () {
+      //   Layout();
+      // }, 1333);
     }
   });
   function serverDatenLöschen() {
@@ -300,7 +308,7 @@
     localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", undefined);
     localStorage.setItem("dieMaulwurfCompanyFieldAktuell", undefined);
     localStorage.setItem("dieMaulwurfCompanyPlayer", undefined);
-    localStorage.setItem('CLIENTIDdieMaulwurfCompany', undefined);
+    localStorage.clear('CLIENTIDdieMaulwurfCompany')
   }
   function showResults(gewinner, times) {
     if (spielerIch == gewinner) {
@@ -365,7 +373,7 @@
   var coloursLayout = ["red", "orange", "#00FF00", "blue"];
   for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
     if (ReihenfolgeBleibt[i] == spielerIch) canvas.fillStyle = "#02A1FD";
-    if (Reihenfolge[0] == ReihenfolgeBleibt[i]) canvas.fillStyle = "#DF0101";
+    if ((Reihenfolge[0] == ReihenfolgeBleibt[i] && player[ReihenfolgeBleibt[i]].movement != "waitingForOpponentPlacingPlayer" && player[ReihenfolgeBleibt[i]].movement != "placePlayer") || (player[ReihenfolgeBleibt[i]] != undefined && player[ReihenfolgeBleibt[i]].movement == "placePlayer")) canvas.fillStyle = "#DF0101";
     else if (ReihenfolgeBleibt[i] != spielerIch) canvas.fillStyle = "white";
     canvas.fillRect(10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y, 66, 100);
     canvas.font = "50px Georgia";
@@ -379,6 +387,9 @@
     if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
   }
   showChat();
+  canvas.fillStyle = "white";
+  canvas.font = "44px Georgia";
+  if (player[spielerIch] != undefined && 11 - player[spielerIch].figuresPlaced > 0) canvas.fillText("verbleibende Steine zum legen: " + (11 - player[spielerIch].figuresPlaced), 211, 755);
   }
   function showChat() {
     for (var i = 0; i < messages.length; i++) {
@@ -498,12 +509,13 @@
       if (player[spielerIch].movement == "placePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {
         fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = spielerIch;
         player[spielerIch].figuresPlaced++;
-        player[spielerIch].movement = "waitingForOpponent";
+        player[spielerIch].movement = "waitingForOpponentPlacingPlayer";
         for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
           if (ReihenfolgeBleibt[i] == spielerIch) var myNumber = i;
         }
         if (myNumber + 1 == ReihenfolgeBleibt.length) myNumber = -1;
-          player[spielerIch].movement = "waitingForOpponent";
+          player[spielerIch].movement = "waitingForOpponentPlacingPlayer";
+          Layout();
           room.send({
             message: {
               "type": "fields",
@@ -512,7 +524,14 @@
               empfänger: myNumber + 1
             }
           });
-        Layout();
+          room.send({
+            message: {
+              "type": "player",
+              data: player[spielerIch],
+              player: spielerIch
+            }
+          });
+        // Layout();
       }
     });
     // canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);

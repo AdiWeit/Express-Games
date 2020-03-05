@@ -215,7 +215,7 @@ class dieMaulwurfCompany {
 
   onMessage(client, data) {
     if (data.message.type == "Spielerwechsel") {
-      var ablage = data.message.data[this.spielerOnlineGleich0 - 1];
+      var ablage = data.message.data[data.message.data.length - 1];
       if (data.message.data[3] != undefined) Reihenfolge[3] = data.message.data[2];
       if (data.message.data[2] != undefined) Reihenfolge[2] = data.message.data[1];
       Reihenfolge[1] = data.message.data[0];
