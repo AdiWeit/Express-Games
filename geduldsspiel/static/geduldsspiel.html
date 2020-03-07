@@ -167,7 +167,7 @@
     }
     else {
       // for (var i = 0; i < AnzahlSpieler; i++) {
-      if (/*i == spielerIch && */kugeln.length > 0) {canvas.fillStyle = "rgba(" + kugeln[spielerIch].color[0] + "," +  kugeln[spielerIch].color[1] + "," +  kugeln[spielerIch].color[2] + "," +  0.8 + ")";
+      if (/*i == spielerIch && */kugeln.length > 0 && kugeln[spielerIch]) {canvas.fillStyle = "rgba(" + kugeln[spielerIch].color[0] + "," +  kugeln[spielerIch].color[1] + "," +  kugeln[spielerIch].color[2] + "," +  0.8 + ")";
       // else if (kugeln.length > 0) canvas.fillStyle = "rgba(" + kugeln[i].color[0] + "," +  kugeln[i].color[1] + "," +  kugeln[i].color[2] + "," +  0.7 + ")";
       // if (kugeln.length > 0) {
         canvas.beginPath();
