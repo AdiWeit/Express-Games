@@ -196,6 +196,8 @@
     //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
     sphere1.style.top = y1 + "px";
     sphere1.style.left = x1 + "px";
+    sphere1.style.width = 50;
+    sphere1.style.height = 50;
     var numbers = [
       [x1 + JSON.parse(sphere1.style.width.replace("px", "")) - 7, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2],
       [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 - 8],
