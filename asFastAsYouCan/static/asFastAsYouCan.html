@@ -152,15 +152,15 @@
         for (var i = 0; i < AnzahlSpieler; i++) {
           sensibilityConverter[message.data.selectedSensibility]++;
         }
-        if (sensibilityConverter.low > sensibilityConverter.height) sensibility = 15;
-        else if (sensibilityConverter.low < sensibilityConverter.height) sensibility = 50;
+        if (sensibilityConverter.low > sensibilityConverter.high) sensibility = 15;
+        else if (sensibilityConverter.low < sensibilityConverter.high) sensibility = 50;
         else sensibility = Math.floor(Math.random() * (50));
         if (spielerIch == message.sender) {
           room.send({
             message: {
               "type": "endPoint",
-              data: {x: Math.floor(Math.random() * (lowestSize.x - 50)), y: Math.floor(Math.random() * (lowestSize.y - 50))},
-              playerPosition: {x: Math.floor(Math.random() * (lowestSize.x - 50)), y: Math.floor(Math.random() * (lowestSize.y - 50))}
+              data: {x: Math.floor(Math.random() * (lowestSize.x -100)), y: Math.floor(Math.random() * (lowestSize.y -100))},
+              playerPosition: {x: Math.floor(Math.random() * (lowestSize.x -100)), y: Math.floor(Math.random() * (lowestSize.y -100))}
             }
           });
         }
