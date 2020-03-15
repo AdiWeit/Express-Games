@@ -149,8 +149,8 @@
           ay1 = event.accelerationIncludingGravity.y * sensibility;
         }
         var sensibilityConverter = {low: 0, high: 0};
-        for (var i = 0; i < AnzahlSpieler; i++) {
-          sensibilityConverter[message.data.selectedSensibility]++;
+        for (var i = 0; i < Object.keys(player).length; i++) {
+          if (Object.keys(player)[i] != "confirmed") sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility]++;
         }
         if (sensibilityConverter.low > sensibilityConverter.high) sensibility = 15;
         else if (sensibilityConverter.low < sensibilityConverter.high) sensibility = 50;
