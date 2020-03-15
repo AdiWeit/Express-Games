@@ -127,7 +127,8 @@
       player.confirmed = 0;
       settings.style.display = "inline";
       if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
-      for (var i = 0; i < AnzahlSpieler; i++) {
+      for (var i = 0; i < Object.keys(player).length; i++) {
+        if (Object.keys(player)[i] != "confirmed") {
         room.send({
           message: {
             "type": "lowestSize",
@@ -136,6 +137,7 @@
           }
         });
       }
+    }
     }
     if (message.type == "lowestSize" && message.empfänger == spielerIch) {
       if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
