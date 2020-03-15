@@ -106,15 +106,24 @@
   var spielerIch = "";
   var AnzahlSpieler = -1;
   var player = {};
+  var times = {}
   var lowestSize = {x: window.innerHeight, y: window.innerHeight}
   var sensibility = 0;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
+    if (message.type == "endRound") {
+      times[message.sender] = message.time
+      if (Object.keys(times).length == AnzahlSpieler) {
+        console.log("everybodyFinished");
+        showResults();
+      }
+    }
     if (message.type == "spielerDu") {
       spielerIch = message.data;
       player[spielerIch] = {};
       player[spielerIch].selectedSensibility = "high";
       player[spielerIch].selected = false;
+      player[spielerIch].points = 0;
       settings.style.display = "inline";
       if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
     }
@@ -125,12 +134,13 @@
       canvas.fillRect(message.data.x, message.data.y, 50, 50);
       x1 = message.playerPosition.x;
       y1 = message.playerPosition.y;
+      startPause();
     }
     if (message.type == "ready") {
       player[message.sender] = message.data;
       if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
       if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
-      if (Object.keys(player).length == AnzahlSpieler && player[spielerIch].selected) {
+      if (Object.keys(player).length - 1 == AnzahlSpieler && player[spielerIch].selected) {
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
           ax1 = event.accelerationIncludingGravity.x * sensibility;
@@ -174,7 +184,24 @@
       });
     }
   }
-
+  function showResults() {
+    var bestTime = {time: "10:10:09", player: -1};
+    for (var i = 0; i < Object.keys(times).length - 1; i++) {
+      canvas.fillStyle = "black";
+      canvas.font = "30px Georgia";
+      canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i);
+      if (times[Object.keys(times)[i]] < bestTime.time) {bestTime = times[Object.keys(times)[i]]; bestTime.player = i};
+    }
+    player[Object.keys(times)[i]].points++;
+    setTimeout(function () {
+      canvas.clearRect(0, 0, screen.width, screen.height);
+      for (var i = 0; i < Object.keys(times).length - 1; i++) {
+        canvas.fillStyle = "black";
+        canvas.font = "30px Georgia";
+        canvas.fillText("points: " + player[Object.keys(times)[i]].points, 50, 50 + 70*i);
+      }
+    }, 3000);
+  }
   if (window.DeviceMotionEvent != undefined) {
   window.ondevicemotion = function(e) {
     ax1 = event.accelerationIncludingGravity.x * 5;
@@ -222,6 +249,15 @@
       alpha = data.data[3];
       if (red == 255 && blue == 0 && alpha == 255 && green == 255) {
         console.log("geschafft!");
+        startPause();
+        canvas.clearRect(0, 0, lowestSize.x, lowestSize.y);
+        room.send({
+          message: {
+            "type": "endRound",
+            sender: spielerIch,
+            time: mins + ":" + secs + ":" + "0" + tenths;
+          }
+        });
       }
     }
   }, 25);
@@ -263,4 +299,39 @@
       }
     }
 
+var time = 0;
+var running = 0;
+
+function startPause() {
+if (running == 0) {
+  running = 1;
+  time = 0;
+  increment();
+}
+else {
+  running = 0;
+}
+}
+function reset() {
+running = 0;
+timer = 0;
+}
+function increment() {
+if (running == 1) {
+setTimeout(function () {
+  time++;
+  var mins = Math.floor(time/10/60);
+  var secs = Math.floor(time/10);
+      secs -= 60*mins;
+  var tenths = time % 10;
+  if (mins < 10) {
+    mins = "0" + mins
+  }
+  if (secs < 10) {
+    secs = "0" + secs;
+  }
+  increment();
+}, 100);
+}
+}
 </script>
