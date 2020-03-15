@@ -194,6 +194,7 @@
     y2 = parseInt(y2 + vy2 / 30);
     x2 = parseInt(x2 + vx2 / 30);
     //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
+    boundingBoxCheck();
     sphere1.style.top = y1 + "px";
     sphere1.style.left = x1 + "px";
     sphere1.style.width = 50;
@@ -216,4 +217,41 @@
     }
   }, 25);
 }
+
+
+    function boundingBoxCheck() {
+      if (x1 < 0) {
+        x1 = 0;
+        vx1 = -vx1;
+      }
+      if (y1 < 0) {
+        y1 = 0;
+        vy1 = -vy1;
+      }
+      if (x1 > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) {
+        x1 = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
+        vx1 = -vx1;
+      }
+      if (y1 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) {
+        y1 = screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2;
+        vy1 = -vy1;
+      }
+      if (x2 < 0) {
+        x2 = 0;
+        vx2 = -vx2;
+      }
+      if (y2 < 0) {
+        y2 = 0;
+        vy2 = -vy2;
+      }
+      if (x2 > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) {
+        x2 = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
+        vx2 = -vx2;
+      }
+      if (y2 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) {
+        y2 = screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2;
+        vy2 = -vy2;
+      }
+    }
+
 </script>
