@@ -119,7 +119,6 @@
       }
     }
     if (message.type == "spielerDu") {
-      player.confirmed++;
       spielerIch = message.data;
       player[spielerIch] = {};
       player[spielerIch].selectedSensibility = "high";
@@ -140,6 +139,7 @@
     }
     if (message.type == "ready") {
       player[message.sender] = message.data;
+      player.confirmed++;
       if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
       if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
       if (player.confirmed == AnzahlSpieler && player[spielerIch].selected) {
