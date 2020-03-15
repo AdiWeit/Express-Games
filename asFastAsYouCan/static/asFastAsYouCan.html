@@ -190,7 +190,7 @@
       canvas.fillStyle = "black";
       canvas.font = "30px Georgia";
       canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i);
-      if (times[Object.keys(times)[i]] < bestTime.time) {bestTime = times[Object.keys(times)[i]]; bestTime.player = i};
+      if (times[Object.keys(times)[i]] < bestTime.time) {bestTime.time = times[Object.keys(times)[i]]; bestTime.player = i};
     }
     player[Object.keys(times)[i]].points++;
     setTimeout(function () {
