@@ -96,6 +96,7 @@
   };
   settings.style.display = "none";
   var sphere1 = document.getElementById("sphere1");
+  var speed = {low: 5, high: 30};
   var x1 = 10,
   y1 = 177; //window.innerHeight - 150 + 3,
   x2 = 0, y2 = 0,
@@ -129,6 +130,10 @@
       if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
       if (Object.keys(player).length == AnzahlSpieler && player[spielerIch].selected) {
         settings.style.display = "none";
+        window.ondevicemotion = function(e) {
+          ax1 = event.accelerationIncludingGravity.x * speed[player[spielerIch].selectedSensibility];
+          ay1 = event.accelerationIncludingGravity.y * speed[player[spielerIch].selectedSensibility];
+        }
         if (spielerIch == message.sender) {
           room.send({
             message: {
@@ -163,11 +168,11 @@
 
   if (window.DeviceMotionEvent != undefined) {
   window.ondevicemotion = function(e) {
-    ax1 = inOrAgainstDirection*event.accelerationIncludingGravity.x * 5;
-    ay1 = inOrAgainstDirection*event.accelerationIncludingGravity.y * 5;
+    ax1 = event.accelerationIncludingGravity.x * 5;
+    ay1 = event.accelerationIncludingGravity.y * 5;
   }
   setInterval(function() {
-    var landscapeOrientation = window.innerWidth / AblageListe[5] > 1;
+    var landscapeOrientation = screen.width;
     if (landscapeOrientation) {
       vx1 = vx1 + ay1;
       vy1 = vy1 + ax1;
