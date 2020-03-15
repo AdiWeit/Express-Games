@@ -136,11 +136,13 @@
           ax1 = event.accelerationIncludingGravity.x * sensibility;
           ay1 = event.accelerationIncludingGravity.y * sensibility;
         }
-        var sensibilityConverter = {low: 10, high: 50};
+        var sensibilityConverter = {low: 0, high: 0};
         for (var i = 0; i < AnzahlSpieler; i++) {
-          sensibility += sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility];
+          sensibilityConverter[message.data.selectedSensibility]++;
         }
-        sensibility /= AnzahlSpieler;
+        if (sensibilityConverter.low > sensibilityConverter.height) sensibility = 15;
+        else if (sensibilityConverter.low < sensibilityConverter.height) sensibility = 50;
+        else sensibility = Math.floor(Math.random() * (50));
         if (spielerIch == message.sender) {
           room.send({
             message: {
