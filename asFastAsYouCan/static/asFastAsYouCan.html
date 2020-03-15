@@ -186,7 +186,7 @@
   }
   function showResults() {
     var bestTime = {time: "10:10:09", player: -1};
-    for (var i = 0; i < Object.keys(times).length - 1; i++) {
+    for (var i = 0; i < Object.keys(times).length; i++) {
       canvas.fillStyle = "black";
       canvas.font = "30px Georgia";
       canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i);
@@ -195,7 +195,7 @@
     player[Object.keys(times)[i]].points++;
     setTimeout(function () {
       canvas.clearRect(0, 0, screen.width, screen.height);
-      for (var i = 0; i < Object.keys(times).length - 1; i++) {
+      for (var i = 0; i < Object.keys(times).length; i++) {
         canvas.fillStyle = "black";
         canvas.font = "30px Georgia";
         canvas.fillText("points: " + player[Object.keys(times)[i]].points, 50, 50 + 70*i);
