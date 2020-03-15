@@ -138,6 +138,7 @@
       startPause();
     }
     if (message.type == "ready") {
+      lowestSize = message.lowestSize;
       player[message.sender] = message.data;
       player.confirmed++;
       if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
@@ -181,7 +182,8 @@
           data: player[spielerIch],
           sender: spielerIch,
           width: window.innerWidth,
-          height: window.innerHeight
+          height: window.innerHeight,
+          lowestSize: lowestSize
         }
       });
     }
