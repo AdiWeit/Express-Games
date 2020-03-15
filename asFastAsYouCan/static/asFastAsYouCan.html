@@ -136,12 +136,12 @@
           ax1 = event.accelerationIncludingGravity.x * sensibility;
           ay1 = event.accelerationIncludingGravity.y * sensibility;
         }
+        var sensibilityConverter = {low: 10, high: 50};
+        for (var i = 0; i < AnzahlSpieler; i++) {
+          sensibility += sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility];
+        }
+        sensibility /= AnzahlSpieler;
         if (spielerIch == message.sender) {
-          var sensibilityConverter = {low: 10, high: 50};
-          for (var i = 0; i < AnzahlSpieler; i++) {
-            sensibility += sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility];
-          }
-          sensibility /= AnzahlSpieler;
           room.send({
             message: {
               "type": "endPoint",
@@ -218,7 +218,7 @@
       green = data.data[1];
       blue = data.data[2];
       alpha = data.data[3];
-      if (red == 255 && blue == 0 && alpha == 255 && green == 242) {
+      if (red == 255 && blue == 0 && alpha == 255 && green == 255) {
         console.log("geschafft!");
       }
     }
