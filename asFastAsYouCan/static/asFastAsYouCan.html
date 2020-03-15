@@ -107,7 +107,7 @@
   var AnzahlSpieler = -1;
   var player = {};
   var times = {}
-  var lowestSize = {x: window.innerHeight, y: window.innerHeight}
+  var lowestSize = {x: 3000, y: 2000}
   var sensibility = 0;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
