@@ -140,7 +140,7 @@
       player[message.sender] = message.data;
       if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
       if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
-      if (Object.keys(player).length - 1 == AnzahlSpieler && player[spielerIch].selected) {
+      if (Object.keys(player).length == AnzahlSpieler && player[spielerIch].selected) {
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
           ax1 = event.accelerationIncludingGravity.x * sensibility;
