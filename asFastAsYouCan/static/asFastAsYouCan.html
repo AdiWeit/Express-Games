@@ -107,7 +107,7 @@
   var AnzahlSpieler = -1;
   var player = {};
   var times = {}
-  var lowestSize = {x: 3000, y: 2000}
+  var lowestSize = {x: 3000, y: 2000, player: -1}
   var sensibility = 0;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
@@ -131,17 +131,17 @@
         if (Object.keys(player)[i] != "confirmed") {
         room.send({
           message: {
-            "type": "lowestSize",
-            data: lowestSize,
-            empfänger: Object.keys(player)[i]
+            "type": "sendWidthAndHight",
+            sender: spielerIch,
+            data: {x: window.innerWidth, y: window.innerHeight}
           }
         });
       }
     }
     }
-    if (message.type == "lowestSize" && message.empfänger == spielerIch) {
-      if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
-      if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
+    if (message.type == "sendWidthAndHight") {
+      if (message.data.x < lowestSize.x) lowestSize.x = message.data.x
+      if (message.data.y < lowestSize.y) lowestSize.y = message.data.x
     }
     if (message.type == "endPoint") {
       textur.width = lowestSize.x;
