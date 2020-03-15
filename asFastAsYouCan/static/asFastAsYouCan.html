@@ -316,14 +316,17 @@ function reset() {
 running = 0;
 timer = 0;
 }
+var mins = 0;
+var secs = 0;
+var tenths = 0;
 function increment() {
 if (running == 1) {
 setTimeout(function () {
   time++;
-  var mins = Math.floor(time/10/60);
-  var secs = Math.floor(time/10);
-      secs -= 60*mins;
-  var tenths = time % 10;
+   mins = Math.floor(time/10/60);
+   secs = Math.floor(time/10);
+   secs -= 60*mins;
+   tenths = time % 10;
   if (mins < 10) {
     mins = "0" + mins
   }
