@@ -1,0 +1,215 @@
+<div id="settings" style="display: 'none'">
+<h1 id="selectedSensibility">high sensibility</h1>
+<button type="button" id="buttonSensibility" onclick="changeSensibility(selectedSensibility.innerHTML);" name="button">change</button>
+<button type="button" id="bereitButton" onclick="confirmSetting();" name="button">bereit!</button>
+<br>
+</div>
+<canvas id="textur" width="300" height="300"></canvas>
+<div id="ball">
+  <style>
+    .shape {
+ position: absolute;
+ width: 50px;
+ height: 50px;
+ -webkit-radius: 50px;
+ margin:0;width
+ padding:0;
+}
+#sphere1{
+ border-radius: 50px;
+ background-color: blue;
+}
+</style>
+</div>
+<div id="content">
+  <div class="shape" id="sphere1"></div>
+</div>
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/asFastAsYouCan/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDasFastAsYouCan');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDasFastAsYouCan', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/asFastAsYouCan/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/asFastAsYouCan/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/asFastAsYouCan/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  settings.style.display = "none";
+  var sphere1 = document.getElementById("sphere1");
+  var x1 = 10,
+  y1 = 177; //window.innerHeight - 150 + 3,
+  x2 = 0, y2 = 0,
+  vx1 = 0, vy1 = 0,
+  vx2 = 0, vy2 = 0,
+  ax1 = 0, ay1 = 0;
+  var canvas = textur.getContext('2d'); //Dimension
+  var spielerIch = "";
+  var AnzahlSpieler = -1;
+  var player = {};
+  var lowestSize = {x: window.innerHeight, y: window.innerHeight}
+  room.setOnMessageListener(function(message) {
+    if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      player[spielerIch] = {};
+      player[spielerIch].selectedSensibility = "high";
+      player[spielerIch].selected = false;
+      settings.style.display = "inline";
+      if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
+    }
+    if (message.type == "endPoint") {
+      textur.width = lowestSize.x;
+      textur.height = lowestSize.y;
+      canvas.fillStyle = "yellow";
+      canvas.fillRect(message.data.x, message.data.y, 50, 50);
+    }
+    if (message.type == "ready") {
+      player[message.sender] = message.data;
+      if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
+      if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
+      if (Object.keys(player).length == AnzahlSpieler && player[spielerIch].selected) {
+        settings.style.display = "none";
+        if (spielerIch == message.sender) {
+          room.send({
+            message: {
+              "type": "endPoint",
+              data: {x: Math.floor(Math.random() * (lowestSize.x - 50)), y: Math.floor(Math.random() * (lowestSize.y - 50))},
+              playerPosition: {x: Math.floor(Math.random() * (lowestSize.x - 50)), y: Math.floor(Math.random() * (lowestSize.y - 50))}
+            }
+          });
+        }
+      }
+    }
+  });
+  function changeSensibility(innerHTML) {
+    if (innerHTML == "high sensibility") selectedSensibility.innerHTML = "low sensibility";
+    else selectedSensibility.innerHTML = "high sensibility";
+    player[spielerIch].selectedSensibility = selectedSensibility.innerHTML.toString().split(' sensibility')[0];
+  }
+  function confirmSetting() {
+    if (!player[spielerIch].selected) {
+      player[spielerIch].selected = true;
+      room.send({
+        message: {
+          "type": "ready",
+          data: player[spielerIch],
+          sender: spielerIch,
+          width: window.innerWidth,
+          height: window.innerHeight
+        }
+      });
+    }
+  }
+
+  if (window.DeviceMotionEvent != undefined) {
+  window.ondevicemotion = function(e) {
+    ax1 = inOrAgainstDirection*event.accelerationIncludingGravity.x * 5;
+    ay1 = inOrAgainstDirection*event.accelerationIncludingGravity.y * 5;
+  }
+  setInterval(function() {
+    var landscapeOrientation = window.innerWidth / AblageListe[5] > 1;
+    if (landscapeOrientation) {
+      vx1 = vx1 + ay1;
+      vy1 = vy1 + ax1;
+      vx2 = vx2 + ay1;
+      vy2 = vy2 + ax1;
+    } else {
+      vy1 = vy1 - ay1;
+      vx1 = vx1 + ax1;
+      vy2 = vy2 - ay1;
+      vx2 = vx2 + ax1;
+    }
+    vx1 = vx1 * 0.98;
+    vy1 = vy1 * 0.98;
+    y1 = parseInt(y1 + vy1 / 50);
+    x1 = parseInt(x1 + vx1 / 50);
+
+    vx2 = vx2 * 0.98;
+    vy2 = vy2 * 0.98;
+    y2 = parseInt(y2 + vy2 / 30);
+    x2 = parseInt(x2 + vx2 / 30);
+    //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
+    boundingBoxCheck();
+    sphere1.style.top = y1 + "px";
+    sphere1.style.left = x1 + "px";
+    if (( /*y1 <= AblageListe[5]*/ (scrollY == 0 && window.innerHeight == AblageListe[5]) || level[level.mode].levelType == "winnerScreen") && level[level.mode].levelType != "editHistory") sphere1.style.display = "inline";
+    else sphere1.style.display = "none";
+    var numbers = [
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) - 7, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2],
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 - 8],
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 + JSON.parse(sphere1.style.height.replace("px", "")) - 7],
+      [x1 - 10, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2]
+    ]
+    for (var i = 0; i < 4; i++) {
+      data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
+      red = data.data[0];
+      green = data.data[1];
+      blue = data.data[2];
+      alpha = data.data[3];
+      if (red == 255 && blue == 0 && alpha == 255 && green == 242 && level[level.mode].levelType != "editHistory") {
+        console.log("geschafft!");
+      }
+    }
+  }, 25);
+}
+</script>

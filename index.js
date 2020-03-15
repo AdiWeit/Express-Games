@@ -51,6 +51,9 @@ app.use('/labyrinth/', labyrinth);
 const dieMaulwurfCompany = require('./dieMaulwurfCompany/index.js');
 app.use('/dieMaulwurfCompany/', dieMaulwurfCompany);
 
+const asFastAsYouCan = require('./asFastAsYouCan/index.js');
+app.use('/asFastAsYouCan/', asFastAsYouCan);
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname
