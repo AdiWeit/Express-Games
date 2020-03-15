@@ -127,6 +127,19 @@
       player.confirmed = 0;
       settings.style.display = "inline";
       if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
+      for (var i = 0; i < AnzahlSpieler; i++) {
+        room.send({
+          message: {
+            "type": "lowestSize",
+            data: lowestSize,
+            empfänger: Object.keys(player)[i]
+          }
+        });
+      }
+    }
+    if (message.type == "lowestSize" && message.empfänger == spielerIch) {
+      if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
+      if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
     }
     if (message.type == "endPoint") {
       textur.width = lowestSize.x;
@@ -138,11 +151,8 @@
       startPause();
     }
     if (message.type == "ready") {
-      lowestSize = message.lowestSize;
       player[message.sender] = message.data;
       player.confirmed++;
-      if (window.innerWidth < lowestSize.x) lowestSize.x = window.innerWidth;
-      if (window.innerHeight < lowestSize.y) lowestSize.y = window.innerHeight;
       if (player.confirmed == AnzahlSpieler && player[spielerIch].selected) {
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
@@ -182,8 +192,7 @@
           data: player[spielerIch],
           sender: spielerIch,
           width: window.innerWidth,
-          height: window.innerHeight,
-          lowestSize: lowestSize
+          height: window.innerHeight
         }
       });
     }
