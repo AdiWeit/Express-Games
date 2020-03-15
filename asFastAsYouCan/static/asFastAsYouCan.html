@@ -96,7 +96,6 @@
   };
   settings.style.display = "none";
   var sphere1 = document.getElementById("sphere1");
-  var speed = {low: 5, high: 30};
   var x1 = 10,
   y1 = 177; //window.innerHeight - 150 + 3,
   x2 = 0, y2 = 0,
@@ -123,6 +122,8 @@
       textur.height = lowestSize.y;
       canvas.fillStyle = "yellow";
       canvas.fillRect(message.data.x, message.data.y, 50, 50);
+      x1 = message.playerPosition.x;
+      y1 = message.playerPosition.y;
     }
     if (message.type == "ready") {
       player[message.sender] = message.data;
@@ -131,10 +132,16 @@
       if (Object.keys(player).length == AnzahlSpieler && player[spielerIch].selected) {
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
-          ax1 = event.accelerationIncludingGravity.x * speed[player[spielerIch].selectedSensibility];
-          ay1 = event.accelerationIncludingGravity.y * speed[player[spielerIch].selectedSensibility];
+          ax1 = event.accelerationIncludingGravity.x * sensibility;
+          ay1 = event.accelerationIncludingGravity.y * sensibility;
         }
         if (spielerIch == message.sender) {
+          var sensibility = 0;
+          var sensibilityConverter = {low: 10, height: 50};
+          for (var i = 0; i < AnzahlSpieler; i++) {
+            sensibility += sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility];
+          }
+          sensibility /= AnzahlSpieler;
           room.send({
             message: {
               "type": "endPoint",
