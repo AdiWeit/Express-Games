@@ -194,7 +194,6 @@
     y2 = parseInt(y2 + vy2 / 30);
     x2 = parseInt(x2 + vx2 / 30);
     //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
-    boundingBoxCheck();
     sphere1.style.top = y1 + "px";
     sphere1.style.left = x1 + "px";
     if (( /*y1 <= AblageListe[5]*/ (scrollY == 0 && window.innerHeight == AblageListe[5]) || level[level.mode].levelType == "winnerScreen") && level[level.mode].levelType != "editHistory") sphere1.style.display = "inline";
