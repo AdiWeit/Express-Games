@@ -125,7 +125,6 @@
       player[spielerIch].selected = false;
       player[spielerIch].points = 0;
       player.confirmed = 0;
-      times = {};
       settings.style.display = "inline";
       if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
     }
@@ -212,6 +211,7 @@
       player[spielerIch].selected = false;
       player.confirmed = 0;
       settings.style.display = "inline";
+      times = {};
     }, 3000);
   }
   if (window.DeviceMotionEvent != undefined) {
