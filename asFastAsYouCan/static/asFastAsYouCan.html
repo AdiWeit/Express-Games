@@ -107,6 +107,7 @@
   var AnzahlSpieler = -1;
   var player = {};
   var lowestSize = {x: window.innerHeight, y: window.innerHeight}
+  var sensibility = 0;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
     if (message.type == "spielerDu") {
@@ -136,7 +137,6 @@
           ay1 = event.accelerationIncludingGravity.y * sensibility;
         }
         if (spielerIch == message.sender) {
-          var sensibility = 0;
           var sensibilityConverter = {low: 10, height: 50};
           for (var i = 0; i < AnzahlSpieler; i++) {
             sensibility += sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility];
