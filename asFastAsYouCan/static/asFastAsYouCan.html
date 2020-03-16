@@ -1,4 +1,5 @@
 <div id="settings" style="display: 'none'">
+<input type="text" id="requiredPoints" placeholder="points required for win" value="5">
 <h1 id="selectedSensibility">high sensibility</h1>
 <button type="button" id="buttonSensibility" onclick="changeSensibility(selectedSensibility.innerHTML);" name="button">change</button>
 <button type="button" id="bereitButton" onclick="confirmSetting();" name="button">bereit!</button>
@@ -44,9 +45,7 @@
     return content;
   }
 
-  let oldId = localStorage.getItem('CLIENTIDasFastAsYouCan');
-  const clientId = oldId ? oldId : makeid(10);
-  localStorage.setItem('CLIENTIDasFastAsYouCan', clientId);
+  const clientId = makeid(10);
 
   var messageListener = null;
 
@@ -109,15 +108,17 @@
   var times = {}
   var lowestSize = {x: 3000, y: 2000, player: -1}
   var sensibility = 0;
+  var Bild = new Image();
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
+    if (message.type == "gewonnen") {showResult(message.data, 0);}
     if (message.type == "endRound") {
       times[message.sender] = message.time
       if (Object.keys(times).length == AnzahlSpieler) {
         console.log("everybodyFinished");
         showResults();
       }
-    }
+    }/* removeGame(true);*/
     if (message.type == "spielerDu") {
       spielerIch = message.data;
       player[spielerIch] = {};
@@ -125,10 +126,11 @@
       player[spielerIch].selected = false;
       player[spielerIch].points = 0;
       player.confirmed = 0;
+      player.pointsRequired = 0;
       settings.style.display = "inline";
       if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
       for (var i = 0; i < Object.keys(player).length; i++) {
-        if (Object.keys(player)[i] != "confirmed") {
+        if (Object.keys(player)[i] != "confirmed" && Object.keys(player)[i] != "pointsRequired") {
         room.send({
           message: {
             "type": "sendWidthAndHight",
@@ -140,8 +142,8 @@
     }
     }
     if (message.type == "sendWidthAndHight") {
-      if (message.data.x < lowestSize.x) lowestSize.x = message.data.x
-      if (message.data.y < lowestSize.y) lowestSize.y = message.data.x
+      if (message.data.x < lowestSize.x) lowestSize.x = message.data.x;
+      if (message.data.y < lowestSize.y) lowestSize.y = message.data.y;
     }
     if (message.type == "endPoint") {
       textur.width = lowestSize.x;
@@ -155,7 +157,9 @@
     if (message.type == "ready") {
       player[message.sender] = message.data;
       player.confirmed++;
+      if (player.pointsRequired == 0) player.pointsRequired += JSON.parse(message.pointsRequired);
       if (player.confirmed == AnzahlSpieler && player[spielerIch].selected) {
+        if (player.pointsRequired == 0) player.pointsRequired /= AnzahlSpieler;
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
           ax1 = event.accelerationIncludingGravity.x * sensibility;
@@ -163,7 +167,9 @@
         }
         var sensibilityConverter = {low: 0, high: 0};
         for (var i = 0; i < Object.keys(player).length; i++) {
-          if (Object.keys(player)[i] != "confirmed") sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility]++;
+          if (Object.keys(player)[i] != "confirmed" && Object.keys(player)[i] != "pointsRequired") {
+            sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility]++;
+          }
         }
         if (sensibilityConverter.low > sensibilityConverter.high) sensibility = 15;
         else if (sensibilityConverter.low < sensibilityConverter.high) sensibility = 50;
@@ -180,6 +186,26 @@
       }
     }
   });
+  function showResult(gewinner, times) {
+    if (spielerIch == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) audio = new Audio("https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+    }
+    setTimeout(function () {
+      if (times < 5) showResults(gewinner, times + 1,);
+    }, 500);
+  }
   function changeSensibility(innerHTML) {
     if (innerHTML == "high sensibility") selectedSensibility.innerHTML = "low sensibility";
     else selectedSensibility.innerHTML = "high sensibility";
@@ -194,7 +220,8 @@
           data: player[spielerIch],
           sender: spielerIch,
           width: window.innerWidth,
-          height: window.innerHeight
+          height: window.innerHeight,
+          pointsRequired: requiredPoints.value
         }
       });
     }
@@ -212,6 +239,14 @@
       canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i);
     }
     player[Object.keys(times)[bestTime.player]].points++;
+    if (player[Object.keys(times)[bestTime.player]].points >= player.pointsRequired) {
+      room.send({
+        message: {
+          type: "gewonnen",
+          data: Object.keys(times)[bestTime.player]
+        }
+      });
+    }
     setTimeout(function () {
       canvas.clearRect(0, 0, screen.width, screen.height);
       for (var i = 0; i < Object.keys(times).length; i++) {
@@ -219,7 +254,7 @@
         if (i == bestTime.player) canvas.fillStyle = "red";
         else if (Object.keys(times)[i] != spielerIch) canvas.fillStyle = "black";
         canvas.font = "30px Georgia";
-        canvas.fillText("points: " + player[Object.keys(times)[i]].points, 50, 50 + 70*i);
+        canvas.fillText("points: " + player[Object.keys(times)[i]].points + " / " + player.pointsRequired, 50, 50 + 70*i);
       }
       player[spielerIch].selected = false;
       player.confirmed = 0;

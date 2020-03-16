@@ -1,4 +1,4 @@
-//var spielerOnline = 0;
+var spielerOnline = 0;
 
 
 class asFastAsYouCan {
@@ -24,51 +24,11 @@ class asFastAsYouCan {
 
     this.spielerOnlineGleich0++;
     console.log("spielerOnlineGleich0: " + this.spielerOnlineGleich0);
-    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
-      console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
-      if (client.sessionId == this.player1.id) {
-      this.send(this.player1.client, {
-        "type": "spielerDu",
-        "data": this.player1.id
-      });
-    }
-    if (client.sessionId == this.player2.id) {
-      this.send(this.player2.client, {
-        "type": "spielerDu",
-        "data": this.player2.id
-      });
-    }
-    if (this.player3 != null && client.sessionId == this.player3.id) {
-      this.send(this.player3.client, {
-        "type": "spielerDu",
-        "data": this.player3.id
-      });
-    }
-    if (this.player4 != null && client.sessionId == this.player4.id) {
-      this.send(this.player4.client, {
-        "type": "spielerDu",
-        "data": this.player4.id
-      });
-    }
-      // if (client.sessionId == this.player1.id) {
-      //   this.send(this.player2.client, {
-      //     "type": "sendDataToRejoinedPlayer"
-      //   });
-      // }
-      // else {
-      //   this.send(this.player1.client, {
-      //     "type": "sendDataToRejoinedPlayer"
-      //   });
-      // }
-
-      console.warn("Rejoin, skipping usual onJoin…");
-      return;
-    }
 
     console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if (!this.player1) {
       this.player1 = newPlayer;
-      this.spielerOnline = 0;
+      spielerOnline = 0;
       console.log("create spielerOnlineGleich0");
       this.spielerOnlineGleich0 = 1;
     } else if (!this.player2) {
@@ -78,7 +38,7 @@ class asFastAsYouCan {
     } else if (!this.player4) {
       this.player4 = newPlayer;
     }
-    this.spielerOnline++;
+    spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
         console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
@@ -86,7 +46,7 @@ class asFastAsYouCan {
       console.log("Mehr als 1 Spieler");
       this.broadcast({
         "type": "AnzahlSpieler",
-        "data": this.spielerOnline
+        "data": spielerOnline
       });
       if (/*this.spielerOnline > 2*/ this.player3) {
         this.send(this.player3.client, {
@@ -179,7 +139,9 @@ class asFastAsYouCan {
     //   else if (client.sessionId === this.player2.id) this.player2 = null;
     //   else if (client.sessionId === this.player3.id) this.player3 = null;
     //   else this.player4 = null; */
-    // this.spielerOnline--;
+    console.log(client);
+    console.log(client.sessionId);
+    if (client.sessionId != this.player1.id && client.sessionId != this.player2.id && (player3 != undefined && client.sessionId != this.player3.id) && (player4 != undefined && client.sessionId != this.player4.id)) spielerOnline--;
     if (this.player2 != undefined) this.spielerOnlineGleich0--;
     //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     // /*  if (!this.player2) {
