@@ -109,6 +109,8 @@
   var lowestSize = {x: 3000, y: 2000, player: -1}
   var sensibility = 0;
   var Bild = new Image();
+  var countdown = [3,2,1,"Go!", "reallyGo!"];
+  var countdownInt;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
     if (message.type == "gewonnen") {showResult(message.data, 0);}
@@ -148,13 +150,17 @@
     if (message.type == "endPoint") {
       textur.width = lowestSize.x;
       textur.height = lowestSize.y;
-      canvas.fillStyle = "yellow";
-      canvas.fillRect(message.data.x, message.data.y, 50, 50);
-      x1 = message.playerPosition.x;
-      y1 = message.playerPosition.y;
-      startPause();
+      // countDown:
+      countdown = [3,2,1,"Go!", "reallyGo!"];
+      countdownInt = setInterval(countdownFunction, 1000);
+      playerPosition.x = message.playerPosition.x;
+      playerPosition.y = message.playerPosition.y;
+      //   canvas.fillRect(message.data.x, message.data.y, 50, 50);
+      playerPosition.data.x = message.data.x;
+      playerPosition.data.y = message.data.y;
     }
     if (message.type == "ready") {
+      playerSame[message.sender] = message.data;
       player[message.sender] = message.data;
       player.confirmed++;
       if (player.pointsRequired == 0) player.pointsRequired += JSON.parse(message.pointsRequired);
@@ -186,8 +192,29 @@
       }
     }
   });
+  var playerPosition = {x: 0, y: 0, data: {x: 0, y: 0}}
+  function countdownFunction() {
+  canvas.clearRect(0, 0, lowestSize.x, lowestSize.y);
+  canvas.fillStyle = "red";
+  if (countdown.length == 2) {canvas.fillStyle = "green"; clearInterval(countdownInt);
+  setTimeout(function () {
+    countdown.shift();
+  }, 1000);
+  setTimeout(function () {
+    canvas.fillStyle = "yellow";
+    canvas.fillRect(playerPosition.data.x, playerPosition.data.y, 50, 50);
+  }, 10);
+  x1 = playerPosition.x;
+  y1 = playerPosition.y;
+  startPause();
+}
+  canvas.font = "70px Georgia";
+  canvas.fillText(countdown[0], 852/3, 752/2);
+  countdown.shift();
+}
   function showResult(gewinner, times) {
     if (spielerIch == gewinner) {
+      spielerIch = "winner";
       console.log("Du hast gewonnen!!!");
       if (times == 0) audio = new Audio("https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
         canvas.fillStyle = "green";
@@ -196,6 +223,7 @@
         canvas.drawImage(Bild, 260, 0);
     } else {
       console.log("Du hast verloren!!!");
+      spielerIch = "looser"
       canvas.fillStyle = "red";
       canvas.fillRect(0, 0, 1847, 973)
       Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
@@ -226,6 +254,7 @@
       });
     }
   }
+  var playerSame = {};
   function showResults() {
     var bestTime = {time: "10:10:09", player: -1};
     for (var i = 0; i < Object.keys(times).length; i++) {
@@ -236,7 +265,11 @@
       if (i == bestTime.player) canvas.fillStyle = "red";
       else if (Object.keys(times)[i] != spielerIch) canvas.fillStyle = "black";
       canvas.font = "30px Georgia";
-      canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i);
+      for (var i1 = 0; i1 < Object.keys(playerSame).length; i1++) {
+        if (Object.keys(playerSame)[i1] == Object.keys(times)[i]) {
+          canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i1);
+        }
+      }
     }
     player[Object.keys(times)[bestTime.player]].points++;
     if (player[Object.keys(times)[bestTime.player]].points >= player.pointsRequired) {
@@ -254,7 +287,11 @@
         if (i == bestTime.player) canvas.fillStyle = "red";
         else if (Object.keys(times)[i] != spielerIch) canvas.fillStyle = "black";
         canvas.font = "30px Georgia";
-        canvas.fillText("points: " + player[Object.keys(times)[i]].points + " / " + player.pointsRequired, 50, 50 + 70*i);
+      for (var i1 = 0; i1 < Object.keys(playerSame).length; i1++) {
+        if (Object.keys(playerSame)[i1] == Object.keys(times)[i]) {
+          canvas.fillText("points: " + player[Object.keys(times)[i]].points + " / " + player.pointsRequired, 50, 50 + 70*i1);
+        }
+      }
       }
       player[spielerIch].selected = false;
       player.confirmed = 0;
@@ -325,19 +362,19 @@
 
 
     function boundingBoxCheck() {
-      if (x1 < 0) {
+      if (x1 < 0) { // hit left
         x1 = 0;
         vx1 = -vx1;
       }
-      if (y1 < 0) {
+      if (y1 < 0) { // hit up
         y1 = 0;
         vy1 = -vy1;
       }
-      if (x1 > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) {
+      if (x1 > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) { // hitright
         x1 = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
         vx1 = -vx1;
       }
-      if (y1 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) {
+      if (y1 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) { // hit down
         y1 = screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2;
         vy1 = -vy1;
       }

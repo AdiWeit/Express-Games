@@ -141,7 +141,7 @@ class asFastAsYouCan {
     //   else this.player4 = null; */
     console.log(client);
     console.log(client.sessionId);
-    if (client.sessionId != this.player1.id && client.sessionId != this.player2.id && (player3 != undefined && client.sessionId != this.player3.id) && (player4 != undefined && client.sessionId != this.player4.id)) spielerOnline--;
+    if (client.sessionId == this.player1.id || client.sessionId == this.player2.id || (this.player3 != undefined && client.sessionId == this.player3.id) || (this.player4 != undefined && client.sessionId == this.player4.id)) spielerOnline--;
     if (this.player2 != undefined) this.spielerOnlineGleich0--;
     //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     // /*  if (!this.player2) {
