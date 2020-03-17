@@ -378,10 +378,10 @@
       if (Object.keys(playerSame)[i - 1] == spielerIch) sphereIch = i;
     }
     var numbers = [
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.replace("px", "")) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.replace("px", "")) / 2],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.replace("px", "")) / 2, player[spielerIch].position.y - 8],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.replace("px", "")) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.replace("px", "")) - 7],
-      [x1 - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.replace("px", "")) / 2]
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) / 2],
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) / 2, player[spielerIch].position.y - 8],
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) - 7],
+      [x1 - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) / 2]
     ]
     for (var i = 0; i < 4; i++) {
       data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
@@ -415,12 +415,12 @@
         player[spielerIch].position.y = 0;
         vy1 = -vy1;
       }
-      if (player[spielerIch].position.x > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2) { // hitright
-        player[spielerIch].position.x = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2;
+      if (player[spielerIch].position.x > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.toString().split('px')[0]) / 2) { // hitright
+        player[spielerIch].position.x = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.toString().split('px')[0]) / 2;
         vx1 = -vx1;
       }
-      if (player[spielerIch].position.y > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2) { // hit down
-        player[spielerIch].position.y = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2;
+      if (player[spielerIch].position.y > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.toString().split('px')[0]) / 2) { // hit down
+        player[spielerIch].position.y = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.toString().split('px')[0]) / 2;
         vy1 = -vy1;
       }
       if (x2 < 0) {
@@ -431,12 +431,12 @@
         y2 = 0;
         vy2 = -vy2;
       }
-      if (x2 > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2) {
-        x2 = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2;
+      if (x2 > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.toString().split('px')[0]) / 2) {
+        x2 = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.toString().split('px')[0]) / 2;
         vx2 = -vx2;
       }
-      if (y2 > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2) {
-        y2 = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2;
+      if (y2 > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.toString().split('px')[0]) / 2) {
+        y2 = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.toString().split('px')[0]) / 2;
         vy2 = -vy2;
       }
     }
