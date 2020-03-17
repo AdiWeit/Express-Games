@@ -77,7 +77,7 @@
     sendJson('/asFastAsYouCan/message-queue', {
       clientId
     }).then(messages => {
-      if (messages.length > 0 && message.type != "playerSync") console.log("MESSAGES", messages);
+      //if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -133,7 +133,7 @@
   var countdownInt;
   var playerScnyInt;
   room.setOnMessageListener(function(message) {
-    if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
+    if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data;}
     if (message.type == "gewonnen") {showResult(message.data, 0);}
     if (message.type == "playerSync" && message.sender != spielerIch) {
       player[message.sender].position = message.position;
@@ -156,7 +156,6 @@
       player.confirmed = 0;
       player.pointsRequired = 0;
       settings.style.display = "inline";
-      if (!message.newRound) localStorage.getItem('AnzahlSpielerAsFastAsYouCan');
       for (var i = 0; i < Object.keys(player).length; i++) {
         if (Object.keys(player)[i] != "confirmed" && Object.keys(player)[i] != "pointsRequired") {
         room.send({
@@ -260,7 +259,7 @@
         canvas.fillRect(0, 0, 1847, 973);
         Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
         canvas.drawImage(Bild, 260, 0);
-    } else {
+    } else if (gewinner != "looser" && gewinner != "winner") {
       console.log("Du hast verloren!!!");
       spielerIch = "looser"
       canvas.fillStyle = "red";
