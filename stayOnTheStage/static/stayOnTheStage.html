@@ -259,7 +259,7 @@
         canvas.fillRect(0, 0, 1847, 973);
         Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
         canvas.drawImage(Bild, 260, 0);
-    } else if (gewinner != "looser" && gewinner != "winner") {
+    } else if (spielerIch != "looser" && spielerIch != "winner") {
       console.log("Du hast verloren!!!");
       spielerIch = "looser"
       canvas.fillStyle = "red";
@@ -437,7 +437,7 @@
     */
     ];
     for (var i = 1; i < AnzahlSpieler + 1; i++) {
-      if (player[spielerIch].position.x + 77 > player[Object.keys(playerSame)[i - 1]].position.x + 61 - 10 && player[spielerIch].position.x + 77 < player[Object.keys(playerSame)[i - 1]].position.x + 61 + 40 && player[spielerIch].position.y + 77*2 > player[Object.keys(playerSame)[i - 1]].position.y - 5 && player[spielerIch].position.y + 77/2 < player[Object.keys(playerSame)[i - 1]].position.y + 55) {
+      if (player[spielerIch].position.x + 77 > player[Object.keys(playerSame)[i - 1]].position.x + 61 && player[spielerIch].position.x + 77 - 30 < player[Object.keys(playerSame)[i - 1]].position.x + 61 && player[spielerIch].position.y + 77/2 > player[Object.keys(playerSame)[i - 1]].position.y - 5 && player[spielerIch].position.y + 77/2 < player[Object.keys(playerSame)[i - 1]].position.y + 55) {
         console.log("nach links " + colours[i - 1]);
       }
     }
