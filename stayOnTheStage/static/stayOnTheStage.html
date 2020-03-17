@@ -504,8 +504,8 @@
       room.send({
         message: {
           "type": "playerSync",
-          position: player[spielerIch].position,
-          sender: spielerIch
+          position: player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position,
+          sender: Object.keys(playerSame)[bounceAufträge[i].i - 1]
         }
       });
       bounceAufträge[i].zähler++;
