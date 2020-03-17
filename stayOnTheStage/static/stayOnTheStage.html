@@ -491,12 +491,12 @@
   setInterval(function () {
     for (var i = 0; i < bounceAufträge.length; i++) {
       if (bounceAufträge[i].zähler < 333) {
-        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 0.1*bounceAufträge[i].y;
-        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 0.1*bounceAufträge[i].x;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 0.7*bounceAufträge[i].y;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 0.7*bounceAufträge[i].x;
       }
       else if (bounceAufträge[i].zähler < 888) {
-        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 0.3*bounceAufträge[i].y;
-        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 0.3*bounceAufträge[i].x;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 1.0*bounceAufträge[i].y;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 1.0*bounceAufträge[i].x;
       }
       else {
         bounceAufträge.splice(i, 1);
@@ -510,7 +510,7 @@
       });
       bounceAufträge[i].zähler++;
     }
-  }, 50);
+  }, 25);
   var bounceAufträge = [];
     function boundingBoxCheck() {
       if (player[spielerIch].position.x < 0) { // hit left
