@@ -378,10 +378,10 @@
       if (Object.keys(playerSame)[i - 1] == spielerIch) sphereIch = i;
     }
     var numbers = [
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) / 2],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) / 2, player[spielerIch].position.y - 8],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "")) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) - 7],
-      [x1 - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "")) / 2]
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "") - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "") / 2],
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "") / 2, player[spielerIch].position.y - 8],
+      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch)).style.width.replace("px", "") / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "") - 7],
+      [x1 - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch)).style.height.replace("px", "") / 2]
     ]
     for (var i = 0; i < 4; i++) {
       data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
