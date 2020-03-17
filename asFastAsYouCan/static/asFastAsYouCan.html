@@ -20,10 +20,25 @@
  border-radius: 20px;
  background-color: blue;
 }
+#sphere2{
+ border-radius: 20px;
+ background-color: blue;
+}
+#sphere3{
+ border-radius: 20px;
+ background-color: blue;
+}
+#sphere4{
+ border-radius: 20px;
+ background-color: blue;
+}
 </style>
 </div>
 <div id="content">
   <div class="shape" id="sphere1"></div>
+  <div class="shape" id="sphere2"></div>
+  <div class="shape" id="sphere3"></div>
+  <div class="shape" id="sphere4"></div>
 </div>
 <script>
   window.onbeforeunload = function(){
@@ -95,6 +110,11 @@
   };
   settings.style.display = "none";
   var sphere1 = document.getElementById("sphere1");
+  var sphere2 = document.getElementById("sphere2");
+  var sphere3 = document.getElementById("sphere3");
+  var sphere4 = document.getElementById("sphere4");
+  var colours = ["red", "blue", "green", "pink"];
+  visible([['sphere2', "none"], ['sphere3', "none"], ['sphere4', "none"]]);
   var x1 = 10,
   y1 = 177; //window.innerHeight - 150 + 3,
   x2 = 0, y2 = 0,
@@ -111,12 +131,17 @@
   var Bild = new Image();
   var countdown = [3,2,1,"Go!", "reallyGo!"];
   var countdownInt;
+  var playerScnyInt;
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data; localStorage.setItem('AnzahlSpielerAsFastAsYouCan', AnzahlSpieler);}
     if (message.type == "gewonnen") {showResult(message.data, 0);}
+    if (message.type == "playerSync" && message.sender != spielerIch) {
+      player[message.sender].position = message.position;
+    }
     if (message.type == "endRound") {
       times[message.sender] = message.time
       if (Object.keys(times).length == AnzahlSpieler) {
+        clearInterval(playerScnyInt)
         console.log("everybodyFinished");
         showResults();
       }
@@ -127,6 +152,7 @@
       player[spielerIch].selectedSensibility = "high";
       player[spielerIch].selected = false;
       player[spielerIch].points = 0;
+      player[spielerIch].position = {x: 10, y: 10};
       player.confirmed = 0;
       player.pointsRequired = 0;
       settings.style.display = "inline";
@@ -165,6 +191,10 @@
       player.confirmed++;
       if (player.pointsRequired == 0) player.pointsRequired += JSON.parse(message.pointsRequired);
       if (player.confirmed == AnzahlSpieler && player[spielerIch].selected) {
+        for (var i = 1; i < AnzahlSpieler + 1; i++) {
+          visible([['sphere' + i, "inline"]]);
+          document.getElementById('sphere' + i).style.backgroundColor = colours[i - 1];
+        }
         if (player.pointsRequired == 0) player.pointsRequired /= AnzahlSpieler;
         settings.style.display = "none";
         window.ondevicemotion = function(e) {
@@ -204,9 +234,18 @@
     canvas.fillStyle = "yellow";
     canvas.fillRect(playerPosition.data.x, playerPosition.data.y, 50, 50);
   }, 10);
-  x1 = playerPosition.x;
+  player[spielerIch].position.x = playerPosition.x;
   y1 = playerPosition.y;
   startPause();
+  playerScnyInt =  setInterval(function () {
+    room.send({
+      message: {
+        "type": "playerSync",
+        position: player[spielerIch].position,
+        sender: spielerIch
+      }
+    });
+  }, 100);
 }
   canvas.font = "70px Georgia";
   canvas.fillText(countdown[0], 852/3, 752/2);
@@ -320,7 +359,7 @@
     vx1 = vx1 * 0.98;
     vy1 = vy1 * 0.98;
     y1 = parseInt(y1 + vy1 / 50);
-    x1 = parseInt(x1 + vx1 / 50);
+    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(x1 + vx1 / 50);
 
     vx2 = vx2 * 0.98;
     vy2 = vy2 * 0.98;
@@ -329,9 +368,13 @@
     //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
     sphere1.style.width = 20;
     sphere1.style.height = 20;
-    boundingBoxCheck();
-    sphere1.style.top = y1 + "px";
-    sphere1.style.left = x1 + "px";
+    if (player[spielerIch] && player[spielerIch].position) boundingBoxCheck();
+    // sphere1.style.top = y1 + "px";
+    // sphere1.style.left = player[spielerIch].position.x + "px";
+    for (var i = 1; i < AnzahlSpieler + 1 && player[Object.keys(playerSame)[i - 1]] && player[Object.keys(playerSame)[i - 1]].position; i++) {
+      document.getElementById('sphere' + i).style.top = player[Object.keys(playerSame)[i - 1]].position.y + "px";
+      document.getElementById('sphere' + i).style.left = player[Object.keys(playerSame)[i - 1]].position.x + "px";
+    }
     var numbers = [
       [x1 + JSON.parse(sphere1.style.width.replace("px", "")) - 7, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2],
       [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 - 8],
@@ -362,16 +405,16 @@
 
 
     function boundingBoxCheck() {
-      if (x1 < 0) { // hit left
-        x1 = 0;
+      if (player[spielerIch].position.x < 0) { // hit left
+        player[spielerIch].position.x = 0;
         vx1 = -vx1;
       }
       if (y1 < 0) { // hit up
         y1 = 0;
         vy1 = -vy1;
       }
-      if (x1 > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) { // hitright
-        x1 = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
+      if (player[spielerIch].position.x > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) { // hitright
+        player[spielerIch].position.x = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
         vx1 = -vx1;
       }
       if (y1 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) { // hit down
@@ -433,5 +476,11 @@ setTimeout(function () {
   increment();
 }, 100);
 }
+}
+
+function visible(list) {
+  for (var i = 0; i < list.length; i++) {
+    document.getElementById(list[i][0]).style.display = list[i][1];
+  }
 }
 </script>
