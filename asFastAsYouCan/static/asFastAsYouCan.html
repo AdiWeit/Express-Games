@@ -358,8 +358,8 @@
     }
     vx1 = vx1 * 0.98;
     vy1 = vy1 * 0.98;
-    player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
-    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(x1 + vx1 / 50);
+    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
+    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
 
     vx2 = vx2 * 0.98;
     vy2 = vy2 * 0.98;
