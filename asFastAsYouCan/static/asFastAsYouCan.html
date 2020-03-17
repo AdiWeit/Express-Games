@@ -77,7 +77,7 @@
     sendJson('/asFastAsYouCan/message-queue', {
       clientId
     }).then(messages => {
-      if (messages.length > 0) console.log("MESSAGES", messages);
+      if (messages.length > 0 && message.type != "playerSync") console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -382,10 +382,10 @@
     }
     if (player[spielerIch] && player[spielerIch].position && sphereIch > -1) {
     var numbers = [
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y - 8],
-      [x1 + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) - 7],
-      [x1 - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2]
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2],
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y - 8],
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) - 7],
+      [player[spielerIch].position.x - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2]
     ]
     for (var i = 0; i < 4; i++) {
       data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
