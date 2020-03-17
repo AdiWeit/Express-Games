@@ -501,6 +501,13 @@
       else {
         bounceAufträge.splice(i, 1);
       }
+      room.send({
+        message: {
+          "type": "playerSync",
+          position: player[spielerIch].position,
+          sender: spielerIch
+        }
+      });
       bounceAufträge[i].zähler++;
     }
   }, 50);
