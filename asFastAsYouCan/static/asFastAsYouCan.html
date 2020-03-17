@@ -367,14 +367,17 @@
     y2 = parseInt(y2 + vy2 / 30);
     x2 = parseInt(x2 + vx2 / 30);
     //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
-    sphere1.style.width = 20;
-    sphere1.style.height = 20;
     if (player[spielerIch] && player[spielerIch].position && sphereIch > -1) boundingBoxCheck();
     // sphere1.style.top = y1 + "px";
     // sphere1.style.left = player[spielerIch].position.x + "px";
     for (var i = 1; i < AnzahlSpieler + 1 && player[Object.keys(playerSame)[i - 1]] && player[Object.keys(playerSame)[i - 1]].position; i++) {
       document.getElementById('sphere' + i).style.top = player[Object.keys(playerSame)[i - 1]].position.y + "px";
       document.getElementById('sphere' + i).style.left = player[Object.keys(playerSame)[i - 1]].position.x + "px";
+
+      document.getElementById('sphere' + i).style.width = 20;
+      document.getElementById('sphere' + i).style.height = 20;
+      //sphere1.style.width = 20;
+      //sphere1.style.height = 20;
       if (Object.keys(playerSame)[i - 1] == spielerIch) sphereIch = i;
     }
     var numbers = [
