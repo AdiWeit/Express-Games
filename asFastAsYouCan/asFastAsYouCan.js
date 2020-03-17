@@ -39,7 +39,7 @@ class asFastAsYouCan {
       this.player4 = newPlayer;
     }
     spielerOnline++;
-    console.log("spielerOnline: " + this.spielerOnline);
+    console.log("spielerOnline: " + spielerOnline);
         console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
@@ -139,10 +139,11 @@ class asFastAsYouCan {
     //   else if (client.sessionId === this.player2.id) this.player2 = null;
     //   else if (client.sessionId === this.player3.id) this.player3 = null;
     //   else this.player4 = null; */
-    console.log(client);
-    console.log(client.sessionId);
-    if (client.sessionId == this.player1.id || client.sessionId == this.player2.id || (this.player3 != undefined && client.sessionId == this.player3.id) || (this.player4 != undefined && client.sessionId == this.player4.id)) spielerOnline--;
-    if (this.player2 != undefined) this.spielerOnlineGleich0--;
+    // console.log(client);
+    // console.log(client.sessionId);
+    if ((this.player && client.sessionId == this.player1.id) || (this.player2 && client.sessionId == this.player2.id) || (this.player3 && client.sessionId == this.player3.id) || (this.player4 && client.sessionId == this.player4.id)) spielerOnline--;
+    else console.log("leaving skipped");
+      if (this.player2 != undefined) this.spielerOnlineGleich0--;
     //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     // /*  if (!this.player2) {
     //     Reihenfolge = [];
@@ -178,7 +179,6 @@ class asFastAsYouCan {
     } else {
       this.broadcast(data.message);
     }
-    if (data.message.type == "endGame"/* || data.message.type == "gewonnen"*/) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     if (data.message.type == "gewonnen") {
       this.broadcast({
         "type": "endGame",
