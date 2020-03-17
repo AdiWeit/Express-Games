@@ -54,6 +54,9 @@ app.use('/dieMaulwurfCompany/', dieMaulwurfCompany);
 const asFastAsYouCan = require('./asFastAsYouCan/index.js');
 app.use('/asFastAsYouCan/', asFastAsYouCan);
 
+const stayOnTheStage = require('./stayOnTheStage/index.js');
+app.use('/stayOnTheStage/', stayOnTheStage);
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname

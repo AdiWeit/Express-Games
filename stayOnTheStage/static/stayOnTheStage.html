@@ -1,0 +1,566 @@
+<div id="settings" style="display: 'none'">
+<input type="text" id="requiredPoints" placeholder="points required for win" value="5">
+<h1 id="selectedSensibility">high sensibility</h1>
+<button type="button" id="buttonSensibility" onclick="changeSensibility(selectedSensibility.innerHTML);" name="button">change</button>
+<button type="button" id="bereitButton" onclick="confirmSetting();" name="button">bereit!</button>
+<br>
+</div>
+<canvas id="textur" width="300" height="300"></canvas>
+<div id="ball">
+  <style>
+    .shape {
+ position: absolute;
+ width: 20px;
+ height: 20px;
+ -webkit-radius: 20px;
+ margin:0;width
+ padding:0;
+}
+#sphere1{
+ border-radius: 77px;
+ background-color: blue;
+}
+#sphere2{
+ border-radius: 77px;
+ background-color: blue;
+}
+#sphere3{
+ border-radius: 77px;
+ background-color: blue;
+}
+#sphere4{
+ border-radius: 77px;
+ background-color: blue;
+}
+</style>
+</div>
+<div id="content">
+  <div class="shape" id="sphere1"></div>
+  <div class="shape" id="sphere2"></div>
+  <div class="shape" id="sphere3"></div>
+  <div class="shape" id="sphere4"></div>
+</div>
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/stayOnTheStage/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/stayOnTheStage/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 25);
+
+  function getMessages() {
+    sendJson('/stayOnTheStage/message-queue', {
+      clientId
+    }).then(messages => {
+      //if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/stayOnTheStage/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  settings.style.display = "none";
+  var sphere1 = document.getElementById("sphere1");
+  var sphere2 = document.getElementById("sphere2");
+  var sphere3 = document.getElementById("sphere3");
+  var sphere4 = document.getElementById("sphere4");
+  var colours = ["red", "blue", "green", "pink"];
+  visible([['sphere2', "none"], ['sphere3', "none"], ['sphere4', "none"]]);
+  var x1 = 10,
+  y1 = 177; //window.innerHeight - 150 + 3,
+  x2 = 0, y2 = 0,
+  vx1 = 0, vy1 = 0,
+  vx2 = 0, vy2 = 0,
+  ax1 = 0, ay1 = 0;
+  var canvas = textur.getContext('2d'); //Dimension
+  var spielerIch = "";
+  var AnzahlSpieler = -1;
+  var player = {};
+  var times = {}
+  var lowestSize = {x: 3000, y: 2000, player: -1}
+  var sensibility = 0;
+  var Bild = new Image();
+  var countdown = [3,2,1,"Go!", "reallyGo!"];
+  var countdownInt;
+  var playerScnyInt;
+  room.setOnMessageListener(function(message) {
+    if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data;}
+    if (message.type == "gewonnen") {showResult(message.data, 0);}
+    if (message.type == "playerSync" && message.sender != spielerIch) {
+      player[message.sender].position = message.position;
+    }
+    if (message.type == "endRound") {
+      times[message.sender] = message.time
+      if (Object.keys(times).length == AnzahlSpieler) {
+        clearInterval(playerScnyInt)
+        console.log("everybodyFinished");
+        showResults();
+      }
+    }/* removeGame(true);*/
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      player[spielerIch] = {};
+      player[spielerIch].selectedSensibility = "high";
+      player[spielerIch].selected = false;
+      player[spielerIch].points = 0;
+      player[spielerIch].position = {x: 10, y: 10};
+      player.confirmed = 0;
+      player.pointsRequired = 0;
+      settings.style.display = "inline";
+      for (var i = 0; i < Object.keys(player).length; i++) {
+        if (Object.keys(player)[i] != "confirmed" && Object.keys(player)[i] != "pointsRequired") {
+        room.send({
+          message: {
+            "type": "sendWidthAndHight",
+            sender: spielerIch,
+            data: {x: window.innerWidth, y: window.innerHeight}
+          }
+        });
+      }
+    }
+    }
+    if (message.type == "sendWidthAndHight") {
+      if (message.data.x < lowestSize.x) lowestSize.x = message.data.x;
+      if (message.data.y < lowestSize.y) lowestSize.y = message.data.y;
+    }
+    if (message.type == "endPoint") {
+      textur.width = lowestSize.x;
+      textur.height = lowestSize.y;
+      // countDown:
+      countdown = [3,2,1,"Go!", "reallyGo!"];
+      countdownInt = setInterval(countdownFunction, 1000);
+      playerPosition.x = message.playerPosition.x;
+      playerPosition.y = message.playerPosition.y;
+      //   canvas.fillRect(message.data.x, message.data.y, 50, 50);
+      playerPosition.data.x = message.data.x;
+      playerPosition.data.y = message.data.y;
+    }
+    if (message.type == "ready") {
+      playerSame[message.sender] = message.data;
+      player[message.sender] = message.data;
+      player.confirmed++;
+      if (player.pointsRequired == 0) player.pointsRequired += JSON.parse(message.pointsRequired);
+      if (player.confirmed == AnzahlSpieler && player[spielerIch].selected) {
+        for (var i = 1; i < AnzahlSpieler + 1; i++) {
+          visible([['sphere' + i, "inline"]]);
+          document.getElementById('sphere' + i).style.backgroundColor = colours[i - 1];
+        }
+        if (player.pointsRequired == 0) player.pointsRequired /= AnzahlSpieler;
+        settings.style.display = "none";
+        window.ondevicemotion = function(e) {
+          ax1 = event.accelerationIncludingGravity.x * sensibility;
+          ay1 = event.accelerationIncludingGravity.y * sensibility;
+        }
+        var sensibilityConverter = {low: 0, high: 0};
+        for (var i = 0; i < Object.keys(player).length; i++) {
+          if (Object.keys(player)[i] != "confirmed" && Object.keys(player)[i] != "pointsRequired") {
+            sensibilityConverter[player[Object.keys(player)[i]].selectedSensibility]++;
+          }
+        }
+        if (sensibilityConverter.low > sensibilityConverter.high) sensibility = 15;
+        else if (sensibilityConverter.low < sensibilityConverter.high) sensibility = 50;
+        else sensibility = Math.floor(Math.random() * (50));
+        if (spielerIch == message.sender) {
+          room.send({
+            message: {
+              "type": "endPoint",
+              data: {x: Math.floor(Math.random() * (lowestSize.x -100)), y: Math.floor(Math.random() * (lowestSize.y -100))},
+              playerPosition: {x: Math.floor(Math.random() * (lowestSize.x -100)), y: Math.floor(Math.random() * (lowestSize.y -100))}
+            }
+          });
+        }
+      }
+    }
+  });
+  var playerPosition = {x: 0, y: 0, data: {x: 0, y: 0}}
+  function countdownFunction() {
+  canvas.clearRect(0, 0, lowestSize.x, lowestSize.y);
+  canvas.fillStyle = "red";
+  if (countdown.length == 2) {canvas.fillStyle = "green"; clearInterval(countdownInt);
+  setTimeout(function () {
+    countdown.shift();
+  }, 1000);
+  setTimeout(function () {
+    canvas.fillStyle = "yellow";
+    canvas.fillRect(playerPosition.data.x, playerPosition.data.y, 50, 50);
+  }, 10);
+  player[spielerIch].position.x = playerPosition.x;
+  player[spielerIch].position.y = playerPosition.y;
+  startPause();
+  playerScnyInt =  setInterval(function () {
+    room.send({
+      message: {
+        "type": "playerSync",
+        position: player[spielerIch].position,
+        sender: spielerIch
+      }
+    });
+  }, 25);
+}
+  canvas.font = "70px Georgia";
+  canvas.fillText(countdown[0], 852/3, 752/2);
+  countdown.shift();
+}
+  function showResult(gewinner, time) {
+    if (spielerIch == gewinner) {
+      spielerIch = "winner";
+      console.log("Du hast gewonnen!!!");
+      if (time == 0) audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else if (gewinner != "looser" && gewinner != "winner") {
+      console.log("Du hast verloren!!!");
+      spielerIch = "looser"
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (time == 0)  audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+    }
+    setTimeout(function () {
+      if (times < 5) showResults(gewinner, times + 1,);
+    }, 500);
+  }
+  function changeSensibility(innerHTML) {
+    if (innerHTML == "high sensibility") {selectedSensibility.innerHTML = "low sensibility"; sensibility = 15;}
+    else {selectedSensibility.innerHTML = "high sensibility"; sensibility = 50;}
+    player[spielerIch].selectedSensibility = selectedSensibility.innerHTML.toString().split(' sensibility')[0];
+    window.ondevicemotion = function(e) {
+      ax1 = event.accelerationIncludingGravity.x * sensibility;
+      ay1 = event.accelerationIncludingGravity.y * sensibility;
+    }
+  }
+  function confirmSetting() {
+    if (!player[spielerIch].selected) {
+      player[spielerIch].selected = true;
+      room.send({
+        message: {
+          "type": "ready",
+          data: player[spielerIch],
+          sender: spielerIch,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          pointsRequired: requiredPoints.value
+        }
+      });
+    }
+  }
+  var playerSame = {};
+  function showResults() {
+    var bestTime = {time: "10:10:09", player: -1};
+    for (var i = 0; i < Object.keys(times).length; i++) {
+      if (times[Object.keys(times)[i]] < bestTime.time) {bestTime.time = times[Object.keys(times)[i]]; bestTime.player = i};
+    }
+    for (var i = 0; i < Object.keys(times).length; i++) {
+      if (Object.keys(times)[i] == spielerIch) canvas.fillStyle = "blue";
+      if (i == bestTime.player) canvas.fillStyle = "red";
+      else if (Object.keys(times)[i] != spielerIch) canvas.fillStyle = "black";
+      canvas.font = "30px Georgia";
+      for (var i1 = 0; i1 < Object.keys(playerSame).length; i1++) {
+        if (Object.keys(playerSame)[i1] == Object.keys(times)[i]) {
+          canvas.fillText("time: " + times[Object.keys(times)[i]], 50, 50 + 70*i1);
+        }
+      }
+    }
+    player[Object.keys(times)[bestTime.player]].points++;
+    if (player[Object.keys(times)[bestTime.player]].points >= player.pointsRequired) {
+      room.send({
+        message: {
+          type: "gewonnen",
+          data: Object.keys(times)[bestTime.player]
+        }
+      });
+    }
+    setTimeout(function () {
+      canvas.clearRect(0, 0, screen.width, screen.height);
+      for (var i = 0; i < Object.keys(times).length; i++) {
+        if (Object.keys(times)[i] == spielerIch) canvas.fillStyle = "blue";
+        if (i == bestTime.player) canvas.fillStyle = "red";
+        else if (Object.keys(times)[i] != spielerIch) canvas.fillStyle = "black";
+        canvas.font = "30px Georgia";
+      for (var i1 = 0; i1 < Object.keys(playerSame).length; i1++) {
+        if (Object.keys(playerSame)[i1] == Object.keys(times)[i]) {
+          canvas.fillText("points: " + player[Object.keys(times)[i]].points + " / " + player.pointsRequired, 50, 50 + 70*i1);
+        }
+      }
+      }
+      player[spielerIch].selected = false;
+      player.confirmed = 0;
+      settings.style.display = "inline";
+      times = {};
+    }, 3000);
+  }
+  if (window.DeviceMotionEvent != undefined) {
+  window.ondevicemotion = function(e) {
+    ax1 = event.accelerationIncludingGravity.x * 5;
+    ay1 = event.accelerationIncludingGravity.y * 5;
+  }
+  var sphereIch = -1;
+  setInterval(function() {
+    var landscapeOrientation = screen.width;
+    if (landscapeOrientation) {
+      vx1 = vx1 + ay1;
+      vy1 = vy1 + ax1;
+      vx2 = vx2 + ay1;
+      vy2 = vy2 + ax1;
+    } else {
+      vy1 = vy1 - ay1;
+      vx1 = vx1 + ax1;
+      vy2 = vy2 - ay1;
+      vx2 = vx2 + ax1;
+    }
+    vx1 = vx1 * 0.98;
+    vy1 = vy1 * 0.98;
+    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
+    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
+
+    vx2 = vx2 * 0.98;
+    vy2 = vy2 * 0.98;
+    y2 = parseInt(y2 + vy2 / 30);
+    x2 = parseInt(x2 + vx2 / 30);
+    //  if (scrollY > 0) document.getElementById('sphere1').style.display = "none";
+    if (player[spielerIch] && player[spielerIch].position && sphereIch > -1) boundingBoxCheck();
+    // sphere1.style.top = y1 + "px";
+    // sphere1.style.left = player[spielerIch].position.x + "px";
+    for (var i = 1; i < AnzahlSpieler + 1 && player[Object.keys(playerSame)[i - 1]] && player[Object.keys(playerSame)[i - 1]].position; i++) {
+      document.getElementById('sphere' + i).style.top = player[Object.keys(playerSame)[i - 1]].position.y + "px";
+      document.getElementById('sphere' + i).style.left = player[Object.keys(playerSame)[i - 1]].position.x + "px";
+
+      document.getElementById('sphere' + i).style.width = 77;
+      document.getElementById('sphere' + i).style.height = 77;
+      //sphere1.style.width = 20;
+      //sphere1.style.height = 20;
+      if (Object.keys(playerSame)[i - 1] == spielerIch) sphereIch = i;
+    }
+    if (player[spielerIch] && player[spielerIch].position && sphereIch > -1) {
+    var numbers = [
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) - 7, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2],
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y - 8],
+      [player[spielerIch].position.x + JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) - 7],
+      [player[spielerIch].position.x - 10, player[spielerIch].position.y + JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2]
+    ]
+    var bouncePoints = [
+    [player[spielerIch].position.x + 61, player[spielerIch].position.y - 5],
+    [player[spielerIch].position.x + 61, player[spielerIch].position.y - + 55],
+
+    [player[spielerIch].position.x - 11, player[spielerIch].position.y - 5],
+    [player[spielerIch].position.x - 11, player[spielerIch].position.y + 55],
+
+    [player[spielerIch].position.x + 9, player[spielerIch].position.y - 7],
+    [player[spielerIch].position.x + 9, player[spielerIch].position.y + 55],
+
+    [player[spielerIch].position.x + 51, player[spielerIch].position.y + 67],
+    [player[spielerIch].position.x, player[spielerIch].position.y + 67]//,
+    /*
+    nach links:  x1 + 61
+                 y1 - 5
+           bis   y1 + 55
+    nach rechts:
+                 x1 - 11
+                 y1 - 5
+            bis: y1 + 55
+    nach unten:
+                 x1 + 9
+                 y1 - 7
+            bis: x1 + 55
+    nach oben:   x1 + 51
+                 y1 + 67
+            bis: x + 0
+
+    nach unten links:  x1 + 60 -
+                        53
+                       y1 - 5 -
+                        -15
+    nach unten rechts: x1 - 10 -
+                        5
+                       y1 -7 -
+                        5
+    nach oben rechts: y1 + 55 -
+                        66
+                      x1 - 10 -
+                        0
+    nach oben links: x1 + 61 -
+                      53
+                     y1 + 55 -
+                      65
+    */
+    ];
+    for (var i = 0; i < 8; i++) {
+      var colour = ""
+      data = canvas.getImageData(bouncePoints[i][0], bouncePoints[i][1], 1, 1);
+      red = data.data[0];
+      green = data.data[1];
+      blue = data.data[2];
+      alpha = data.data[3];
+      if (red == 255 && green == 192 && blue == 203) {
+        colour = "pink";
+      }
+      if (red == 255 && green == 0 && blue == 0) {
+        colour = "red";
+      }
+      if (red == 0 && green == 0 && blue == 255) {
+        colour = "blue";
+      }
+      if (red == 0 && green == 228 && blue == 0) {
+        colour = "green"
+      }
+      if (i == 0 || i == 1 && colour != "") console.log("nach links");
+      if (i == 2 || i == 3 && colour != "") console.log("nach rechts");
+      if (i == 4 || i == 5 && colour != "") console.log("nach unten");
+      if (i == 6 || i == 7 && colour != "") console.log("nach oben");
+    }
+    for (var i = 0; i < 4; i++) {
+      data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
+      red = data.data[0];
+      green = data.data[1];
+      blue = data.data[2];
+      alpha = data.data[3];
+      if (red == 255 && blue == 0 && alpha == 255 && green == 255) {
+        console.log("geschafft!");
+        startPause();
+        canvas.clearRect(0, 0, lowestSize.x, lowestSize.y);
+        room.send({
+          message: {
+            "type": "endRound",
+            sender: spielerIch,
+            time: mins + ":" + secs + ":" + "0" + tenths
+          }
+        });
+      }
+    }
+  }
+  }, 25);
+}
+
+
+    function boundingBoxCheck() {
+      if (player[spielerIch].position.x < 0) { // hit left
+        player[spielerIch].position.x = 0;
+        vx1 = -vx1;
+      }
+      if (player[spielerIch].position.y < 0) { // hit up
+        player[spielerIch].position.y = 0;
+        vy1 = -vy1;
+      }
+      if (player[spielerIch].position.x > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2) { // hitright
+        player[spielerIch].position.x = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2;
+        vx1 = -vx1;
+      }
+      if (player[spielerIch].position.y > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2) { // hit down
+        player[spielerIch].position.y = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2;
+        vy1 = -vy1;
+      }
+      if (x2 < 0) {
+        x2 = 0;
+        vx2 = -vx2;
+      }
+      if (y2 < 0) {
+        y2 = 0;
+        vy2 = -vy2;
+      }
+      if (x2 > window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2) {
+        x2 = window.innerWidth - JSON.parse(document.getElementById('sphere' + sphereIch).style.width.toString().split('px')[0]) / 2;
+        vx2 = -vx2;
+      }
+      if (y2 > screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2) {
+        y2 = screen.height - JSON.parse(document.getElementById('sphere' + sphereIch).style.height.toString().split('px')[0]) / 2;
+        vy2 = -vy2;
+      }
+    }
+
+var time = 0;
+var running = 0;
+
+function startPause() {
+if (running == 0) {
+  running = 1;
+  time = 0;
+  increment();
+}
+else {
+  running = 0;
+}
+}
+function reset() {
+running = 0;
+timer = 0;
+}
+var mins = 0;
+var secs = 0;
+var tenths = 0;
+function increment() {
+if (running == 1) {
+setTimeout(function () {
+  time++;
+   mins = Math.floor(time/10/60);
+   secs = Math.floor(time/10);
+   secs -= 60*mins;
+   tenths = time % 10;
+  if (mins < 10) {
+    mins = "0" + mins
+  }
+  if (secs < 10) {
+    secs = "0" + secs;
+  }
+  increment();
+}, 100);
+}
+}
+
+function visible(list) {
+  for (var i = 0; i < list.length; i++) {
+    document.getElementById(list[i][0]).style.display = list[i][1];
+  }
+}
+</script>
