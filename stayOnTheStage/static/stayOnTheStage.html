@@ -436,29 +436,10 @@
                       65
     */
     ];
-    for (var i = 0; i < 8; i++) {
-      var colour = ""
-      data = canvas.getImageData(bouncePoints[i][0], bouncePoints[i][1], 1, 1);
-      red = data.data[0];
-      green = data.data[1];
-      blue = data.data[2];
-      alpha = data.data[3];
-      if (red == 255 && green == 192 && blue == 203) {
-        colour = "pink";
+    for (var i = 1; i < AnzahlSpieler + 1; i++) {
+      if (player[spielerIch].position.x + 77 == player[Object.keys(playerSame[i])[i]].position.x + 61 && player[spielerIch].position.y + 77*2 > player[Object.keys(playerSame[i])[i]].position.y - 5 && player[spielerIch].position.y + 77/2 < player[Object.keys(playerSame[i])[i]].position.y + 55) {
+        console.log("nach links " + colours[i - 1]);
       }
-      if (red == 255 && green == 0 && blue == 0) {
-        colour = "red";
-      }
-      if (red == 0 && green == 0 && blue == 255) {
-        colour = "blue";
-      }
-      if (red == 0 && green == 228 && blue == 0) {
-        colour = "green"
-      }
-      if (i == 0 || i == 1 && colour != "") console.log("nach links");
-      if (i == 2 || i == 3 && colour != "") console.log("nach rechts");
-      if (i == 4 || i == 5 && colour != "") console.log("nach unten");
-      if (i == 6 || i == 7 && colour != "") console.log("nach oben");
     }
     for (var i = 0; i < 4; i++) {
       data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
