@@ -449,20 +449,21 @@
       }
       if (player[spielerIch].position.x + 77 > player[Object.keys(playerSame)[i - 1]].position.x - 11 && player[spielerIch].position.x + 77/2 < player[Object.keys(playerSame)[i - 1]].position.x + 51 && player[spielerIch].position.y + 77/2 > player[Object.keys(playerSame)[i - 1]].position.y + 67 && player[spielerIch].position.y + 77/2 < player[Object.keys(playerSame)[i - 1]].position.y + 67 + 30 && Object.keys(playerSame)[i - 1] != spielerIch) {
         console.log("nach oben: " + colours[i - 1]);
-        var zähler = 0;
-        bouncingInt = setInterval(function () {
-          player[Object.keys(playerSame)[i - 1]].position.y -= 0.1;
-          zähler++;
-          if (zähler > 333) {
-            zähler = 0;
-            clearInterval(bouncingInt);
-            bouncingInt = setInterval(function () {
-              player[Object.keys(playerSame)[i - 1]].position.y -= 0.3;
-              zähler++;
-              if (zähler > 555) clearInterval(bouncingInt);
-            }, 50);
-          }
-        }, 50);
+        bounceAufträge.push({x: 0, y: -1, i: i, zähler: 0});
+        // var zähler = 0;
+        // bouncingInt = setInterval(function () {
+        //   player[Object.keys(playerSame)[i - 1]].position.y -= 0.1;
+        //   zähler++;
+        //   if (zähler > 333) {
+        //     zähler = 0;
+        //     clearInterval(bouncingInt);
+        //     bouncingInt = setInterval(function () {
+        //       player[Object.keys(playerSame)[i - 1]].position.y -= 0.3;
+        //       zähler++;
+        //       if (zähler > 555) clearInterval(bouncingInt);
+        //     }, 50);
+        //   }
+        // }, 50);
       }
     }
     for (var i = 0; i < 4; i++) {
@@ -487,7 +488,23 @@
   }
   }, 25);
 }
-
+  setInterval(function () {
+    for (var i = 0; i < bounceAufträge.length; i++) {
+      if (bounceAufträge[i].zähler < 333) {
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 0.1*bounceAufträge[i].y;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 0.1*bounceAufträge[i].x;
+      }
+      else if (bounceAufträge[i].zähler < 888) {
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.y += 0.3*bounceAufträge[i].y;
+        player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position.x += 0.3*bounceAufträge[i].x;
+      }
+      else {
+        bounceAufträge.splice(i, 1);
+      }
+      bounceAufträge[i].zähler++;
+    }
+  }, 50);
+  var bounceAufträge = [];
     function boundingBoxCheck() {
       if (player[spielerIch].position.x < 0) { // hit left
         player[spielerIch].position.x = 0;
