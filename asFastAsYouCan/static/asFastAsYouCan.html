@@ -235,7 +235,7 @@
     canvas.fillRect(playerPosition.data.x, playerPosition.data.y, 50, 50);
   }, 10);
   player[spielerIch].position.x = playerPosition.x;
-  y1 = playerPosition.y;
+  player[spielerIch].position.y = playerPosition.y;
   startPause();
   playerScnyInt =  setInterval(function () {
     room.send({
@@ -358,7 +358,7 @@
     }
     vx1 = vx1 * 0.98;
     vy1 = vy1 * 0.98;
-    y1 = parseInt(y1 + vy1 / 50);
+    player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
     if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(x1 + vx1 / 50);
 
     vx2 = vx2 * 0.98;
@@ -376,10 +376,10 @@
       document.getElementById('sphere' + i).style.left = player[Object.keys(playerSame)[i - 1]].position.x + "px";
     }
     var numbers = [
-      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) - 7, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2],
-      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 - 8],
-      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, y1 + JSON.parse(sphere1.style.height.replace("px", "")) - 7],
-      [x1 - 10, y1 + JSON.parse(sphere1.style.height.replace("px", "")) / 2]
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) - 7, player[spielerIch].position.y + JSON.parse(sphere1.style.height.replace("px", "")) / 2],
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, player[spielerIch].position.y - 8],
+      [x1 + JSON.parse(sphere1.style.width.replace("px", "")) / 2, player[spielerIch].position.y + JSON.parse(sphere1.style.height.replace("px", "")) - 7],
+      [x1 - 10, player[spielerIch].position.y + JSON.parse(sphere1.style.height.replace("px", "")) / 2]
     ]
     for (var i = 0; i < 4; i++) {
       data = canvas.getImageData(numbers[i][0], numbers[i][1], 1, 1);
@@ -409,16 +409,16 @@
         player[spielerIch].position.x = 0;
         vx1 = -vx1;
       }
-      if (y1 < 0) { // hit up
-        y1 = 0;
+      if (player[spielerIch].position.y < 0) { // hit up
+        player[spielerIch].position.y = 0;
         vy1 = -vy1;
       }
       if (player[spielerIch].position.x > window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2) { // hitright
         player[spielerIch].position.x = window.innerWidth - JSON.parse(sphere1.style.width.toString().split('px')[0]) / 2;
         vx1 = -vx1;
       }
-      if (y1 > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) { // hit down
-        y1 = screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2;
+      if (player[spielerIch].position.y > screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2) { // hit down
+        player[spielerIch].position.y = screen.height - JSON.parse(sphere1.style.height.toString().split('px')[0]) / 2;
         vy1 = -vy1;
       }
       if (x2 < 0) {
