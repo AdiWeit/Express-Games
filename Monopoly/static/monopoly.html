@@ -224,7 +224,7 @@
     }
     if (message.type == undefined && message == spielerIch + " hat gewonnen!!!") {
       console.log("Du hast gewonnen!!!");
-      audio = new Audio("https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+      audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
       setTimeout(function() {
         canvas.fillStyle = "green";
         canvas.fillRect(0, 0, 1847, 973)
@@ -292,7 +292,7 @@
       spielerIch = message.data;
       if (message.newRound != true)
        {
-        if (confirm("wollen sie die vorherige Runde weiterspielen?"))  {
+        if (JSON.parse(localStorage.getItem('spielerAktuellMonopoly')) != undefined && JSON.parse(localStorage.getItem('spielerAktuellMonopoly')) != "undefined" && confirm("wollen sie die vorherige Runde weiterspielen?"))  {
           for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))).length; i++) {
             for (var i1 = 0; i1 < Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]]).length; i1++) {
               spieler[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]][Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]])[i1]] = JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]][Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly'))[Object.keys(JSON.parse(localStorage.getItem('spielerMonopoly')))[i]])[i1]];
@@ -578,7 +578,7 @@ cell.push(row.insertCell(0));
 for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   cell.push(row.insertCell(i1));
   if (i1 == 0) cell[cell.length - 1].innerHTML = "Spieler";
-  else cell[cell.length - 1].innerHTML = Object.keys(points[0])[i1 - 1];
+  else cell[cell.length - 1].innerHTML = Object.keys(points[0])[i1 - 1].toUpperCase();
 }
   }
   var finished = false;
