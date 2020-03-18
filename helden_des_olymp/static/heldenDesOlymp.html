@@ -169,7 +169,7 @@ function serverDatenLöschen() {
     };
     if (message.type == "player1" || message.type == "player2") {
       SpielerId = message.data;
-      if (message.rejoin && confirm("wollen sie die vorherige Runde weiterspielen?")) {
+      if (message.rejoin &&JSON.parse(localStorage.getItem('kartenZiehenOlymp')) != undefined && JSON.parse(localStorage.getItem('kartenZiehenOlymp')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
         kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenOlymp'));
         MitteSpieler2 = JSON.parse(localStorage.getItem('MitteSpieler2Olymp'));
         MitteSpieler1 = JSON.parse(localStorage.getItem('MitteSpieler1Olymp'));
@@ -401,7 +401,7 @@ function serverDatenLöschen() {
       Sperren[2] = true;
       console.log("Du hast gewonnen!!!");
       clearInterval(koordinatenCheck);
-      audio = new Audio("http://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+      audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
       setTimeout(function() {
         canvas.fillStyle = "green";
         canvas.fillRect(0, 0, 1847, 973)
