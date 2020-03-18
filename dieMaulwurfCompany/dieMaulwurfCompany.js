@@ -94,7 +94,7 @@ class dieMaulwurfCompany {
         "data": this.spielerOnline
       });
       var Reihenfolge = [this.player1.id, this.player2.id];
-      if (this.spielerOnline > 2) {
+      if (/*this.spielerOnline > 2*/ this.player3) {
         Reihenfolge.push(this.player3.id);
         this.send(this.player3.client, {
           "type": "spielerDu",
@@ -102,7 +102,7 @@ class dieMaulwurfCompany {
           newRound: true
         });
       }
-      if (this.spielerOnline > 3) {
+      if (/*this.spielerOnline > 3*/ this.player4) {
         Reihenfolge.push(this.player4.id);
         this.send(this.player4.client, {
           "type": "spielerDu",
@@ -122,7 +122,8 @@ class dieMaulwurfCompany {
       });
       this.broadcast({
         "type": "Reihenfolge",
-        "data": Reihenfolge
+        "data": Reihenfolge,
+        join: true
       });
     }
 
@@ -222,12 +223,19 @@ class dieMaulwurfCompany {
       Reihenfolge[0] = ablage;
       this.broadcast({
         "type": "Reihenfolge",
-        data: Reihenfolge
+        data: Reihenfolge,
+        join: false
       });
     } else {
       this.broadcast(data.message);
     }
-    if (data.message.type == "endGame") {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
+    if (data.message.type == "endGame"/* || data.message.type == "gewonnen"*/) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
+    if (data.message.type == "gewonnen") {
+      this.broadcast({
+        "type": "endGame",
+        alert: false
+      });
+    }
   }
 
 
