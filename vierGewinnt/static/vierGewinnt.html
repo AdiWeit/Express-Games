@@ -485,7 +485,7 @@
       Gewinncheck();
     }
     }
-    if (document.getElementById('modi').value != "Plätchen" && checkfieldMouseDown()) B(checkfieldMouseDown()[0] + "-0")
+    if (document.getElementById('modi').value != "Plätchen" && checkfieldMouseDown() && Felder[JSON.parse(checkfieldMouseDown()[0])] == "-") B(checkfieldMouseDown()[0] + "-0")
   }
 
   window.addEventListener('mousedown', function() {
@@ -569,7 +569,7 @@
 
   function Endbildschirm() {
     Start = false;
-    audio = new Audio("http://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3").play();
+    audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
     /*  Ablage = Koordinaten[zähler];
       eins = Ablage.toString().split('');
       diff = ((1) * Math.PI * 2 * 10).toFixed(2)
