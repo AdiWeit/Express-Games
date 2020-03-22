@@ -265,6 +265,7 @@
         if (spielerAktuell == spielerIch /* && spieler[spielerIch].kartenIch.length == 5 */ ) {
           setTimeout(function() {
             textButton = "Spielfeld";
+            Layout();
           }, 1000);
           if (AnzahlSpieler < 4) {
             window.scroll(0, 73);
@@ -305,6 +306,7 @@
           spielerAktuell = JSON.parse(localStorage.getItem('spielerAktuellMonopoly')); restlicheZüge = JSON.parse(localStorage.getItem('restlicheZügeMonopoly')); Layout();
           kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenMonopoly'));
           AnzahlSpieler = localStorage.getItem('AnzahlSpielerMonopoly');
+          AblageListe[2] = JSON.parse(localStorage.getItem('AblageListe[2]Monopol'));
         }
         else {
           room.send({
@@ -315,8 +317,8 @@
         }
       }
       else {
-        if (!localStorage.getItem("name")) {spieler[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("name", spieler[spielerIch].name);}
-        else spieler[spielerIch].name = localStorage.getItem("name");
+        if (!localStorage.getItem("nameMonopoly")) {spieler[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameMonopoly", spieler[spielerIch].name);}
+        else spieler[spielerIch].name = localStorage.getItem("nameMonopoly");
         room.send({
           message: {
             "type": "syncPlayerName",
@@ -324,10 +326,21 @@
             player: spielerIch
           }
         });
+        spieler.syncedNames = 0;
+        spieler[spielerIch].namesChanged = JSON.parse(localStorage.getItem("namesChangedMonopoly"));
       }
     }
     if (message.type == "syncPlayerName") {
       spieler[message.player].name = message.name;
+      spieler[message.player].realName = message.name
+      spieler.syncedNames++;
+      if (spieler.syncedNames == AnzahlSpieler) {
+        for (var i = 0; JSON.parse(localStorage.getItem("namesChangedMonopoly")) && i < Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly"))).length; i++) {
+          for (var i1 = 0; i1 < AnzahlSpieler; i1++) {
+            if (Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i] == (spieler[i1].name)) spieler[i1].name = JSON.parse(localStorage.getItem("namesChangedMonopoly"))[Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i]];
+          }
+        }
+      }
     }
     if (message.type == "Bezahlen vollständig" && spielerIch == spielerAktuell) {
       AblageListe[4][0] = ["beendet"];
@@ -385,7 +398,7 @@
         spieler[spielerIch].einkommen.push(1);
       }
         datenAktuallisieren(false, true);
-      }, 5000);
+      }, 9000);
     }
     if (message.type == "gebotBeendet") spieler[spielerIch].coverMoney = false;
     if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1) {
@@ -875,8 +888,25 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     // canvas.fillText(spieler[i].name, 10, 55 + 33*(AnzahlSpieler - 1) - i*33);
     for (var i = 0; i < AnzahlSpieler; i++) { // renamePlayer
       if (xMaus > 10 && yMaus > 44 + 33*(AnzahlSpieler - 1) - i*33 && yMaus < 44 + 33*(AnzahlSpieler - 1) - i*33 + 22) {
-        if (i == spielerIch && confirm("Sind sie sich sicher, dass sie sich umbenennen wollen?")) {spieler[spielerIch].name = prompt("Wie wollen sie sich nennen?"); localStorage.setItem("name", spieler[spielerIch].name);}
-        else if (confirm("Sind sie sich sicher, dass sie den Namen für diese Runde ändern wollen?")) spieler[i].name = prompt("Wie soll der Spieler heißen?");
+        if (i == spielerIch && confirm("Sind sie sich sicher, dass sie sich umbenennen wollen?")) {
+          spieler[spielerIch].name = prompt("Wie wollen sie sich nennen?");
+          localStorage.setItem("nameMonopoly", spieler[spielerIch].name);
+          room.send({
+            message: {
+              "type": "syncPlayerName",
+              name: spieler[spielerIch].name,
+              player: spielerIch
+            }
+          });
+        }
+        else if (confirm("Wollen sie den Namen nur für diese Runde ändern?")) spieler[i].name = prompt("Wie soll der Spieler heißen?");
+        else if (confirm("Sind sie sich sicher, dass sie den Namen dauerhauft ersetzen wollen?")) {
+          if (!spieler[spielerIch].namesChanged) spieler[spielerIch].namesChanged = {};
+          var newName = prompt("Wie soll der Spieler heißen?");
+          spieler[spielerIch].namesChanged[spieler[i].realName] = newName;
+          spieler[i].name = newName;
+          localStorage.setItem("namesChangedMonopoly", JSON.stringify(spieler[spielerIch].namesChanged));
+      }
       }
     }
     if (xMaus > 17 && xMaus < 17 + 218 && yMaus > 530 && yMaus < 520 + 60 && textButton == "Meine Karten") {
@@ -1325,6 +1355,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   else {
     alert("NixDa am laufen! Sie müssen die Entscheidung des Gegners abwarten, bevor sie weiter machen können!")
   }
+  if (AblageListe[2] != "beendet") localStorage.setItem("AblageListe[2]Monopoly", JSON.stringify(AblageListe[2]));
   });
   function askNixDa() {
     room.send({
