@@ -135,7 +135,7 @@
   var tab = [];
   var liIndex;
 
-
+  var nixDaType = "";
   var gerät;
 
   var w = window,
@@ -305,7 +305,7 @@
       //    spieler[0] = JSON.parse(localStorage.getItem('spielerMonopoly'))[0]; spieler[1] = JSON.parse(localStorage.getItem('spielerMonopoly'))[1]; spieler[2] = JSON.parse(localStorage.getItem('spielerMonopoly'))[2]; spieler[3] = JSON.parse(localStorage.getItem('spielerMonopoly'))[3];
           spielerAktuell = JSON.parse(localStorage.getItem('spielerAktuellMonopoly')); restlicheZüge = JSON.parse(localStorage.getItem('restlicheZügeMonopoly')); Layout();
           kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenMonopoly'));
-          AnzahlSpieler = localStorage.getItem('AnzahlSpielerMonopoly');
+          AnzahlSpieler = JSON.parse(localStorage.getItem('AnzahlSpielerMonopoly'));
           AblageListe[2] = JSON.parse(localStorage.getItem('AblageListe[2]Monopol'));
         }
         else {
@@ -421,6 +421,7 @@
     if (message.type == "NixDa") {
       if (message.Status[0] == "abgebrochen" || message.Status[0] == "richtigerSpielerEmpfangen") {
         zustand[0] = "abgebrochen";
+        spieler[spielerIch].nixDa = false;
         setTimeout(function () {
           zustand[0] = "inGame";
         }, 1000);
@@ -888,7 +889,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     // canvas.fillText(spieler[i].name, 10, 55 + 33*(AnzahlSpieler - 1) - i*33);
     for (var i = 0; i < AnzahlSpieler; i++) { // renamePlayer
       if (xMaus > 10 && yMaus > 44 + 33*(AnzahlSpieler - 1) - i*33 && yMaus < 44 + 33*(AnzahlSpieler - 1) - i*33 + 22) {
-        if (i == spielerIch && confirm("Sind sie sich sicher, dass sie sich umbenennen wollen?")) {
+        if (i == spielerIch && confirm("Sind sie sich sicher, dass sie sich umbenennen wollen? (Wenn sie sich nur für diese Runde umbenennen wollen, wählen sie abbrechen.)")) {
           spieler[spielerIch].name = prompt("Wie wollen sie sich nennen?");
           localStorage.setItem("nameMonopoly", spieler[spielerIch].name);
           room.send({
@@ -899,8 +900,18 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
             }
           });
         }
-        else if (confirm("Wollen sie den Namen nur für diese Runde ändern?")) spieler[i].name = prompt("Wie soll der Spieler heißen?");
-        else if (confirm("Sind sie sich sicher, dass sie den Namen dauerhauft ersetzen wollen?")) {
+        else if (i == spielerIch && confirm("Wollen sie ihren Namen wirklich für diese Runde ändern?")) {
+          spieler[spielerIch].name = prompt("Wie wollen sie sich nennen?");
+          room.send({
+            message: {
+              "type": "syncPlayerName",
+              name: spieler[spielerIch].name,
+              player: spielerIch
+            }
+          });
+        }
+        else if (i != spielerIch && confirm("Wollen sie den Namen nur für diese Runde ändern? (sie können ihn auch dauerhauft ersetzen, wenn sie abbrechen auswählen.)")) spieler[i].name = prompt("Wie soll der Spieler heißen?");
+        else if (i != spielerIch && confirm("Sind sie sich sicher, dass sie den Namen dauerhauft ersetzen wollen?")) {
           if (!spieler[spielerIch].namesChanged) spieler[spielerIch].namesChanged = {};
           var newName = prompt("Wie soll der Spieler heißen?");
           spieler[spielerIch].namesChanged[spieler[i].realName] = newName;
@@ -923,7 +934,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     } else if (AblageListe[4][0] == "Warten Bezahlen" && xMaus > 25 && xMaus < 25 + 218 && yMaus > 530 + 70 && yMaus < 520 + 60 + 70 && spielerIch == spielerAktuell) {
       alert("Bitte warten sie auf die Bezahlung des Gegners!")
     }
-    if (!(AblageListe[4][0].includes("ein") || AblageListe[4][0].includes("für") || AblageListe[4][0].includes("gegen"))) {
+    if (!(AblageListe[4][0].includes("ein") || AblageListe[4][0].includes("für") || AblageListe[4][0].includes("gegen") || nixDaType.includes("ein") || nixDaType.includes("für") || nixDaType.includes("gegen"))) {
     AblageListe[2] = -1;
     koordinatenCheck();
     if (AblageListe[4][0] == "Auswahl Karten ablegen" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
@@ -963,8 +974,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       } else if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
         AblageListe[4][0] = "eine Schlau Geklaut Karte";
       } else {
-        schlauGeklaut();
-        if (AblageListe[4][0] == "Schlau Geklaut") AblageListe[4][0] = "beendet";
+        nixDaType = "eine Schlau Geklaut Karte";
+        setTimeout(function () {
+          schlauGeklaut();
+          if (AblageListe[4][0] == "Schlau Geklaut") AblageListe[4][0] = "beendet";
+          nixDaType = "beendet";
+        }, (Math.floor(Math.random() * 3333) + 2222));
       }
     } else if (AblageListe[4][0] == "Haus" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length == spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
       Haus();
@@ -974,15 +989,23 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
         AblageListe[4][0] = "eine Übernahme Karte";
       } else {
-        uebernahme();
-        if (AblageListe[4][0] == "Übernahme") AblageListe[4][0] = "beendet";
+        setTimeout(function () {
+          uebernahme();
+          if (AblageListe[4][0] == "Übernahme") AblageListe[4][0] = "beendet";
+          nixDaType = "beendet";
+        }, (Math.floor(Math.random() * 3333) + 2222));
+        nixDaType = "eine Übernahme Karte";
       }
     } else if (AblageListe[4][0] == "Geldhai" && AblageListe[3] < AnzahlSpieler) {
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
         AblageListe[4][0] = "einen Geldhai";
       } else {
-        geldhai();
-        if (AblageListe[4][0] == "Geldhai") AblageListe[4][0] = "beendet";
+        nixDaType = "einen Geldhai";
+        setTimeout(function () {
+          geldhai();
+          if (AblageListe[4][0] == "Geldhai") AblageListe[4][0] = "beendet";
+          nixDaType = "beendet";
+        }, (Math.floor(Math.random() * 3333) + 2222));
       }
 
     } else if (AblageListe[4][0] == "karteKlauen" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch == false) {
@@ -991,11 +1014,15 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       } else if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
         AblageListe[4][0] = "einen Zwangstausch";
       } else {
-        schlauGeklaut();
-        setTimeout(function() {
-          AblageListe[6] = AblageListe[3];
-          AblageListe[4][0] = "karteWeggeben";
-        }, 573);
+        nixDaType = "einen Zwangstausch";
+        setTimeout(function () {
+          schlauGeklaut();
+          setTimeout(function() {
+            AblageListe[6] = AblageListe[3];
+            AblageListe[4][0] = "karteWeggeben";
+          }, 573);
+          nixDaType = "beendet";
+        }, (Math.floor(Math.random() * 3333) + 2222));
       }
     } else if (AblageListe[4][0] == "spielerKarteWeggeben" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch == false) {
       karteWeggeben();
@@ -1012,8 +1039,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da")) && AblageListe[3] == spielerIch == false) {
         AblageListe[4][0] = "Miete gegen sie";
       } else {
-        Miete();
-        if (AblageListe[4][0] == "Spieler Miete") AblageListe[4][0] = "beendet";
+        nixDaType = "Miete gegen sie";
+        setTimeout(function () {
+          Miete();
+          if (AblageListe[4][0] == "Spieler Miete") AblageListe[4][0] = "beendet";
+          nixDaType = "beendet";
+        }, (Math.floor(Math.random() * 3333) + 2222));
       }
 
     } else if (AblageListe[4][0] == "Hotel" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length == spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
@@ -1117,9 +1148,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           if (AnzahlSpieler == 2) {
             AblageListe[3] = spielerGegner;
             if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
-              AblageListe[4][0] = "einen Geldhai"
+              AblageListe[4][0] = "einen Geldhai";
             } else {
-              geldhai();
+              nixDaType = "einen Geldhai";
+              setTimeout(function () {
+                geldhai();
+                nixDaType = "beendet";
+              }, (Math.floor(Math.random() * 3333) + 2222));
             }
           } else {
             AblageListe[4][0] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
@@ -1163,7 +1198,11 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
                 //            AblageListe[2] = 0;
                 AblageListe[4][0] = "eine Schlau Geklaut Karte";
               } else {
-                schlauGeklaut();
+                nixDaType = "eine Schlau Geklaut Karte";
+                setTimeout(function () {
+                  schlauGeklaut();
+                  nixDaType = "beendet";
+                }, (Math.floor(Math.random() * 3333) + 2222));
               }
             } else {
               AblageListe[4][0] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
@@ -1205,10 +1244,14 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
                 AblageListe[2] = 0;
                 AblageListe[4][0] = "einen Zwangstausch";
               } else {
-                AblageListe[3] = spielerGegner;
-                AblageListe[2] = 0;
-                schlauGeklaut();
-                karteWeggeben();
+                nixDaType = "einen Zwangstausch";
+                setTimeout(function () {
+                  AblageListe[3] = spielerGegner;
+                  AblageListe[2] = 0;
+                  schlauGeklaut();
+                  karteWeggeben();
+                  nixDaType = "beendet";
+                }, (Math.floor(Math.random() * 3333) + 2222));
               }
             } else {
               AblageListe[4][0] = "karteKlauen";
@@ -1271,8 +1314,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
               if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
                 AblageListe[4][0] = "Miete gegen sie";
               } else {
-                AblageListe[3] = spielerGegner;
-                Miete();
+                nixDaType = "Miete gegen sie"
+                setTimeout(function () {
+                  AblageListe[3] = spielerGegner;
+                  Miete();
+                  nixDaType = "beendet";
+                }, (Math.floor(Math.random() * 3333) + 2222));
               }
             } else {
               AblageListe[4][0] = "Spieler Miete";
@@ -1322,7 +1369,11 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
               AblageListe[2] = 0;
               AblageListe[4][0] = "eine Übernahme Karte";
             } else {
-              uebernahme();
+              nixDaType = "eine Übernahme Karte";
+              setTimeout(function () {
+                uebernahme();
+                nixDaType = "beendet";
+              }, (Math.floor(Math.random() * 3333) + 2222));
             }
           } else {
             AblageListe[4][0] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
@@ -1417,10 +1468,17 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     }
     Layout();
   }
-
   function MieteAlle() {
+    if (zählerListe[2] == -1) {
+      AblageListe[4][0] = "Miete für alle";
+      setTimeout(function () {
+        if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
+        Layout();
+      }, (Math.floor(Math.random() * 3333) + 2222)*(AnzahlSpieler - 1));
+    }
     if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
       if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
+        spieler[spielerIch].nixDa = true;
         AblageListe[11] = zählerListe[2];
         AblageListe[3] = zählerListe[2];
         AblageListe[4][0] = "Miete für alle";
@@ -1445,7 +1503,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
          }
        } */
     zählerListe[2]++;
-    if (zählerListe[2] < AnzahlSpieler && AblageListe[4][0] == "Miete für alle" == false) {
+    if (zählerListe[2] < AnzahlSpieler && !spieler[spielerIch].nixDa) {
       MieteAlle();
     }
   }
@@ -1653,39 +1711,48 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   // function Fähigkeiten Ausspielen:
 
   function GeburtstagFunction() {
-    if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
-      if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
-        AblageListe[11] = zählerListe[2];
-        AblageListe[3] = zählerListe[2];
+      if (zählerListe[2] == -1) {
         AblageListe[4][0] = "einen Geburtstag";
-        console.log("ask nixDa (" + zählerListe[2] + ")");
-        askNixDa();
-      } else {
-        AblageListe[0] = 2;
-        AblageListe[3] = zählerListe[2];
-        console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
-        bezahlen();
-        spieler[spielerIch].einkommen[0] += 2;
-        spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+        setTimeout(function () {
+          if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
+          Layout();
+        }, (Math.floor(Math.random() * 3333) + 2222)*(AnzahlSpieler - 1));
       }
-      if (AblageListe[8] == "NixDaVollendet") {
-        AblageListe[8] = "beendet";
+      else if (zählerListe[2] != spielerIch/* && zählerListe[2] > -1*/) {
+        if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
+          AblageListe[11] = zählerListe[2];
+          AblageListe[3] = zählerListe[2];
+          AblageListe[4][0] = "einen Geburtstag";
+          spieler[spielerIch].nixDa = true;
+          console.log("ask nixDa (" + zählerListe[2] + ")");
+          askNixDa();
+        } else {
+          AblageListe[0] = 2;
+          AblageListe[3] = zählerListe[2];
+          console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
+          bezahlen();
+          spieler[spielerIch].einkommen[0] += 2;
+          spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+        }
+        if (AblageListe[8] == "NixDaVollendet") {
+          AblageListe[8] = "beendet";
+        }
+      }
+      /* else {
+         //  spieler[spielerIch].einkommen[0] += 2 * (AnzahlSpieler - 1);
+           zählerListe[1] = 0;
+           while (zählerListe[1] < AnzahlSpieler - 1) {
+             spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+             zählerListe[1]++;
+           }
+         } */
+      zählerListe[2]++;
+      if (zählerListe[2] < AnzahlSpieler && !spieler[spielerIch].nixDa) {
+        console.log("nextBirthday");
+        GeburtstagFunction();
       }
     }
-    /* else {
-       //  spieler[spielerIch].einkommen[0] += 2 * (AnzahlSpieler - 1);
-         zählerListe[1] = 0;
-         while (zählerListe[1] < AnzahlSpieler - 1) {
-           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
-           zählerListe[1]++;
-         }
-       } */
-    zählerListe[2]++;
-    if (zählerListe[2] < AnzahlSpieler && AblageListe[4][0] == "einen Geburtstag" == false) {
-      console.log("nextBirthday");
-      GeburtstagFunction();
-    }
-  }
+
 
   function Haus() {
     if (spieler[spielerIch].kartenMitte[AblageListe[2]][2].length == spieler[spielerIch].kartenMitte[AblageListe[2]][5].length) {
@@ -2110,6 +2177,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     else if (Object.keys(displayObject).includes(AblageListe[4][0])) {
       canvas.fillText(displayObject[AblageListe[4][0]], 10 + scrollX, 750 + 27);
     }
+    else if (nixDaType && nixDaType != "beendet") canvas.fillText(nixDaType, 10 + scrollX, 750 + 27);
     else {
       canvas.fillText(AblageListe[4][0], 10 + scrollX, 750 + 27);
     }
