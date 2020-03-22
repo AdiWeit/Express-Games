@@ -345,10 +345,8 @@
     if (message.type == "Bezahlen vollständig" && spielerIch == spielerAktuell) {
       AblageListe[4][0] = ["beendet"];
       alert("Bezahlung vollendet! Sie können nun weiterspielen, wenn sie noch Züge zur Verfügung haben.")
-      if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
-        Spielerwechsel();
-      }
-      else {
+      checkRundenende();
+      if (!((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet")) {
         datenAktuallisieren();
       }
     }
@@ -519,9 +517,7 @@
           }
         }
         }
-        if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
-          Spielerwechsel();
-        }
+        checkRundenende();
         setTimeout(function() {
           zustand[0] = "beendet";
         }, 2500);
@@ -598,6 +594,11 @@
       }, 700);
     }
   });
+  function checkRundenende() {
+    if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
+      Spielerwechsel();
+    }
+  }
   function showPoints(highest) {
 //document.getElementById('textur').style.display = "none";
 var cell = [ /*row.insertCell(0)*/ ];
@@ -1096,12 +1097,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][2];
         spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][2];
       }
-      if (AblageListe[3] > -1) {
-        restlicheZüge--;
-        console.log("restlich Züge: " + restlicheZüge);
-        spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
-        datenAktuallisieren();
-      }
+      checkZugZuEnde();
     } else if (AblageListe[4][0] == "beendet" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false) {
       if (spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenIch[AblageListe[2]][0] == "Straße") {
         console.log("Straße Ausspielen");
@@ -1381,12 +1377,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           }
         }
       }
-      if (AblageListe[3] > -1) {
-        restlicheZüge--;
-        console.log("restlich Züge: " + restlicheZüge);
-        spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
-        datenAktuallisieren();
-      }
+        checkZugZuEnde();
     } else if (AblageListe[4][0] == "Warten Bezahlen Gegner" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false) {
       alert("Bitte warten sie auf die Bezahlung des Gegners!")
     }
@@ -1395,9 +1386,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       console.log(AblageListe[2] + " - " + AblageListe[3]);
       askNixDa();
     }
-    if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
-      Spielerwechsel();
-    }
+    checkRundenende();
     /*    else if (AblageListe[4][0] == "Warten Bezahlen Gegner") {
           alert("Bitte warten sie auf die Bezahlung des Gegners!");
         } */
@@ -1408,6 +1397,24 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
   if (AblageListe[2] != "beendet") localStorage.setItem("AblageListe[2]Monopoly", JSON.stringify(AblageListe[2]));
   });
+  function checkZugZuEnde() {
+    if (AblageListe[3] > -1) {
+    if (!((nixDaType && nixDaType != "beendet") || AblageListe[4][0] != "beendet")) {
+    restlicheZüge--;
+    console.log("restlich Züge: " + restlicheZüge);
+    spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
+    datenAktuallisieren();
+  }
+    else {
+      setTimeout(function () {
+        restlicheZüge--;
+        console.log("restlich Züge: " + restlicheZüge);
+        spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
+        datenAktuallisieren();
+      }, (Math.floor(Math.random() * 3333) + 3333));
+    }
+  }
+  }
   function askNixDa() {
     room.send({
       message: {
@@ -1469,13 +1476,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     Layout();
   }
   function MieteAlle() {
-    if (zählerListe[2] == -1) {
-      AblageListe[4][0] = "Miete für alle";
-      setTimeout(function () {
-        if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
-        Layout();
-      }, (Math.floor(Math.random() * 3333) + 2222)*(AnzahlSpieler - 1));
-    }
+    // if (zählerListe[2] == -1) {
+    //   AblageListe[4][0] = "Miete für alle";
+    //   setTimeout(function () {
+    //     if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
+    //     Layout();
+    //   }, (Math.floor(Math.random() * 3333) + 2222);
+    // }
     if (zählerListe[2] == spielerIch == false && zählerListe[2] > -1) {
       if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
         spieler[spielerIch].nixDa = true;
@@ -1504,7 +1511,17 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
        } */
     zählerListe[2]++;
     if (zählerListe[2] < AnzahlSpieler && !spieler[spielerIch].nixDa) {
-      MieteAlle();
+      AblageListe[4][0] = "Miete für alle";
+      Layout();
+      if (zählerListe[2] == spielerIch) var timeOutTime = 0;
+      else var timeOutTime = (Math.floor(Math.random() * 3333) + 2222);
+        setTimeout(function () {
+          AblageListe[4][0] = "beendet";
+          MieteAlle();
+        }, timeOutTime);
+    }
+    if (zählerListe[2] == AnzahlSpieler) {
+      checkRundenende();
     }
   }
   function Miete() {
@@ -1711,14 +1728,14 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   // function Fähigkeiten Ausspielen:
 
   function GeburtstagFunction() {
-      if (zählerListe[2] == -1) {
-        AblageListe[4][0] = "einen Geburtstag";
-        setTimeout(function () {
-          if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
-          Layout();
-        }, (Math.floor(Math.random() * 3333) + 2222)*(AnzahlSpieler - 1));
-      }
-      else if (zählerListe[2] != spielerIch/* && zählerListe[2] > -1*/) {
+      // if (zählerListe[2] == -1) {
+      //   AblageListe[4][0] = "einen Geburtstag";
+      //   setTimeout(function () {
+      //     if (!spieler[spielerIch].nixDa) AblageListe[4][0] = "beendet";
+      //     Layout();
+      //   }, (Math.floor(Math.random() * 3333) + 2222);
+      // }
+    /*else */if (zählerListe[2] != spielerIch && zählerListe[2] > -1) {
         if (zählerListe[2] < AnzahlSpieler && AblageListe[8] == "NixDaVollendet" == false && spieler[zählerListe[2]].kartenIch.some(x => x.includes("Nix Da"))) {
           AblageListe[11] = zählerListe[2];
           AblageListe[3] = zählerListe[2];
@@ -1748,8 +1765,18 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
          } */
       zählerListe[2]++;
       if (zählerListe[2] < AnzahlSpieler && !spieler[spielerIch].nixDa) {
+        AblageListe[4][0] = "einen Geburtstag";
+        Layout();
         console.log("nextBirthday");
-        GeburtstagFunction();
+        if (zählerListe[2] == spielerIch) var timeOutTime = 0;
+        else var timeOutTime = (Math.floor(Math.random() * 3333) + 2222);
+          setTimeout(function () {
+            AblageListe[4][0] = "beendet";
+            GeburtstagFunction();
+          }, timeOutTime);
+      }
+      if (zählerListe[2] == AnzahlSpieler) {
+        checkRundenende();
       }
     }
 
@@ -1878,9 +1905,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       this.kartenMitte = [];
       this.einkommen = [0];
     }
-    LayoutKarten(karten) {
+    LayoutKarten(karten, i) {
       // Karten Spielfeld sortieren:
-      if (!(textButton == "Spielfeld" && zählerListe[2] == spielerIch)) {
+      if (!(textButton == "Spielfeld" && i == spielerIch)) {
         zählerListe[0] = 0;
         AblageListe[0] = [];
         while (zählerListe[0] < karten.length) {
@@ -1897,7 +1924,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           karten[zählerListe[0]].pop();
           zählerListe[0]++;
         }
-        spieler[zählerListe[2]].kartenMitte = karten;
+        spieler[i].kartenMitte = karten;
       }
 
       this.kartenIch.sort();
@@ -1905,21 +1932,21 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       canvas.fillRect(123 + 123 + 10, 620 - koordinaten[2], 50, 100)
       canvas.font = "25px Georgia";
       canvas.fillStyle = "#DF7401";
-      if (zählerListe[2] == spielerIch) {
+      if (i == spielerIch) {
         canvas.fillStyle =  "#0431B4";
-      } else if (zählerListe[2] == spielerAktuell) {
+      } else if (i == spielerAktuell) {
         canvas.fillStyle =  "#DF0101";
       } else {
         canvas.fillStyle = "orange";
       }
-      if (!(spieler[spielerIch].coverMoney && zählerListe[2] != spielerIch)) canvas.fillText(this.einkommen[0] + "€", 145 + 123, 675 - koordinaten[2])
+      if (!(spieler[spielerIch].coverMoney && i != spielerIch)) canvas.fillText(this.einkommen[0] + "€", 145 + 123, 675 - koordinaten[2])
       zählerListe[1] = 0;
       koordinaten[1] = -445 + 123;
       while (zählerListe[1] < karten.length) {
-        /*  if (zählerListe[2] == spielerIch) {
+        /*  if (i == spielerIch) {
             canvas.fillStyle = "#0431B4";
           }
-          else if (zählerListe[2] == spielerAktuell) {
+          else if (i == spielerAktuell) {
             canvas.fillStyle = "#DF0101";
           }
           else { */
@@ -2193,28 +2220,27 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       canvas.font = "30px Georgia";
       canvas.fillText("Runde beenden", 15 + 13, 70 + 557);
     }
-    zählerListe[2] = 0;
+    // zählerListe[2] = 0;
     koordinaten[2] = 0;
     if (textButton == "Spielfeld") {
-      while (zählerListe[2] < AnzahlSpieler) {
-        if (zählerListe[2] == spielerIch) {
-          spieler[zählerListe[2]].LayoutKarten(spieler[zählerListe[2]].kartenIch);
+      for (var i = 0; i < AnzahlSpieler; i++) {
+        if (i == spielerIch) {
+          spieler[i].LayoutKarten(spieler[i].kartenIch, i);
         } else {
-          spieler[zählerListe[2]].LayoutKarten(spieler[zählerListe[2]].kartenMitte);
+          spieler[i].LayoutKarten(spieler[i].kartenMitte, i);
         }
-        zählerListe[2]++;
         koordinaten[2] += 180;
       }
     } else {
-      while (zählerListe[2] < AnzahlSpieler) {
-        spieler[zählerListe[2]].LayoutKarten(spieler[zählerListe[2]].kartenMitte);
-        zählerListe[2]++;
+      for (var i = 0; i < AnzahlSpieler; i++) {
+        spieler[i].LayoutKarten(spieler[i].kartenMitte, i);
         koordinaten[2] += 180;
       }
     }
   }
   showChat();
 }
+var i;
 function showChat() {
   for (var i = 0; i < messages.length; i++) {
     // if (!(messages[messages.length - 1 - i] == undefined)) {
