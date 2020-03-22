@@ -311,11 +311,11 @@
     }
   });
   function serverDatenLöschen() {
-    localStorage.setItem("dieMaulwurfCompanyFields", undefined);
-    localStorage.setItem("dieMaulwurfCompanyReihenfolge", undefined);
-    localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", undefined);
-    localStorage.setItem("dieMaulwurfCompanyFieldAktuell", undefined);
-    localStorage.setItem("dieMaulwurfCompanyPlayer", undefined);
+    localStorage.clear("dieMaulwurfCompanyFields");
+    localStorage.clear("dieMaulwurfCompanyReihenfolge");
+    localStorage.clear("dieMaulwurfCompanyReihenfolgeBliebt");
+    localStorage.clear("dieMaulwurfCompanyFieldAktuell");
+    localStorage.clear("dieMaulwurfCompanyPlayer");
     localStorage.clear('CLIENTIDdieMaulwurfCompany')
   }
   function showResults(gewinner, times) {
@@ -359,7 +359,7 @@
   }
   // repeat: ⟲
   function Layout() {
-    if (Bild.src == "") {
+  //  if (Bild.src == "") {
     canvas.fillStyle = colours[fieldAktuell];
     canvas.fillRect(0, 0, textur.width, textur.height);
     for (var i = 0; i < 9; i++) {
@@ -438,7 +438,7 @@
   canvas.font = "44px Georgia";
   if (player[spielerIch] != undefined && (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced) > 0) canvas.fillText("verbleibende Steine zum legen: " + (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced), 211, 755);
   if (player[spielerIch] != undefined && fieldAktuell == 3) canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 211, 755);
-}
+//}
   }
   function showChat() {
     for (var i = 0; i < messages.length; i++) {
