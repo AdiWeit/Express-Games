@@ -338,15 +338,16 @@ function playCard(data, card) {
       });
     }
     AblageListe[0] = {right: "left", left: "right"};
-    // if (data[1] == "Richtungswechsel") {
-    //   if (AnzahlSpieler == 2) spielerAktuell--;
-    //   else spieler.playDirection = AblageListe[0][spieler.playDirection];
-    //   if (spielerAktuell < 0) spielerAktuell = 1;
-    // };
+    if (data[1] == "Richtungswechsel") {
+      if (AnzahlSpieler == 2) spielerAktuell--;
+      else spieler.playDirection = AblageListe[0][spieler.playDirection];
+      if (spielerAktuell < 0) spielerAktuell = 1;
+    };
     if (data[1] == "wunschFarbe" || data[1] == "plus4") data[0] = farbwunsch();
     spieler.kartenAbgelegt.push(data);
     spieler[spielerIch].cards.splice([card], 1);
-    if (!(data[1] == "aussetzen" || (AnzahlSpieler == 2 && data[1] == "Richtungswechsel")))  spielerwechsel();
+    if (!(AnzahlSpieler == 2 && (data[1] == "Richtungswechsel"/* || data[1] == "aussetzen"*/)))  spielerwechsel();
+    else if (data[1] == "aussetzen") spielerwechsel();
     else {
       Layout(0);
       autoZiehen();
