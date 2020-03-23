@@ -595,8 +595,17 @@
     }
   });
   function checkRundenende() {
-    if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
-      Spielerwechsel();
+    if (AblageListe[3] > -1) {
+      if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
+        Spielerwechsel();
+      }
+  }
+    else {
+      setTimeout(function () {
+        if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet") {
+          Spielerwechsel();
+        }
+      }, (Math.floor(Math.random() * 3333) + 3777));
     }
   }
   function showPoints(highest) {
