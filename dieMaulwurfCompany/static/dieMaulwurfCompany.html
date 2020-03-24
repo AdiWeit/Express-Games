@@ -393,7 +393,7 @@
     anzahlPlayer[spielerIch] = 0;
     for (var i = 0; i < 9; i++) {
       for (var i1 = 0; i1 < 9 + i; i1++) {
-        if (fieldAktuell == 3 && fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && !fields[fieldAktuell][i][i1].whole) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
+        if (/*fieldAktuell == 3 && */fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && !fields[fieldAktuell][i][i1].whole) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
       }
     }
     if (anzahlPlayer[spielerIch] < 1/* && fieldAktuell == 3*/) Spielerwechsel(false);
