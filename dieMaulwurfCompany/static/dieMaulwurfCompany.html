@@ -208,8 +208,47 @@
   field = [];
   Layout();
 }
+  var movePlayerInt;
   var AblageListe = [];
   room.setOnMessageListener(function(message) {
+    if (message.type == "movePlayer") {
+      setTimeout(function () {
+        audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
+        audio.currentTime = 32;
+        audio.play();
+        setTimeout(function () {
+          audio.pause();
+        }, 1000);
+      }, 200);
+      var movingStats = message;
+      var position = {x: message.startPosition.x, y: message.startPosition.y}
+      var placed = true;
+      movePlayerInt = setInterval(function () {
+      if (position.x == movingStats.endPosition.x && position.y == movingStats.endPosition.y) {
+        clearInterval(movePlayerInt);
+        if (fields[fieldAktuell][position.y][position.x].whole) {
+          setTimeout(function () {
+            var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+            audio.play();
+            setTimeout(function () {
+              audio.pause();
+            }, 900);
+          }, 1333);
+        }
+        if (!fields[fieldAktuell][movingStats.startPosition.y][movingStats.startPosition.x].repeat && spielerIch == Reihenfolge[0]) {
+          Spielerwechsel();
+        }
+      }
+      else {
+        if (placed) fields[fieldAktuell][position.y][position.x].player = false;
+        placed = false;
+        position.x += movingStats.direction.x;
+        position.y += movingStats.direction.y;
+        if (fields[fieldAktuell][position.y][position.x] && !fields[fieldAktuell][position.y][position.x].player) {fields[fieldAktuell][position.y][position.x].player = movingStats.playerId; placed = true;}
+        Layout();
+        }
+      }, 222);
+    }
     if (message.type == "spielerDu") {
       spielerIch = message.data;
       if (message.newRound != true)
@@ -252,12 +291,18 @@
         });
       }
       // Layout();
-      if (message.sound) {
-        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
+      audio.currentTime = 26;
       audio.play();
-       setTimeout(function () {
-          audio.pause();
-        }, 900);
+      setTimeout(function () {
+        audio.pause();
+      }, 200);
+      if (message.sound) {
+      //   var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+      // audio.play();
+      //  setTimeout(function () {
+      //     audio.pause();
+      //   }, 900);
       }
     }
     if (message.type == "messages") {
@@ -293,6 +338,11 @@
       }
       if ((!Reihenfolge || message.join/* || (!Reihenfolge || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3])))*/) && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
       Reihenfolge = message.data;
+      localStorage.setItem("dieMaulwurfCompanyFields", JSON.stringify(fields));
+      localStorage.setItem("dieMaulwurfCompanyReihenfolge", JSON.stringify(Reihenfolge));
+      localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", JSON.stringify(ReihenfolgeBleibt));
+      localStorage.setItem("dieMaulwurfCompanyFieldAktuell", JSON.stringify(fieldAktuell));
+      localStorage.setItem("dieMaulwurfCompanyPlayer", JSON.stringify(player));
       if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
         spielerKommtDran();
       }
@@ -346,7 +396,7 @@
         if (fieldAktuell == 3 && fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && !fields[fieldAktuell][i][i1].whole) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
       }
     }
-    if (anzahlPlayer[spielerIch] < 1 && fieldAktuell == 3) Spielerwechsel(false);
+    if (anzahlPlayer[spielerIch] < 1/* && fieldAktuell == 3*/) Spielerwechsel(false);
     else {
       player[spielerIch].movement = "movePlayer";
       var randomNumber = Math.floor(Math.random() * (player[spielerIch].cards.length - 1));
@@ -359,7 +409,7 @@
   }
   // repeat: ⟲
   function Layout() {
-  //  if (Bild.src == "") {
+   if (Bild.src == "") {
     canvas.fillStyle = colours[fieldAktuell];
     canvas.fillRect(0, 0, textur.width, textur.height);
     for (var i = 0; i < 9; i++) {
@@ -438,7 +488,7 @@
   canvas.font = "44px Georgia";
   if (player[spielerIch] != undefined && (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced) > 0) canvas.fillText("verbleibende Steine zum legen: " + (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced), 211, 755);
   if (player[spielerIch] != undefined && fieldAktuell == 3) canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 211, 755);
-//}
+}
   }
   function showChat() {
     for (var i = 0; i < messages.length; i++) {
@@ -451,13 +501,6 @@
   function Spielerwechsel(sound) {
     var wholes = 0;
     var wholesFilled = 0;
-    setTimeout(function () {
-    localStorage.setItem("dieMaulwurfCompanyFields", JSON.stringify(fields));
-    localStorage.setItem("dieMaulwurfCompanyReihenfolge", JSON.stringify(Reihenfolge));
-    localStorage.setItem("dieMaulwurfCompanyReihenfolgeBliebt", JSON.stringify(ReihenfolgeBleibt));
-    localStorage.setItem("dieMaulwurfCompanyFieldAktuell", JSON.stringify(fieldAktuell));
-    localStorage.setItem("dieMaulwurfCompanyPlayer", JSON.stringify(player));
-    }, 3000);
     if (fieldAktuell == 3 && (player[spielerIch].roundsLeft > 0 || (player[ReihenfolgeBleibt[0]].lastWhole > 0 || player[ReihenfolgeBleibt[1]].lastWhole > 0 || (player[ReihenfolgeBleibt[2]] != undefined && player[ReihenfolgeBleibt[2]].lastWhole > 0) || (player[ReihenfolgeBleibt[3]] != undefined && player[ReihenfolgeBleibt[3]].lastWhole > 0)))) player[spielerIch].roundsLeft--;
     var anzahlPlayer = {};
     for (var i = 0; i < 9; i++) {
@@ -468,13 +511,13 @@
       }
     }
     gewonnenCheck();
-    room.send({
-      message: {
-        "type": "fields",
-        data: fields,
-        sound: sound
-      }
-    });
+    // room.send({
+    //   message: {
+    //     "type": "fields",
+    //     data: fields,
+    //     sound: sound
+    //   }
+    // });
     room.send({
       message: {
         "type": "Spielerwechsel",
@@ -578,11 +621,27 @@
       if (player[spielerIch].movement == "movePlayer" && (player[spielerIch].moving && (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[0]) || (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[1]) || (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[2]) || (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[3]) || (xTest[4] + "" + yTest[4] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[4]) || (xTest[5] + "" + yTest[5] == checkClickedField()[1] + "" + checkClickedField()[0] && !spielerPassiert[5])) && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && (fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == false || (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole))) {
         console.log("movingPlayer");
         if (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole && player[ReihenfolgeBleibt[0]].lastWhole == 0 && player[ReihenfolgeBleibt[1]].lastWhole == 0 && (!player[ReihenfolgeBleibt[2]] || player[ReihenfolgeBleibt[2]].lastWhole == 0) && (!player[ReihenfolgeBleibt[3]] || player[ReihenfolgeBleibt[3]].lastWhole == 0)) player.firstPlayer = spielerIch;
-        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
-        fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
+        // fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
+        // fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
         if (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {player[spielerIch].lastWhole++;}
         if (fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].repeat) spielerKommtDran();
-        else Spielerwechsel(true);
+      //  else Spielerwechsel(true);
+        var direction = {x: 0, y: 0};
+        if (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x++; direction.y++;}
+        else if (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x--; direction.y--;}
+        else if (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x--; direction.y++;}
+        else if (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x++; direction.y--;}
+        else if (xTest[4] + "" + yTest[4] == checkClickedField()[1] + "" + checkClickedField()[0]) direction.x++;
+        else direction.x--;
+        room.send({
+          message: {
+            "type": "movePlayer",
+            startPosition: {y: player[spielerIch].moving[0], x: player[spielerIch].moving[1]},
+            endPosition: {y: checkClickedField()[0], x: checkClickedField()[1]},
+            direction: direction,
+            playerId: spielerIch
+          }
+        });
       }
     }
       if (player[spielerIch].movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
