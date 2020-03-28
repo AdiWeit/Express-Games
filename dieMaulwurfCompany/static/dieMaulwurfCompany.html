@@ -242,6 +242,7 @@
           // }, 1000);
           // player[spielerIch].finished = true;
         }
+        if (fields[fieldAktuell][movingStats.endPosition.y][movingStats.endPosition.x].repeat && player[spielerIch].movement == "waitingForEndingMove") spielerKommtDran();
       }
       else {
         if (placed) fields[fieldAktuell][position.y][position.x].player = false;
@@ -255,7 +256,8 @@
     }
     if (message.type == "spielerDu") {
       spielerIch = message.data;
-      if (message.newRound != true)
+      player[spielerIch] = {figuresPlaced: 0, lastWhole: 0, roundsLeft: 11 - 3*(ReihenfolgeBleibt.length - 2)}
+        if (message.newRound != true)
        {
         if (JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields')) != undefined && JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields')) != "undefined" && confirm("wollen sie die vorherige Runde weiterspielen?"))  {
           fields = JSON.parse(localStorage.getItem('dieMaulwurfCompanyFields'));
@@ -277,8 +279,49 @@
           });
         }
       }
+      else {
+        if (!localStorage.getItem("nameDieMaulwurfCompany")) {
+          player[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");
+          localStorage.setItem("nameDieMaulwurfCompany", player[spielerIch].name);
+        }
+        else player[spielerIch].name = localStorage.getItem("nameDieMaulwurfCompany");
+        setTimeout(function () {
+          room.send({
+            message: {
+              "type": "syncPlayerName",
+              name: player[spielerIch].name,
+              player: spielerIch
+            }
+          });
+        }, 1000);
+        player.syncedNames = 0;
+        //spieler[spielerIch].namesChanged = JSON.parse(localStorage.getItem("namesChangedMonopoly"));
+      }
     }
-    if (message.type == "gewonnen") {showResults(message.data, 0);/* removeGame(true);*/}
+    if (message.type == "syncPlayerName") {
+      if (!player[message.player]) player[message.player] = {};
+      player[message.player].name = message.name;
+      player[message.player].realName = message.name
+      player.syncedNames++;
+      if (player.syncedNames == ReihenfolgeBleibt.length) {
+      //   for (var i = 0; JSON.parse(localStorage.getItem("namesChangedMonopoly")) && i < Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly"))).length; i++) {
+      //     for (var i1 = 0; i1 < AnzahlSpieler; i1++) {
+      //       if (Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i] == (spieler[i1].name)) spieler[i1].name = JSON.parse(localStorage.getItem("namesChangedMonopoly"))[Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i]];
+      //     }
+      //   }
+      Layout();
+      }
+    }
+    if (message.type == "gewonnen") {
+      showResults(message.data, 0);
+      /* removeGame(true);*/
+      room.send({
+        message: {
+          "type": "endGame",
+          alert: false
+        }
+      });
+    }
     if (message.type == "endGame") {if (message.alert) alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "fields") {
       fields = message.data;
@@ -314,7 +357,7 @@
       messages = message.data
       textur.height = 777 + messages.length*44;
       Layout();
-      if (!(spielerIch == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      if (!(spielerIch == message.sender) && !message.noAudio) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
       AblageListe[1] = "warten Message angucken";
       setTimeout(function () {
         AblageListe[1] = "beendet";
@@ -322,6 +365,19 @@
     };
     if (message.type == "nextField") {
       fieldAktuell++;
+      if (fieldAktuell == 3) {
+        /*var infoM*/messages.push("Info: Wenn die Anzahl der Figuren im Loch bei mehreren Spielern gleich ist, gewinnt derjenige, der als Erster das Loch erreicht hat. ")
+        messages.push("Wenn die Rundenanzahl ausgegangen ist, aber keiner es geschafft hat, gewinnt der, der als nächstes/erstes das Loch erreicht. ");
+        if (ReihenfolgeBleibt.length == 4) /*infoM*/messages.push("Falls jeder Spieler nur 1 Figur übrig hat, gewinnt der, der das Loch zuerst erreicht. ");
+        /*infoM*/messages.push("Wenn keine der eben genannten Sonderfälle auftritt, gewinnt der Spieler, der zuerst 2 Figuren zum Loch gebracht hat. ");
+
+          room.send({
+            message: {
+              "type": "messages",
+              data: messages
+            }
+          });
+      }
       for (var i = 0; i < 9; i++) {
         for (var i1 = 0; i1 < 9 + i; i1++) {
           if (fields[fieldAktuell - 1][i][i1] != undefined && fields[fieldAktuell - 1][i][i1].player != false && fields[fieldAktuell - 1][i][i1].whole) fields[fieldAktuell][i][i1].player = fields[fieldAktuell - 1][i][i1].player;
@@ -337,7 +393,7 @@
     if (message.type == "Reihenfolge") {
       if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
       if (!Reihenfolge || message.join/* || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3]))*/) {
-        ReihenfolgeBleibt = message.data; player[spielerIch] = {figuresPlaced: 0, lastWhole: 0, roundsLeft: 11 - 3*(ReihenfolgeBleibt.length - 2)};
+        ReihenfolgeBleibt = message.data;
         player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
       }
       if ((!Reihenfolge || message.join/* || (!Reihenfolge || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3])))*/) && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
@@ -365,12 +421,12 @@
     }
   });
   function serverDatenLöschen() {
-    localStorage.clear("dieMaulwurfCompanyFields");
-    localStorage.clear("dieMaulwurfCompanyReihenfolge");
-    localStorage.clear("dieMaulwurfCompanyReihenfolgeBliebt");
-    localStorage.clear("dieMaulwurfCompanyFieldAktuell");
-    localStorage.clear("dieMaulwurfCompanyPlayer");
-    localStorage.clear('CLIENTIDdieMaulwurfCompany')
+    // localStorage.clear("dieMaulwurfCompanyFields");
+    // localStorage.clear("dieMaulwurfCompanyReihenfolge");
+    // localStorage.clear("dieMaulwurfCompanyReihenfolgeBliebt");
+    // localStorage.clear("dieMaulwurfCompanyFieldAktuell");
+    // localStorage.clear("dieMaulwurfCompanyPlayer");
+    // localStorage.clear('CLIENTIDdieMaulwurfCompany')
   }
   function showResults(gewinner, times) {
     if (spielerIch == gewinner) {
@@ -402,7 +458,7 @@
     }
     if (anzahlPlayer[spielerIch] < 1/* && fieldAktuell == 3*/) {
       Spielerwechsel(false);
-      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
+      //audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
     }
     else {
       player[spielerIch].movement = "movePlayer";
@@ -489,6 +545,8 @@
     canvas.fillStyle = "white";
     canvas.font = "30px Georgia";
     if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
+    canvas.font = "50px Georgia";
+    canvas.fillText(player[ReihenfolgeBleibt[i]].name, 10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y + 150);
   }
   showChat();
   canvas.fillStyle = "white";
@@ -632,7 +690,6 @@
         // fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
         // fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
         if (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].whole) {player[spielerIch].lastWhole++;}
-        if (fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].repeat) spielerKommtDran();
       //  else Spielerwechsel(true);
         var direction = {x: 0, y: 0};
         if (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x++; direction.y++;}
