@@ -374,7 +374,8 @@
           room.send({
             message: {
               "type": "messages",
-              data: messages
+              data: messages,
+              noAudio: true
             }
           });
       }
@@ -552,7 +553,17 @@
   canvas.fillStyle = "white";
   canvas.font = "44px Georgia";
   if (player[spielerIch] != undefined && (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced) > 0) canvas.fillText("verbleibende Steine zum legen: " + (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced), 211, 755);
-  if (player[spielerIch] != undefined && fieldAktuell == 3) canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 211, 755);
+  if (player[spielerIch] != undefined && fieldAktuell == 3 && ReihenfolgeBleibt.length == 4) {
+    canvas.fillText("Verbleibende Runden, bis der Spieler mit", 211, 755);
+    canvas.fillText("mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
+  }
+  if (player[spielerIch] != undefined && fieldAktuell == 3 && ReihenfolgeBleibt.length == 3) {
+    canvas.font = "33px Georgia";  canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch", 11, 755);
+    canvas.fillText("gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
+  }
+  else if (player[spielerIch] != undefined && fieldAktuell == 3) {
+    canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 100, 755);
+  }
 }
   }
   function showChat() {
