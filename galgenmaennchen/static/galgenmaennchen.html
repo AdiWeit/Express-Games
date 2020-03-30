@@ -1,0 +1,227 @@
+<meta charset="utf-8">
+<div id="enterField">
+  <input type="text" id="textBox" placeholder="word">
+  <input type="text" id="thema" placeholder="subject (optional)">
+  <button type="button" id="confirmButton" onclick="confirm(textBox.value, textBox.placeholder);" name="button">confirm</button>
+</div>
+<canvas id="textur" width="1848" height="700"></canvas>
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/galgenmaennchen/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  const clientId = makeid(10);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/galgenmaennchen/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/galgenmaennchen/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/galgenmaennchen/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var player = {henker: {aktuell: 1, wrongLetter: [], solvedLetter: [], guessed: 0}, strichFigur: {aktuell: -1, word: ""}, yourNumber: -1, anzahlAll: 0}
+  var canvas = textur.getContext('2d'); //Dimension
+  enterField.style.display = "none";
+  thema.style.display = "none";
+  room.setOnMessageListener(function(message) {
+    //if (message.type == "playerJoined") player.anzahlAll++;
+    if (message.type == "spielerDu") {
+      player.yourNumber = message.data;
+      // room.send({
+      //   message: {
+      //   type: "playerJoined"
+      // }
+      // });
+    }
+    if (message.type == "word") {
+      player.strichFigur.thema = message.thema;
+      player.strichFigur.word = message.data;
+      if (player.henker.solvedLetter.length != 0) player.henker.solvedLetter = [];
+      for (var i = 0; i < player.strichFigur.word.length; i++) {
+        player.henker.solvedLetter.push("?");
+      }
+      if (player.yourNumber != player.strichFigur.aktuell) enterField.style.display = "inline";
+      textBox.placeholder = "guessedLetter";
+    }
+    if (message.type == "guess") {
+      player.henker.guessed++;
+      if (player.strichFigur.word.toLowerCase().includes(message.data.toLowerCase())) {
+        console.log("rightGuess!!!");
+        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
+        for (var i = 0; i < player.strichFigur.word.length; i++) {
+          if (player.strichFigur.word[i].toLowerCase() == message.data.toLowerCase()) player.henker.solvedLetter[i] = player.strichFigur.word[i];
+        }
+        if (!(player.henker.solvedLetter.includes("?")))  {
+          console.log("guesser won!");
+          setTimeout(function () {
+            if (player.yourNumber == player.strichFigur.aktuell) {
+              showResults(false, 0);
+            }
+            else showResults(true, 0);
+          }, 3000);
+        }
+      }
+      else {
+        console.log("wrongGuess!!!");
+        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%c3%b6%c3%b6t.mp3").play();
+        player.henker.wrongLetter.push(message.data);
+        if (player.henker.wrongLetter.length == 16) {
+          console.log("word creator wins!");
+          setTimeout(function () {
+            if (player.yourNumber == player.strichFigur.aktuell) {
+              showResults(true, 0);
+            }
+            else showResults(false, 0);
+          }, 3000);
+        }
+      }
+      Layout(0);
+    }
+    if (message.type == "Reihenfolge") {
+      player.strichFigur.aktuell = message.data;
+      if (player.yourNumber == player.strichFigur.aktuell) {
+        thema.style.display = "inline";
+        enterField.style.display = "inline";
+      }
+    }
+  });
+  function showResults(gewinner, times) {
+    if (gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+          audio.currentTime = 9.0;
+          audio.play();
+      }//audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        var Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      var Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+    }
+    setTimeout(function () {
+      if (times < 5) showResults(gewinner, times + 1,);
+    }, 500);
+  }
+  function confirm(value, placeholder) {
+    if (placeholder == "word") {
+    if (value.length < 17 && isNaN(value)) {
+      enterField.style.display = "none";
+      thema.style.display = "none";
+      room.send({
+        message: {
+        type: "word",
+        data: value.replace("ö", "oe").replace("ü", "ue").replace("ä", "ae").replace("ß", "ss"),
+        thema: thema.value
+      }
+      });
+    }
+    else {
+      alert("Bitte ein Wort mit weniger als 18 Stellen eingeben!");
+    }
+  }
+  else if (value.length == 1 && isNaN(value) && !(player.henker.wrongLetter.includes(value)) && !(player.henker.solvedLetter.includes(value))) {
+    // 15 Versuche
+    room.send({
+      message: {
+      type: "guess",
+      data: value
+    }
+    });
+  }
+  else {
+    alert("Bitte nur einen Buchstaben eingeben! Vielleicht sollten sie sich aber auch überlegen, ob sie den Buchstaben nicht schon ein Mal gewählt haben...");
+  }
+  textBox.select();
+}
+
+function Layout(time) {
+  canvas.fillStyle = "brown";
+  canvas.fillRect(0, 0, textur.width, textur.height);
+  canvas.font = "70px Georgia";
+  for (var i = 0; i < player.henker.solvedLetter.length; i++) {
+    canvas.fillStyle = "white";
+    canvas.fillRect(10 + 70*i, 500, 50, 20);
+    if (player.henker.solvedLetter[i] != "?") {
+      // canvas.font = "70px Georgia";
+      canvas.fillText(player.henker.solvedLetter[i], 20 + 70*i, 490);
+    }
+  }
+  canvas.fillText(16 - player.henker.wrongLetter.length + " more wrong guesses before the stickman wins!", 30, 400);
+  canvas.fillText("wrong guesses: " + player.henker.wrongLetter, 30, 300);
+  if (player.strichFigur.thema != "") canvas.fillText("Thema: " + player.strichFigur.thema, 10, 70);
+  var Bild = new Image();
+  Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Galgenm%c3%a4nnchen/" + player.henker.wrongLetter.length + ".png";
+  if (player.henker.wrongLetter.length > 0) canvas.drawImage(Bild, 750, -10);
+  if (time < 5) {
+    setTimeout(function () {
+      Layout(time + 1);
+    }, 500);
+  }
+}
+document.onkeydown = function(event) {
+  if (event.key == "Enter") confirm(textBox.value, textBox.placeholder);
+}
+</script>

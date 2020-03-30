@@ -57,6 +57,10 @@ app.use('/asFastAsYouCan/', asFastAsYouCan);
 const stayOnTheStage = require('./stayOnTheStage/index.js');
 app.use('/stayOnTheStage/', stayOnTheStage);
 
+const galgenmaennchen = require('./galgenmaennchen/index.js');
+app.use('/galgenmaennchen/', galgenmaennchen);
+
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname
