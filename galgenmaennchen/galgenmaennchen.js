@@ -50,10 +50,6 @@ class galgenmaennchen {
     if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
-      // this.broadcast({
-      //   "type": "AnzahlSpieler",
-      //   "data": this.spielerOnline
-      // });
 
       console.log("neu geordnet")
       this.spielerOnline = 2;
@@ -73,7 +69,11 @@ class galgenmaennchen {
         });
         this.spielerOnline = 4;
       }
-      var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
+      //var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
+      this.broadcast({
+        "type": "AnzahlSpieler",
+        "data": this.spielerOnline
+      });
       this.send(this.player1.client, {
         "type": "spielerDu",
         "data": 0,
