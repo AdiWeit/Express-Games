@@ -4,6 +4,37 @@
   <input type="text" id="thema" placeholder="subject (optional)" style="height: 100px;">
   <button type="button" id="confirmButton" onclick="confirmInput(textBox.value, textBox.placeholder);" style="width: 100; height: 100;" name="button">confirm</button>
 </div>
+<div id="keyboard">
+  <br>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">q</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">w</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">e</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">r</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">t</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">z</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">u</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">i</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">o</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">p</button>
+  <br>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">a</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">s</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">d</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">f</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">g</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">h</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">j</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">k</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">l</button>
+  <br>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">y</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">x</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">c</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">v</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">b</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">n</button>
+  <button type="button" style="width: 50; height: 50" onclick="confirmInput(innerHTML, textBox.placeholder);" name="button">m</button>
+</div>
 <canvas id="textur" width="1848" height="600"></canvas>
 <script>
   window.onbeforeunload = function(){
@@ -73,6 +104,21 @@
       sendMessage(msg);
     }
   };
+  if (navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i)
+  ) {
+    var gerät = "Handy"
+    console.log("Handy");
+  } else {
+    var gerät = "PC"
+    console.log("PC");
+  }
+  keyboard.style.display = "none";
   var player = {henker: {aktuell: 1, wrongLetter: [], solvedLetter: [], guessed: 0}, strichFigur: {aktuell: -1, word: ""}, yourNumber: -1, anzahlAll: 0}
   var canvas = textur.getContext('2d'); //Dimension
   var wortEingeber = {list: [], voted: 0};
@@ -144,6 +190,7 @@
       }
     }
     if (message.type == "word") {
+      keyboard.style.display = "none";
       player.strichFigur.thema = message.thema;
       player.strichFigur.word = message.data;
       if (player.henker.solvedLetter.length != 0) player.henker.solvedLetter = [];
@@ -153,6 +200,7 @@
       }
       if (player.yourNumber != player.strichFigur.aktuell) enterField.style.display = "inline";
       textBox.placeholder = "guessedLetter";
+      if (gerät == "Handy") keyboard.style.display = "inline";
     }
     if (message.type == "guess") {
       player.henker.guessed++;
@@ -253,7 +301,7 @@
   else {
     alert("Bitte nur einen Buchstaben eingeben! Vielleicht sollten sie sich aber auch überlegen, ob sie den Buchstaben nicht schon ein Mal gewählt haben...");
   }
-  textBox.select();
+  if (gerät == "PC") textBox.select();
 }
 
 function Layout(time) {
@@ -291,5 +339,8 @@ function reset() {
   textBox.placeholder = "word";
   player = {henker: {aktuell: 1, wrongLetter: [], solvedLetter: [], guessed: 0}, strichFigur: {aktuell: -1, word: ""}, yourNumber: -1, anzahlAll: 0}
   wortEingeber = {list: [], voted: 0};
+  keyboard.style.display = "none";
+  enterField.style.display = "none";
+  thema.style.display = "none";
 }
 </script>
