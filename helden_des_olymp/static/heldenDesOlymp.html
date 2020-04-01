@@ -127,7 +127,7 @@
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
     for (var i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      result += characters.charAt(Math.round(Math.random() * charactersLength));
     }
     return result;
   }
@@ -143,16 +143,17 @@
   };
 
 function serverDatenLöschen() {
-  localStorage.setItem('kartenZiehenOlymp', undefined);
-  localStorage.setItem('MitteSpieler2Olymp', undefined);
-  localStorage.setItem('MitteSpieler1Olymp', undefined);
-  localStorage.setItem('kartenSpieler1Olymp', undefined);
-  localStorage.setItem('kartenSpieler2Olymp', undefined);
-  localStorage.setItem('SiegpunkteOlymp', undefined);
-  localStorage.setItem('ZustandOlymp', undefined);
-  localStorage.setItem('SteineIchOlymp', undefined);
-  localStorage.setItem('SteineMitteOlymp', undefined);
-  localStorage.setItem('SpielerIdsBleibtOlymp', undefined);
+  localStorage.clear('kartenZiehenOlymp');
+  localStorage.clear('MitteSpieler2Olymp');
+  localStorage.clear('MitteSpieler1Olymp');
+  localStorage.clear('kartenSpieler1Olymp');
+  localStorage.clear('kartenSpieler2Olymp');
+  localStorage.clear('SiegpunkteOlymp');
+  localStorage.clear('ZustandOlymp');
+  localStorage.clear('SteineIchOlymp');
+  localStorage.clear('SteineMitteOlymp');
+  localStorage.clear('SpielerIdsBleibtOlymp');
+  localStorage.clear('CLIENTIDHeldenDesOlymp');
 }
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
@@ -364,8 +365,7 @@ function serverDatenLöschen() {
       result = result.toString().split(',');
       if (Sperren[2] == true) {
         if (result.length > Zustand.length) {
-          ttsOut = new Audio("http://soundbible.com/mp3/front-desk-bells-daniel_simon.mp3");
-          ttsOut.play();
+          audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
           Sperren[2] = false;
           setTimeout(function() {
             console.log("Bin dran!!!");
