@@ -1,0 +1,284 @@
+<meta charset="utf-8">
+<canvas id="textur" width="1840" height="1100"></canvas>
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/dasVerrueckteLabyrinth/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDdasVerrueckteLabyrinth');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDdasVerrueckteLabyrinth', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/dasVerrueckteLabyrinth/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/dasVerrueckteLabyrinth/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/dasVerrueckteLabyrinth/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+  var canvas = textur.getContext('2d'); //Dimension
+  var player = {aktuell: -1, yourNumber: -1, totalPlayer: -1, selectedCard: {}, items: {totenschadedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
+  var fields = [
+      {
+        wallStructure: [
+          {
+            type: "wall",
+            number: 3
+          },
+          {
+            type: "way",
+            number: 3,
+          },
+          {
+            type: "wall",
+            number: 3
+          }
+        ],
+        number: 11
+      },
+      {
+        wallStructure: [
+          {
+            type: "wall",
+            number: 4
+          },
+          {
+            type: "way",
+            number: 2,
+          },
+          {
+            type: "wall",
+            number: 1
+          },
+          {
+            type: "way",
+            number: 1,
+          },
+          {
+            type: "wall",
+            number: 1
+          }
+        ],
+        number: 16
+      },
+      {
+        wallStructure: [
+          {
+            type: "wall",
+            number: 1
+          },
+          {
+            type: "way",
+            number: 1,
+          },
+          {
+            type: "wall",
+            number: 1
+          },
+          {
+            type: "way",
+            number: 3
+          },
+          {
+            type: "wall",
+            number: 3
+          }
+        ],
+        number: 11
+      }
+
+  ]
+  var field = [];
+  room.setOnMessageListener(function(message) {
+    if (message.type == "AnzahlSpieler") player.totalPlayer = message.data;
+    if (message.type == "spielerDu") {
+      player.yourNumber = message.data;
+      if (message.data == 0) {
+        for (var i = 0; i < 7; i++) {
+          field[i] = [];
+          for (var i1 = 0; i1 < 7; i1++) {
+            if (i == 0 && i1 == 0) field[i][i1] = newField(true, 0);
+            else if (i == 6 && i1 == 0) field[i][i1] = newField(true, 1, "right");
+            else if (i == 0 && i1 == 6) field[i][i1] = newField(true, 1, "left");
+            else if (i == 6 && i1 == 6) field[i][i1] = newField(true, 2, "right");
+            else if (!((i/2 + "").includes(".")) && i1 == 0) field[i][i1] = newField(false, 2, "right");
+            else if (!((i/2 + "").includes(".")) && i1 == 6) field[i][i1] = newField(false, 0);
+            else if (!((i1/2 + "").includes(".")) && i == 0) field[i][i1] = newField(false, 1, "right");
+            else if (!((i1/2 + "").includes(".")) && i == 6) field[i][i1] = newField(false, 1, "left");
+            else field[i][i1] = newField();
+          }
+        }
+        for (var i = 0; i < Object.keys(player.items).length; i++) {
+          var position = {x: Math.round(Math.random() *6), y: Math.round(Math.random() *6)}
+          if (!field[position.x][position.y][1][1].item && !((position.x == 0 && position.y == 0) || (position.x == 0 && position.y == 6) || (position.x == 6 && position.y == 0) || (position.x == 6 && position.y == 6))) field[position.x][position.y][1][1].item = Object.keys(player.items)[i];
+          else i--;
+        }
+        // player.selectedCard = newField();
+        Layout();
+      }
+    }
+    if (message.type == "Reihenfolge") player.aktuell = message.data;
+  });
+
+  function newField(spawnPoint, directionNumber, direction) {
+    if (!spawnPoint) spawnPoint = false;
+    var newField = [];
+    var possibleStructure = [];
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i].number > 0) possibleStructure.push(i);
+    }
+    var selectedStructure = possibleStructure[Math.round(Math.random() *(possibleStructure.length - 1))];
+    if (spawnPoint) selectedStructure = 1;
+    else if (directionNumber != undefined) selectedStructure = 2;
+    var i2 = 0;
+    var i3 = 0;
+    // try {
+    //   console.log(fields[selectedStructure].wallStructure.length);
+    // } catch (e) {
+    //   console.log("please debug ;) ");
+    // }
+    for (var i = 0; i < fields[selectedStructure].wallStructure.length; i++) {
+      for (var i1 = 0; i1 < fields[selectedStructure].wallStructure[i].number; i1++) {
+        if (!newField[i2]) newField[i2] = [];
+        newField[i2][i3] = {type: fields[selectedStructure].wallStructure[i].type, player: false, item: false, spawnPoint: spawnPoint, movable: directionNumber == undefined};
+        i2++;
+        if (i2 == 3) {i2 = 0; i3++;}
+      }
+    }
+
+    if (directionNumber == undefined) fields[selectedStructure].number--;
+    for (var i = 0; (directionNumber == undefined && i < Math.round(Math.random() * 11)) || (directionNumber != undefined && i < directionNumber); i++) {
+      if ((Math.round(Math.random() *1) == 0 && directionNumber == undefined) || (directionNumber != undefined && direction == "right")) newField = turn("right", newField);
+      else if (directionNumber == undefined || (directionNumber != undefined && direction == "left")) newField = turn("left", newField);
+    }
+    return newField
+  }
+  function turn(direction, officialCard) {
+  var newField = [[], [], []];
+  newField[1][1] = officialCard[1][1];
+  if (direction == "right") {
+    for (var i = 0; i < 3; i++) { // rechts --> unten works!
+      newField[i][2] = officialCard[2][i];
+    }
+    for (var i = 0; i < 3; i++) { // unten --> links  works!
+      newField[0][i] = officialCard[1 - 1 + i][1 + 1];
+    }
+    for (var i = 0; i < 3; i++) { // oben --> rechts works!
+      newField[2][i] = officialCard[i][0];
+    }
+    var i1 = 0;
+    for (var i = 2; i > -1; i--) { // links --> oben works!
+      newField[i1][0] = officialCard[0][i];
+      i1++;
+    }
+  }
+  else {
+    for (var i = 2; i > -1; i--) { // rechts --> oben
+      newField[i][0] = officialCard[2][i];
+    }
+    var i1 = 0;
+    for (var i = 3; i > 0; i--) { // unten --> rechts
+      newField[2][i - 1] = officialCard[i1][2];
+      i1++;
+    }
+    var i1 = 0;
+    for (var i = 3; i > 0; i--) { // oben --> links
+      newField[0][i1] = officialCard[i - 1][0];
+      i1++;
+    }
+    for (var i = 0; i < 3; i++) { // links --> unten
+      newField[i][2] = officialCard[0][i];
+    }
+  }
+
+return newField;
+}
+  function Layout() {
+    for (var i = 0; i < 7; i++) {
+      for (var i1 = 0; i1 < 7; i1++) {
+        for (var i2 = 0; i2 < 3; i2++) {
+          for (var i3 = 0; i3 < 3; i3++) {
+            if (field[i][i1][i2][i3].movable) canvas.fillStyle = "green";
+            else canvas.fillStyle = "red";
+            if (i2 == 0 && i3 == 0 && (i == 0 || i == 6 || i1 == 0 || i1 == 6)) canvas.fillRect(5 + 50*3*i, 10 + 50*3*i1 - 5, 45*3 + 20, 45*3 + 20);
+            if (field[i][i1][i2][i3].type == "wall") canvas.fillStyle = "brown";
+            else canvas.fillStyle = "gray";
+            if ((i2 == 2 && i3 == 2)) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 45, 45);
+            else if (i2 == 2) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 45, 50);
+            else if (i3 == 2) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 45);
+            else/* (i2 != 2 && i3 != 2)*/ canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 50);
+            console.log(field[i][i1][i2][i3].item);
+            if (field[i][i1][i2][i3].item) {
+              var Bild = new Image();
+              Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
+              canvas.drawImage(Bild, 10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 50);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY + 23;
+    //    console.log(xMaus + " - " + yMaus);
+    Layout();
+  }
+</script>

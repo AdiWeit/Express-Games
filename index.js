@@ -60,6 +60,11 @@ app.use('/stayOnTheStage/', stayOnTheStage);
 const galgenmaennchen = require('./galgenmaennchen/index.js');
 app.use('/galgenmaennchen/', galgenmaennchen);
 
+// const tabu = require('./tabu/index.js');
+// app.use('/tabu/', tabu);
+
+const dasVerrueckteLabyrinth = require('./dasVerrueckteLabyrinth/index.js');
+app.use('/dasVerrueckteLabyrinth/', dasVerrueckteLabyrinth);
 
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
