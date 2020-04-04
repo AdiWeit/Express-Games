@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<canvas id="textur" width="1840" height="1100"></canvas>
+<canvas id="textur" width="1840" height="1450" onclick="canvasClicked();"></canvas>
 <script>
   window.onbeforeunload = function(){
     console.log("Leave Website");
@@ -72,7 +72,7 @@
   };
 
   var canvas = textur.getContext('2d'); //Dimension
-  var player = {aktuell: -1, yourNumber: -1, totalPlayer: -1, selectedCard: {}, items: {totenschadedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
+  var player = {aktuell: -1, yourNumber: -1, totalPlayer: -1, selectedCard: {}, items: {totenschaedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
   var fields = [
       {
         wallStructure: [
@@ -248,37 +248,104 @@
 
 return newField;
 }
-  function Layout() {
+  function Layout(times) {
+    if (!times) times = 0;
     for (var i = 0; i < 7; i++) {
       for (var i1 = 0; i1 < 7; i1++) {
-        for (var i2 = 0; i2 < 3; i2++) {
-          for (var i3 = 0; i3 < 3; i3++) {
-            if (field[i][i1][i2][i3].movable) canvas.fillStyle = "green";
-            else canvas.fillStyle = "red";
-            if (i2 == 0 && i3 == 0 && (i == 0 || i == 6 || i1 == 0 || i1 == 6)) canvas.fillRect(5 + 50*3*i, 10 + 50*3*i1 - 5, 45*3 + 20, 45*3 + 20);
-            if (field[i][i1][i2][i3].type == "wall") canvas.fillStyle = "brown";
-            else canvas.fillStyle = "gray";
-            if ((i2 == 2 && i3 == 2)) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 45, 45);
-            else if (i2 == 2) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 45, 50);
-            else if (i3 == 2) canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 45);
-            else/* (i2 != 2 && i3 != 2)*/ canvas.fillRect(10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 50);
-            console.log(field[i][i1][i2][i3].item);
-            if (field[i][i1][i2][i3].item) {
-              var Bild = new Image();
-              Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
-              canvas.drawImage(Bild, 10 + 50*3*i + 50*i2, 10 + 50*3*i1 + 50*i3, 50, 50);
-            }
-          }
+        displayCard(field, i, i1, 177 + 50*3*i, 177 + 50*3*i1);
+      }
+    }
+    if (times < 3) {
+      setTimeout(function () {
+        Layout(times + 1);
+      }, 500);
+    }
+  }
+
+  function displayCard(field, i, i1, startx, starty) {
+    for (var i2 = 0; i2 < 3; i2++) {
+      for (var i3 = 0; i3 < 3; i3++) {
+        if (field[i][i1][i2][i3].movable/* && field[1] != undefined*/) canvas.fillStyle = "green";
+        else /*if (field[1] != undefined) */canvas.fillStyle = "red";
+        if (i2 == 0 && i3 == 0 && (i == 0 || i == 6 || i1 == 0 || i1 == 6) && field[1] != undefined) canvas.fillRect(startx - 5, starty - 5, 45*3 + 20, 45*3 + 20);
+        if (field[i][i1][i2][i3].type == "wall") canvas.fillStyle = "brown";
+        else canvas.fillStyle = "gray";
+        if ((i2 == 2 && i3 == 2)) canvas.fillRect(startx + 50*i2, starty + 50*i3, 45, 45);
+        else if (i2 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 45, 50);
+        else if (i3 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 45);
+        else/* (i2 != 2 && i3 != 2)*/ canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 50);
+        if (field[i][i1][i2][i3].item) {
+          var Bild = new Image();
+          Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
+          canvas.drawImage(Bild, startx + 50*i2, starty + 50*i3, 50, 50);
         }
       }
     }
   }
-
-
+  var xMaus;
+  var yMaus;
+  document.onmousemove = readMouseMove
   function readMouseMove(e) {
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY + 23;
     //    console.log(xMaus + " - " + yMaus);
+    canvas.clearRect(0, 0, 173, 2000);
+    canvas.clearRect(0, 1227, 2000, 1000);
+    canvas.clearRect(0, 0, 2000, 173);
+    canvas.clearRect(1227, 0, textur.width, 2050);
+    if (Object.keys(player.selectedCard).length > 0 && !(xMaus > 200 - 88 && xMaus < 1222 + 88 && yMaus > 215 - 88 && yMaus < 1238 + 88)) displayCard([[player.selectedCard]], 0, 0, xMaus - 83, yMaus - 99);
+  }
+
+  function canvasClicked() {
+    var stein = -1;
+    if ((xMaus > 1230 || xMaus < 120) && yMaus > 130) {
+      for (var i = 0; i < 7; i++) {
+        if (yMaus > 205 + 50*3*i && yMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
+      }
+    }
+    else {
+      for (var i = 0; i < 7; i++) {
+        if (xMaus > 205 + 50*3*i && xMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
+      }
+    }
+    if (stein > -1 && player.yourNumber == player.aktuell) movePlayer(stein);
+  }
+
+  function movePlayer(stein) {
+    var feldLegen = JSON.parse(JSON.stringify(player.selectedCard));
+    // click R
+    if (xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) {
+      player.selectedCard = JSON.parse(JSON.stringify(field[0][stein]));
+      // field[stein].shift();
+      // field[stein].push(feldLegen);
+      for (var i = 0; i < 6; i++) {
+        field[i][stein] = JSON.parse(JSON.stringify(field[i + 1][stein]));
+      }
+      field[6][stein] =JSON.parse(JSON.stringify(feldLegen));
+    }
+    // L
+    if (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) {
+      player.selectedCard = JSON.parse(JSON.stringify(field[6][stein]));
+      // field[stein].shift();
+      // field[stein].push(feldLegen);
+      for (var i = 6; i > 0; i--) {
+        field[i][stein] = JSON.parse(JSON.stringify(field[i - 1][stein]));
+      }
+      field[0][stein] =JSON.parse(JSON.stringify(feldLegen));
+    }
+    // U
+    if (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) {
+      player.selectedCard = JSON.parse(JSON.stringify(field[stein][0]));
+      field[stein].shift();
+      field[stein].push(feldLegen);
+    }
+    // O
+    if (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable) {
+      player.selectedCard = JSON.parse(JSON.stringify(field[stein][6]));
+      field[stein].pop();
+      field[stein].unshift(feldLegen);
+    }
     Layout();
   }
+
 </script>
