@@ -50,8 +50,11 @@ class dasVerrueckteLabyrinth {
     if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
-
-      console.log("neu geordnet")
+      var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
+      this.broadcast({
+        "type": "Reihenfolge",
+        "data": Reihenfolge
+      });
       this.spielerOnline = 2;
       if (/*this.spielerOnline > 2*/this.player3) {
         this.send(this.player3.client, {
@@ -69,7 +72,6 @@ class dasVerrueckteLabyrinth {
         });
         this.spielerOnline = 4;
       }
-      //var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
       this.broadcast({
         "type": "AnzahlSpieler",
         "data": this.spielerOnline
@@ -83,10 +85,6 @@ class dasVerrueckteLabyrinth {
         "type": "spielerDu",
         "data": 1,
         newRound: true
-      });
-      this.broadcast({
-        "type": "Reihenfolge",
-        "data": Reihenfolge
       });
       console.log("Kartenerteilung");
       zählerListe[0] = 0;

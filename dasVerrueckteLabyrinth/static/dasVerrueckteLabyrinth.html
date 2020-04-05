@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<canvas id="textur" width="1840" height="1450" onclick="canvasClicked();"></canvas>
+<canvas id="textur" width="1565" height="1450" onclick="canvasClicked();"></canvas>
 <script>
   window.onbeforeunload = function(){
     console.log("Leave Website");
@@ -72,7 +72,8 @@
   };
 
   var canvas = textur.getContext('2d'); //Dimension
-  var player = {aktuell: -1, yourNumber: -1, totalPlayer: -1, selectedCard: {}, items: {totenschaedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
+  // var  spielerIch = -1;
+  var player = {aktuell: -1, totalPlayer: -1, myNumber: -1, selectedCard: {}, movement: "waitingForOpponent",items: {totenschaedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
   var fields = [
       {
         wallStructure: [
@@ -146,8 +147,15 @@
   var field = [];
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") player.totalPlayer = message.data;
+    if (message.type == "field") {
+      field = message.data;
+      Layout();
+    }
+    if (message.type == "selectedCard") {
+      player.selectedCard = message.data;
+    }
     if (message.type == "spielerDu") {
-      player.yourNumber = message.data;
+      player.myNumber = message.data;
       if (message.data == 0) {
         for (var i = 0; i < 7; i++) {
           field[i] = [];
@@ -169,10 +177,19 @@
           else i--;
         }
         // player.selectedCard = newField();
-        Layout();
+        var coordSpawner = {0: "0-0", 1: "6-0", 2: "0-6", 3: "6-6"}
+        for (var i = 0; i < player.totalPlayer; i++) {
+          field[coordSpawner[i].toString().split('-')[0]][coordSpawner[i].toString().split('-')[1]][1][1].player = i;
+        }
+        player.selectedCard = newField();
+        spielerwechsel(false);
       }
     }
-    if (message.type == "Reihenfolge") player.aktuell = message.data;
+    if (message.type == "Reihenfolge") {
+      player.aktuell = message.data;
+      if (player.aktuell == player.myNumber) player.movement = "moveField";
+      if (!player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
+    }
   });
 
   function newField(spawnPoint, directionNumber, direction) {
@@ -255,7 +272,7 @@ return newField;
         displayCard(field, i, i1, 177 + 50*3*i, 177 + 50*3*i1);
       }
     }
-    if (times < 3) {
+    if (times < 5) {
       setTimeout(function () {
         Layout(times + 1);
       }, 500);
@@ -274,10 +291,39 @@ return newField;
         else if (i2 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 45, 50);
         else if (i3 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 45);
         else/* (i2 != 2 && i3 != 2)*/ canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 50);
-        if (field[i][i1][i2][i3].item) {
+        var colourPlayer = ["red", "blue", "green", "yellow"];
+        if (field[i][i1][i2][i3].item == player.searchingCard) {
+          canvas.fillStyle = colourPlayer[player.myNumber];
+          canvas.beginPath();
+          canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 27, 0, Math.PI * 2, false);
+          canvas.fill();
+          canvas.fillStyle = "gray";
+          canvas.beginPath();
+          canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 23, 0, Math.PI * 2, false);
+          canvas.fill();
+        }
+        if (field[i][i1][i2][i3].item && !player.items[field[i][i1][i2][i3].item].collected) {
           var Bild = new Image();
           Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
           canvas.drawImage(Bild, startx + 50*i2, starty + 50*i3, 50, 50);
+        }
+        var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
+        if (field[i][i1][i2][i3].spawnPoint && i2 == 1 && i3 == 1 && colourAndPlayerObj[i + "-" + i1].player) {
+          canvas.fillStyle = colourAndPlayerObj[i + "-" + i1].colour;
+          canvas.beginPath();
+          canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 17, 0, Math.PI * 2, false);
+          canvas.fill();
+          canvas.fillStyle = "gray";
+          canvas.beginPath();
+          canvas.arc(startx + 50*i2 + 50/2, starty + 50*(i3) + 50/2, 17 - 5, 0, Math.PI * 2, false);
+          canvas.fill();
+        }
+        if (field[i][i1][i2][i3].player !== false) {
+          canvas.fillStyle = colourPlayer[field[i][i1][i2][i3].player];
+          if (player.movingPlayer && i == player.movingPlayer.x && i1 == player.movingPlayer.y) canvas.fillStyle = "#00FF00";
+          canvas.beginPath();
+          canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 17, 0, Math.PI * 2, false);
+          canvas.fill();
         }
       }
     }
@@ -293,24 +339,57 @@ return newField;
     canvas.clearRect(0, 1227, 2000, 1000);
     canvas.clearRect(0, 0, 2000, 173);
     canvas.clearRect(1227, 0, textur.width, 2050);
-    if (Object.keys(player.selectedCard).length > 0 && !(xMaus > 200 - 88 && xMaus < 1222 + 88 && yMaus > 215 - 88 && yMaus < 1238 + 88)) displayCard([[player.selectedCard]], 0, 0, xMaus - 83, yMaus - 99);
+    if (player.movement == "movingPlayer" || player.movement == "moveField") folgenMouseMove();
   }
 
   function canvasClicked() {
     var stein = -1;
+    // possibleFields = [];
     if ((xMaus > 1230 || xMaus < 120) && yMaus > 130) {
       for (var i = 0; i < 7; i++) {
         if (yMaus > 205 + 50*3*i && yMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
       }
     }
-    else {
+    else if ((yMaus > 1230 || yMaus < 120) && xMaus > 130) {
       for (var i = 0; i < 7; i++) {
         if (xMaus > 205 + 50*3*i && xMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
       }
     }
-    if (stein > -1 && player.yourNumber == player.aktuell) movePlayer(stein);
+    if (stein > -1 && stein < 7 && player.movement == "moveField") movePlayer(stein);
+    if (player.movement == "movingPlayer") {
+      var itemsVerbleibtend = [];
+      for (var i = 0; i < Object.keys(player.items).length; i++) {
+        if (!player.items[Object.keys(player.items)[i]].collected) itemsVerbleibtend.push(Object.keys(player.items)[i]);
+      }
+      var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
+      if (itemsVerbleibtend.length == 0 &&  field[player.movingPlayer.x][player.movingPlayer.y][1][1].player) console.log("gewonnen!!!");
+      if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) {
+        player.items[player.searchingCard].collected = true;
+        if (itemsVerbleibtend.length > 1) player.searchingCard = itemsVerbleibtend[Math.round(Math.random() *(itemsVerbleibtend.length - 1))];
+      }
+      spielerwechsel(true);
+    }
+    for (var i = 0; i < 7; i++) {
+      for (var i1 = 0; i1 < 7; i1++) {
+        // 177 + 50*3*i, 177 + 50*3*i1
+        for (var i2 = 0; i2 < 3; i2++) {
+          for (var i3 = 0; i3 < 3; i3++) {
+            // if (xMaus > 177 + 50*i2*i && xMaus < 177 + 50*i2*i  + 130 && yMaus > 177 + 50*i3*i1  && yMaus < 177 + 50*i3*i1  + 130 && player.movement == "movingPlayer" && checkMovementPossibe(player.movingPlayer.x, player.movingPlayer.y, player.movingPlayer.i2, player.movingPlayer.i3)) {
+            //       field[i][i1][i2][i3].player = player.myNumber
+            //       field[player.movingPlayer.x][player.movingPlayer.y][i2][i3].player = false;
+            //     }
+            if (xMaus > 177 + 50*3*i + 50*i2 && xMaus < 177 + 50*3*i + 50*i2 + 50 && yMaus > 177 + 50*3*i1 + 50*i3 && yMaus < 177 + 50*3*i1 + 50*i3 + 50 && player.movement == "movePlayer" && field[i][i1][i2][i3].player === player.myNumber) {
+              player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
+              // setTimeout(function () {
+                player.movement = "movingPlayer";
+              // }, 1000);
+             }
+          }
+        }
+      }
+    }
   }
-
+var possibleFields = [];
   function movePlayer(stein) {
     var feldLegen = JSON.parse(JSON.stringify(player.selectedCard));
     // click R
@@ -346,6 +425,120 @@ return newField;
       field[stein].unshift(feldLegen);
     }
     Layout();
+    if ((xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) || (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) || (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) || (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable)) player.movement = "movePlayer";
   }
+
+  function spielerwechsel(spielerwechsel) {
+    if (spielerwechsel) {
+    player.aktuell++;
+    player.movement = "waitingForOpponent";
+    if (player.aktuell == player.totalPlayer) player.aktuell = 0;
+    player.movingPlayer = undefined;
+  }
+    room.send({
+      message: {
+        "type": "field",
+        data: field
+      }
+    });
+    room.send({
+      message: {
+        "type": "selectedCard",
+        data: player.selectedCard
+      }
+    });
+    room.send({
+      message: {
+        "type": "Reihenfolge",
+        data: player.aktuell
+      }
+    });
+  }
+  // var gehabt = [[], [], [], []];
+  // function checkMovementPossibe(x, y, i2, i3) {
+  //   if (field[x][y][i2][i3].type == "way") possibleFields.push({x: x, y: y, i2: i2, i3: i3});
+  //   if (field[x + 1] && field[x + 1][y][i2][i3].type == "way") {
+  //     checkMovementPossibe(x + 1, y, i2, i3);
+  //
+  //   }
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y + 1] && field[x][y + 1][i2] && field[x][y + 1][i2][i3].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y + 1, i2, i3);}
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y][i2 + 1] && field[x][y][i2 + 1][i3] && field[x][y][i2 + 1][i3].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y, i2 + 1, i3);}
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y][i2][i3 + 1] && field[x][y][i2][i3 + 1].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y, i2, i3 + 1);}
+  //
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x - 1] && field[x - 1][y][i2][i3] && field[x - 1][y][i2][i3].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x - 1, y, i2, i3);}
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y][i2 - 1] && field[x][y][i2 - 1][i3] && field[x][y][i2 - 1][i3].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y, i2 - 1, i3);}
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y - 1] && field[x][y - 1][i2][i3] && field[x][y - 1][i2][i3].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y - 1, i2, i3);}
+  //   if (!(gehabt.includes("" + x + y + i2 + i3)) && field[x][y][i2][i3 - 1] && field[x][y][i2][i3 - 1] && field[x][y][i2][i3 - 1].type == "way") {gehabt[0].push("" + x + y + i2 + i3); checkMovementPossibe(x, y, i2, i3 - 1);}
+  //
+  //
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y + 1] && field[x][y + 1][0] && field[x][y + 1][0][i3].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y + 1, 0, i3);}
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y][0][i3] && field[x][y][0][i3].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y, 0 + 1, i3);}
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y][0][i3 + 1] && field[x][y][0][i3 + 1].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y, 0, i3 + 1);}
+  //
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x - 1] && field[x - 1][y][0][i3] && field[x - 1][y][0][i3].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x - 1, y, 0, i3);}
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y][0][i3] && field[x][y][0][i3].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y, 0 - 1, i3);}
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y - 1] && field[x][y - 1][0][i3] && field[x][y - 1][0][i3].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y - 1, 0, i3);}
+  //   if (!(gehabt.includes("" + x + y + 0 + i3)) && field[x][y][0][i3 - 1] && field[x][y][0][i3 - 1].type == "way") {gehabt[0].push("" + x + y + 0 + i3); checkMovementPossibe(x, y, 0, i3 - 1);}
+  //
+  //
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y + 1] && field[x][y + 1][i2] && field[x][y + 1][i2][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y + 1, i2, 0);}
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y][i2 + 1] && field[x][y][i2 + 1][0] && field[x][y][i2 + 1][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y, i2 + 1, 0);}
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y][i2][0 + 1] && field[x][y][i2][0 + 1] && field[x][y][i2][0 + 1].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y, i2, 0 + 1);}
+  //
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x - 1] && field[x - 1][y][i2][0] && field[x - 1][y][i2][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x - 1, y, i2, 0);}
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y][i2 - 1] && field[x][y][i2 - 1][0] && field[x][y][i2 - 1][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y, i2 - 1, 0);}
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y - 1] && field[x][y - 1][i2][0] && field[x][y - 1][i2][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y - 1, i2, 0);}
+  //   if (!(gehabt.includes("" + x + y + i2 + 0)) && field[x][y][i2][0] && field[x][y][i2][0].type == "way") {gehabt[0].push("" + x + y + i2 + 0); checkMovementPossibe(x, y, i2, 0 - 1);}
+  //
+  //
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y + 1] && field[x][y + 1][0] && field[x][y + 1][0][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y + 1, 0, 0);}
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y][0 + 1] && field[x][y][0 + 1][0] && field[x][y][0 + 1][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y, 0 + 1, 0);}
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y][0][0 + 1] && field[x][y][0][0 + 1].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y, 0, 0 + 1);}
+  //
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x - 1] && field[x - 1][y][0][0] && field[x - 1][y][0][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x - 1, y, 0, 0);}
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y][0] && field[x][y][0][0] && field[x][y][0][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y, 0 - 1, 0);}
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y - 1] && field[x][y - 1][0][0] && field[x][y - 1][0][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y - 1, 0, 0);}
+  //   if (!(gehabt.includes("" + x + y + 0 + 0)) && field[x][y][0][0] && field[x][y][0][0].type == "way") {gehabt[0].push("" + x + y + 0 + 0); checkMovementPossibe(x, y, 0, 0 - 1);}
+  //   for (var i = 0; i < possibleFields; i++) {
+  //     if (possibleFields[i].x == i && possibleFields[i].y == i1 && possibleFields[i].i2 == i2 && possibleFields[i].i3 == i3) return true;
+  //   }
+  //   return false;
+  // }
+function folgenMouseMove() {
+  if (player.movement == "moveField" && Object.keys(player.selectedCard).length > 0 && !(xMaus > 200 - 88 && xMaus < 1222 + 88 && yMaus > 215 - 88 && yMaus < 1238 + 88)) displayCard([[player.selectedCard]], 0, 0, xMaus - 83, yMaus - 99);
+  for (var i = 0; i < 7 && player.movement == "movingPlayer"; i++) {
+    for (var i1 = 0; i1 < 7; i1++) {
+      // 177 + 50*3*i, 177 + 50*3*i1
+      for (var i2 = 0; i2 < 3; i2++) {
+        for (var i3 = 0; i3 < 3; i3++) {
+          // if (xMaus > 177 + 50*i2*i && xMaus < 177 + 50*i2*i  + 130 && yMaus > 177 + 50*i3*i1  && yMaus < 177 + 50*i3*i1  + 130 && player.movement == "movingPlayer" && checkMovementPossibe(player.movingPlayer.x, player.movingPlayer.y, player.movingPlayer.i2, player.movingPlayer.i3)) {
+          //       field[i][i1][i2][i3].player = player.myNumber
+          //       field[player.movingPlayer.x][player.movingPlayer.y][i2][i3].player = false;
+          //     }
+          if (xMaus > 177 + 50*i2 + 50*3*i && xMaus < 177 + 50*i2 + 50*3*i + 50 && yMaus > 177 + 50*i3 + 50*3*i1 && yMaus < 177 + 50*i3 + 50*3*i1 + 50) {
+            if (/*(((i == player.movingPlayer.x + 1 && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || (i1 == player.movingPlayer.y + 1 && i == player.movingPlayer.x && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || ((i2 == player.movingPlayer.i2 + 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) && (((player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i3 == player.movingPlayer.i3))) || ((i3 == player.movingPlayer.i3 + 1 || (i3 == player.movingPlayer.i3 + 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) && ((i3 == player.movingPlayer.i3 + 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && (i1 == player.movingPlayer.y) && i2 == player.movingPlayer.i2))) ||
+            (i == player.movingPlayer.x - 1 && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || (i1 == player.movingPlayer.y - 1 && i == player.movingPlayer.x && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || ((i2 == player.movingPlayer.i2 - 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) && (((i2 == player.movingPlayer.i2 - 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i3 == player.movingPlayer.i3)))) || ((i3 == player.movingPlayer.i3 - 1 || (i3 == player.movingPlayer.i3 - 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) && ((i3 == player.movingPlayer.i3 - 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3))
+          )) && */field[i][i1][i2][i3].type == "way" && ( /*links*/ (i3 == player.movingPlayer.i3 && i1 == player.movingPlayer.y && 177 + 50*i2 + 50*3*i < 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x && !(177 + 50*i2 + 50*3*i < 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x - 50)) || /*rechts*/(i3 == player.movingPlayer.i3 && i1 == player.movingPlayer.y && 177 + 50*i2 + 50*3*i > 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x && !(177 + 50*i2 + 50*3*i > 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x + 50)) ||  /*oben*/ (i2 == player.movingPlayer.i2 && i == player.movingPlayer.x && 177 + 50*i3 + 50*3*i1 < 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y && !(177 + 50*i3 + 50*3*i1 < 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y - 50)) || /*unten*/(i2 == player.movingPlayer.i2 && i == player.movingPlayer.x && 177 + 50*i3 + 50*3*i1 > 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y && !(177 + 50*i3 + 50*3*i1 > 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y + 50)))) {
+              field[i][i1][i2][i3].player = player.myNumber;
+              field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].player = false;
+              Layout(0);
+              player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
+            }
+           }
+        }
+      }
+    }
+}
+}
+
+document.onkeydown = function(event) {
+  folgenKeyDown();
+}
+
+function folgenKeyDown() {
+  if (event.key == "ArrowRight" && player.movement == "moveField") player.selectedCard = turn("right", player.selectedCard);
+  if (event.key == "ArrowLeft" && player.movement == "moveField") player.selectedCard = turn("left", player.selectedCard);
+  folgenMouseMove();
+}
 
 </script>
