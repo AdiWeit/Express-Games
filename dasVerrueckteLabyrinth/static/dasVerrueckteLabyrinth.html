@@ -1,5 +1,7 @@
 <meta charset="utf-8">
-<canvas id="textur" width="1565" height="1450" onclick="canvasClicked();"></canvas>
+<button type="button" id="turnRight" onclick="folgenKeyDown({key: 'ArrowRight'});" name="button">⟳</button>
+<button type="button" id="turnLeft" onclick="folgenKeyDown({key: 'ArrowLeft'});" name="button">⟲</button>
+<canvas id="textur" style="touch-action: none" width="1565" height="1450" onclick="canvasClicked();"></canvas>
 <script>
   window.onbeforeunload = function(){
     console.log("Leave Website");
@@ -20,9 +22,9 @@
     return content;
   }
 
-  let oldId = localStorage.getItem('CLIENTIDdasVerrueckteLabyrinth');
-  const clientId = oldId ? oldId : makeid(10);
-  localStorage.setItem('CLIENTIDdasVerrueckteLabyrinth', clientId);
+  //let oldId = localStorage.getItem('CLIENTIDdasVerrueckteLabyrinth');
+  const clientId = /*oldId ? oldId : */makeid(10);
+  //localStorage.setItem('CLIENTIDdasVerrueckteLabyrinth', clientId);
 
   var messageListener = null;
 
@@ -70,7 +72,8 @@
       sendMessage(msg);
     }
   };
-
+  turnLeft.style.position = "relative";
+  turnRight.style.position = "relative";
   var canvas = textur.getContext('2d'); //Dimension
   // var  spielerIch = -1;
   var player = {aktuell: -1, totalPlayer: -1, myNumber: -1, selectedCard: {}, movement: "waitingForOpponent",items: {totenschaedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
@@ -187,8 +190,16 @@
     }
     if (message.type == "Reihenfolge") {
       player.aktuell = message.data;
-      if (player.aktuell == player.myNumber) player.movement = "moveField";
+      if (player.aktuell == player.myNumber) {
+        player.movement = "moveField";
+        if (gerät == "Handy") {
+        textur.style.touchAction = "none";
+        turnLeft.style.display = "inline";
+        turnRight.style.display = "inline";
+      }
+      }
       if (!player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
+      if (field.length) Layout();
     }
   });
 
@@ -269,22 +280,21 @@ return newField;
     if (!times) times = 0;
     for (var i = 0; i < 7; i++) {
       for (var i1 = 0; i1 < 7; i1++) {
-        displayCard(field, i, i1, 177 + 50*3*i, 177 + 50*3*i1);
+        displayCard(field, i, i1, 177 + 50*3*i, 177 + 50*3*i1, times);
       }
     }
     if (times < 5) {
       setTimeout(function () {
         Layout(times + 1);
-      }, 500);
+      }, 70);
     }
   }
 
-  function displayCard(field, i, i1, startx, starty) {
+  function displayCard(field, i, i1, startx, starty, times) {
+    canvas.globalAlpha = 1;//0.5
+    if (isNaN(times)) canvas.globalAlpha = 0.5;
     for (var i2 = 0; i2 < 3; i2++) {
       for (var i3 = 0; i3 < 3; i3++) {
-        if (field[i][i1][i2][i3].movable/* && field[1] != undefined*/) canvas.fillStyle = "green";
-        else /*if (field[1] != undefined) */canvas.fillStyle = "red";
-        if (i2 == 0 && i3 == 0 && (i == 0 || i == 6 || i1 == 0 || i1 == 6) && field[1] != undefined) canvas.fillRect(startx - 5, starty - 5, 45*3 + 20, 45*3 + 20);
         if (field[i][i1][i2][i3].type == "wall") canvas.fillStyle = "brown";
         else canvas.fillStyle = "gray";
         if ((i2 == 2 && i3 == 2)) canvas.fillRect(startx + 50*i2, starty + 50*i3, 45, 45);
@@ -302,10 +312,14 @@ return newField;
           canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 23, 0, Math.PI * 2, false);
           canvas.fill();
         }
-        if (field[i][i1][i2][i3].item && !player.items[field[i][i1][i2][i3].item].collected) {
+        if (field[i][i1][i2][i3].item) {
           var Bild = new Image();
+          if (player.items[field[i][i1][i2][i3].item].collected) canvas.globalAlpha = 0.5;
+          else canvas.globalAlpha = 1;
           Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
           canvas.drawImage(Bild, startx + 50*i2, starty + 50*i3, 50, 50);
+          if (!(isNaN(times))) canvas.globalAlpha = 1;
+          else canvas.globalAlpha = 0.5;
         }
         var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
         if (field[i][i1][i2][i3].spawnPoint && i2 == 1 && i3 == 1 && colourAndPlayerObj[i + "-" + i1].player) {
@@ -327,21 +341,29 @@ return newField;
         }
       }
     }
+    if (field[i][i1][1][1].movable/* && field[1] != undefined*/) canvas.fillStyle = "#40FF00";
+    else /*if (field[1] != undefined) */canvas.fillStyle = "red";
+    if (!(isNaN(times)) && times == 5 && player.movement == "moveField"/* && i2 == 0 && i3 == 0*/ && (i == 0 || i == 6 || i1 == 0 || i1 == 6) && field[1] != undefined) {
+      canvas.globalAlpha = 0.5;
+      canvas.fillRect(startx - 5, starty - 5, 45*3 + 20, 45*3 + 20);
+      canvas.globalAlpha = 1;
+    }
   }
   var xMaus;
   var yMaus;
   document.onmousemove = readMouseMove
   function readMouseMove(e) {
-    xMaus = e.clientX + scrollX;
-    yMaus = e.clientY + scrollY + 23;
+    xMaus = e.clientX + scrollX //- 10;
+    yMaus = e.clientY + scrollY + 23//- 33;
     //    console.log(xMaus + " - " + yMaus);
+    if (gerät == "PC" && (player.movement == "movingPlayer" || player.movement == "moveField")) folgenMouseMove();
+  }
+  function clearBorder() {
     canvas.clearRect(0, 0, 173, 2000);
     canvas.clearRect(0, 1227, 2000, 1000);
     canvas.clearRect(0, 0, 2000, 173);
     canvas.clearRect(1227, 0, textur.width, 2050);
-    if (player.movement == "movingPlayer" || player.movement == "moveField") folgenMouseMove();
   }
-
   function canvasClicked() {
     var stein = -1;
     // possibleFields = [];
@@ -355,7 +377,7 @@ return newField;
         if (xMaus > 205 + 50*3*i && xMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
       }
     }
-    if (stein > -1 && stein < 7 && player.movement == "moveField") movePlayer(stein);
+    if (stein > -1 && stein < 7 && player.movement == "moveField") moveField(stein);
     if (player.movement == "movingPlayer") {
       var itemsVerbleibtend = [];
       for (var i = 0; i < Object.keys(player.items).length; i++) {
@@ -378,10 +400,12 @@ return newField;
             //       field[i][i1][i2][i3].player = player.myNumber
             //       field[player.movingPlayer.x][player.movingPlayer.y][i2][i3].player = false;
             //     }
-            if (xMaus > 177 + 50*3*i + 50*i2 && xMaus < 177 + 50*3*i + 50*i2 + 50 && yMaus > 177 + 50*3*i1 + 50*i3 && yMaus < 177 + 50*3*i1 + 50*i3 + 50 && player.movement == "movePlayer" && field[i][i1][i2][i3].player === player.myNumber) {
+            if ((/*gerät == "PC" && */xMaus > 177 + 50*3*i + 50*i2 && xMaus < 177 + 50*3*i + 50*i2 + 50 && yMaus > 177 + 50*3*i1 + 50*i3 && yMaus < 177 + 50*3*i1 + 50*i3 + 50) /*|| (gerät == "Handy" && xMaus > 177 + 50*3*i + 50*i2 && xMaus < 177 + 50*3*i + 50*i2 + 50 && yMaus - scrollY > 177 + 50*3*i1 + 50*i3 && yMaus - scrollY < 177 + 50*3*i1 + 50*i3 + 50)*/ && player.movement == "movePlayer" && field[i][i1][i2][i3].player === player.myNumber) {
               player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
               // setTimeout(function () {
                 player.movement = "movingPlayer";
+                canvas.clearRect(0, 0, textur.width, textur.height);
+                Layout();
               // }, 1000);
              }
           }
@@ -390,7 +414,7 @@ return newField;
     }
   }
 var possibleFields = [];
-  function movePlayer(stein) {
+  function moveField(stein) {
     var feldLegen = JSON.parse(JSON.stringify(player.selectedCard));
     // click R
     if (xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) {
@@ -400,7 +424,8 @@ var possibleFields = [];
       for (var i = 0; i < 6; i++) {
         field[i][stein] = JSON.parse(JSON.stringify(field[i + 1][stein]));
       }
-      field[6][stein] =JSON.parse(JSON.stringify(feldLegen));
+      field[6][stein] = JSON.parse(JSON.stringify(feldLegen));
+      if (checkForPlayerOnRemovingCard()) field[6][stein][1][1].player = checkForPlayerOnRemovingCard(true).player;
     }
     // L
     if (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) {
@@ -411,25 +436,46 @@ var possibleFields = [];
         field[i][stein] = JSON.parse(JSON.stringify(field[i - 1][stein]));
       }
       field[0][stein] =JSON.parse(JSON.stringify(feldLegen));
+      if (checkForPlayerOnRemovingCard()) field[0][stein][1][1].player = checkForPlayerOnRemovingCard(true).player;
     }
     // U
     if (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) {
       player.selectedCard = JSON.parse(JSON.stringify(field[stein][0]));
       field[stein].shift();
       field[stein].push(feldLegen);
+      if (checkForPlayerOnRemovingCard()) field[spein][6][1][1].player = checkForPlayerOnRemovingCard(true).player;
     }
     // O
     if (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable) {
       player.selectedCard = JSON.parse(JSON.stringify(field[stein][6]));
       field[stein].pop();
       field[stein].unshift(feldLegen);
+      if (checkForPlayerOnRemovingCard()) field[spein][0][1][1].player = checkForPlayerOnRemovingCard(true).player;
+    }
+    if ((xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) || (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) || (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) || (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable)) {
+      player.movement = "movePlayer";
+      turnLeft.style.display = "none";
+      turnRight.style.display = "none";
+      clearBorder();
     }
     Layout();
-    if ((xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) || (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) || (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) || (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable)) player.movement = "movePlayer";
+  }
+
+  function checkForPlayerOnRemovingCard(turnToFalse) {
+    for (var i = 0; i < 3; i++) {
+      for (var i1 = 0; i1 < 3; i1++) {
+        if (player.selectedCard[i][i1].player !== false) {
+          var localPlayer = player.selectedCard[i][i1].player;
+          if (turnToFalse) player.selectedCard[i][i1].player = false;
+          return {player: localPlayer, i2: i, i3: i1}
+      }
+    }
+    }
   }
 
   function spielerwechsel(spielerwechsel) {
     if (spielerwechsel) {
+    textur.style.touchAction = "";
     player.aktuell++;
     player.movement = "waitingForOpponent";
     if (player.aktuell == player.totalPlayer) player.aktuell = 0;
@@ -504,8 +550,21 @@ var possibleFields = [];
   //   }
   //   return false;
   // }
+function scrollDownFunction() {
+  if (yMaus - scrollY > window.innerHeight - 10)  {
+  window.scroll(0, scrollY + 3);
+  yMaus += 3;
+}
+}
+scrollDownInt = setInterval(scrollDownFunction, 10);
+scrollUpInt = setInterval(function () {
+  if ((yMaus - scrollY < 50/* && gerät == "PC"*/)/* || (yMaus - scrollY*2 < 160 && gerät == "Handy")*/) {
+    window.scroll(0, scrollY - 3);
+    yMaus -= 3;
+}
+}, 10);
 function folgenMouseMove() {
-  if (player.movement == "moveField" && Object.keys(player.selectedCard).length > 0 && !(xMaus > 200 - 88 && xMaus < 1222 + 88 && yMaus > 215 - 88 && yMaus < 1238 + 88)) displayCard([[player.selectedCard]], 0, 0, xMaus - 83, yMaus - 99);
+  if (player.movement == "moveField" && Object.keys(player.selectedCard).length > 0 && !(xMaus > 200 - 88 && xMaus < 1222 + 88 && yMaus > 215 - 88 && yMaus < 1238 + 88)) {clearBorder(); displayCard([[player.selectedCard]], 0, 0, xMaus - 83, yMaus - 99, "Tranzparent");}
   for (var i = 0; i < 7 && player.movement == "movingPlayer"; i++) {
     for (var i1 = 0; i1 < 7; i1++) {
       // 177 + 50*3*i, 177 + 50*3*i1
@@ -519,8 +578,11 @@ function folgenMouseMove() {
             if (/*(((i == player.movingPlayer.x + 1 && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || (i1 == player.movingPlayer.y + 1 && i == player.movingPlayer.x && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || ((i2 == player.movingPlayer.i2 + 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) && (((player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i3 == player.movingPlayer.i3))) || ((i3 == player.movingPlayer.i3 + 1 || (i3 == player.movingPlayer.i3 + 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) && ((i3 == player.movingPlayer.i3 + 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && (i1 == player.movingPlayer.y) && i2 == player.movingPlayer.i2))) ||
             (i == player.movingPlayer.x - 1 && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || (i1 == player.movingPlayer.y - 1 && i == player.movingPlayer.x && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3) || ((i2 == player.movingPlayer.i2 - 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) && (((i2 == player.movingPlayer.i2 - 1 || (player.movingPlayer.i2 == 2 && i2 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i3 == player.movingPlayer.i3)))) || ((i3 == player.movingPlayer.i3 - 1 || (i3 == player.movingPlayer.i3 - 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2))) && ((i3 == player.movingPlayer.i3 - 1 || (player.movingPlayer.i3 == 2 && i3 == 0) || (player.movingPlayer.i2 == 0 && i2 == 2)) || (i == player.movingPlayer.x && i1 == player.movingPlayer.y && i2 == player.movingPlayer.i2 && i3 == player.movingPlayer.i3))
           )) && */field[i][i1][i2][i3].type == "way" && ( /*links*/ (i3 == player.movingPlayer.i3 && i1 == player.movingPlayer.y && 177 + 50*i2 + 50*3*i < 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x && !(177 + 50*i2 + 50*3*i < 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x - 50)) || /*rechts*/(i3 == player.movingPlayer.i3 && i1 == player.movingPlayer.y && 177 + 50*i2 + 50*3*i > 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x && !(177 + 50*i2 + 50*3*i > 177 + 50*player.movingPlayer.i2 + 50*3*player.movingPlayer.x + 50)) ||  /*oben*/ (i2 == player.movingPlayer.i2 && i == player.movingPlayer.x && 177 + 50*i3 + 50*3*i1 < 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y && !(177 + 50*i3 + 50*3*i1 < 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y - 50)) || /*unten*/(i2 == player.movingPlayer.i2 && i == player.movingPlayer.x && 177 + 50*i3 + 50*3*i1 > 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y && !(177 + 50*i3 + 50*3*i1 > 177 + 50*player.movingPlayer.i3 + 50*3*player.movingPlayer.y + 50)))) {
-              field[i][i1][i2][i3].player = player.myNumber;
               field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].player = false;
+              if (playerAblage) field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].player = JSON.parse(JSON.stringify(playerAblage));
+              if (playerAblage != undefined) playerAblage = undefined
+              if (field[i][i1][i2][i3].player != false) playerAblage = field[i][i1][i2][i3].player;
+              field[i][i1][i2][i3].player = player.myNumber;
               Layout(0);
               player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
             }
@@ -530,15 +592,61 @@ function folgenMouseMove() {
     }
 }
 }
-
+var playerAblage;
 document.onkeydown = function(event) {
-  folgenKeyDown();
+  folgenKeyDown(event);
 }
 
-function folgenKeyDown() {
-  if (event.key == "ArrowRight" && player.movement == "moveField") player.selectedCard = turn("right", player.selectedCard);
-  if (event.key == "ArrowLeft" && player.movement == "moveField") player.selectedCard = turn("left", player.selectedCard);
+function folgenKeyDown(event) {
+  if (event.key == "ArrowRight" && player.movement == "moveField") {
+    player.selectedCard = turn("right", player.selectedCard);
+    if (gerät == "Handy") xMaus -= 97;
+  }
+  if (event.key == "ArrowLeft" && player.movement == "moveField") {
+    player.selectedCard = turn("left", player.selectedCard);
+    if (gerät == "Handy") xMaus += 97;
+  }
+  if (gerät == "Handy") yMaus -= 55;
+  clearBorder();
   folgenMouseMove();
 }
+document.addEventListener('touchmove', touch);
+document.addEventListener('touchstart', touch);
+function touch(ev) {
+  xMaus = ev.touches[0]["pageX"]// + scrollX;
+  yMaus = ev.touches[0]["pageY"]// + scrollY;
+  if (ev.type == "touchstart" && player.movement == "movePlayer") {
+    canvasClicked();
+  }
+  if (ev.type == "touchmove") {
+    //if (player.movement == "moveField") yMaus -= scrollY;
+    folgenMouseMove();
+    turnLeft.style.top = yMaus + 3 + "px";
+    turnLeft.style.left = xMaus - /*153*/188 + "px";
+    turnRight.style.left = xMaus + /*41*/61 + "px";
+    turnRight.style.top = yMaus + 3 + "px";
+  }
+}
+turnLeft.style.width = "50px";
+turnLeft.style.height = "50px";
+turnRight.style.width = "50px";
+turnRight.style.height = "50px";
 
+if (navigator.userAgent.match(/Android/i) ||
+  navigator.userAgent.match(/webOS/i) ||
+  navigator.userAgent.match(/iPhone/i) ||
+  navigator.userAgent.match(/iPad/i) ||
+  navigator.userAgent.match(/iPod/i) ||
+  navigator.userAgent.match(/BlackBerry/i) ||
+  navigator.userAgent.match(/Windows Phone/i)
+) {
+  var gerät = "Handy"
+  console.log("Handy");
+} else {
+  var gerät = "PC"
+  console.log("PC");
+}
+textur.style.touchAction = "";
+turnLeft.style.display = "none";
+turnRight.style.display = "none";
 </script>
