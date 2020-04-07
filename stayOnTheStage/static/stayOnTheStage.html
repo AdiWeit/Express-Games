@@ -369,6 +369,15 @@
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "left") player[gegner].position.x -= 30;
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "down") player[gegner].position.y += 30;
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "up") player[gegner].position.y -= 30;
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) {
+      room.send({
+        message: {
+          "type": "playerSync",
+          position: player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position,
+          sender: Object.keys(playerSame)[bounceAufträge[i].i - 1]
+        }
+      });
+    }
     if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
     if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
 
