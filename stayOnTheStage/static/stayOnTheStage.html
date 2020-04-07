@@ -373,8 +373,8 @@
       room.send({
         message: {
           "type": "playerSync",
-          position: player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position,
-          sender: Object.keys(playerSame)[bounceAufträge[i].i - 1]
+          position: player[gegner].position,
+          sender: gegner
         }
       });
     }
