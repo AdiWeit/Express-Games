@@ -369,7 +369,7 @@
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "left") player[gegner].position.x -= 30;
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "down") player[gegner].position.y += 30;
     if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "up") player[gegner].position.y -= 30;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) {
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77})) {
       room.send({
         message: {
           "type": "playerSync",
