@@ -1,6 +1,6 @@
 <meta charset="utf-8">
-<button type="button" id="turnRight" onclick="folgenKeyDown({key: 'ArrowRight'});" name="button">⟳</button>
-<button type="button" id="turnLeft" onclick="folgenKeyDown({key: 'ArrowLeft'});" name="button">⟲</button>
+<button type="button" id="turnRight" style="font-size: 40px" onclick="folgenKeyDown({key: 'ArrowRight'});" name="button">⟳</button>
+<button type="button" id="turnLeft" style="font-size: 40px" onclick="folgenKeyDown({key: 'ArrowLeft'});" name="button">⟲</button>
 <canvas id="textur" style="touch-action: none" width="1565" height="1450" onclick="canvasClicked();"></canvas>
 <script>
   window.onbeforeunload = function(){
@@ -76,7 +76,8 @@
   turnRight.style.position = "relative";
   var canvas = textur.getContext('2d'); //Dimension
   // var  spielerIch = -1;
-  var player = {aktuell: -1, totalPlayer: -1, myNumber: -1, selectedCard: {}, movement: "waitingForOpponent",items: {totenschaedel: {collected: false}, kaefer: {collected: false}, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}, eule: {collected: false}, clownMuetze: {collected: false}, schatzkiste: {collected: false}}}
+  var allItems = {totenschaedel: {collected: false}/*, kaefer: {collected: false}*/, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}/*, eule: {collected: false}*/, clownMuetze: {collected: false}, schatzkiste: {collected: false}};
+  var player = {aktuell: -1, totalPlayer: -1, myNumber: -1, selectedCard: {}, movement: "waitingForOpponent", items: {}};
   var fields = [
       {
         wallStructure: [
@@ -150,6 +151,12 @@
   var field = [];
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") player.totalPlayer = message.data;
+    if (message.type == "fieldMoved" && message.data && message.data.direction == "u") field[message.data.stein][6][0][0].movable = false;
+    if (message.type == "fieldMoved" && message.data && message.data.direction == "o") field[message.data.stein][0][0][0].movable = false;
+    if (message.type == "fieldMoved" && message.data && message.data.direction == "r") field[6][message.data.stein][0][0].movable = false;
+    if (message.type == "fieldMoved" && message.data && message.data.direction == "l") field[0][message.data.stein][0][0].movable = false;
+    if (message.type == "fieldMoved") player.moved = message.data;
+    if (message.type == "fieldMoved" && !player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
     if (message.type == "field") {
       field = message.data;
       Layout();
@@ -159,35 +166,58 @@
     }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
-      if (message.data == 0) {
-        for (var i = 0; i < 7; i++) {
-          field[i] = [];
-          for (var i1 = 0; i1 < 7; i1++) {
-            if (i == 0 && i1 == 0) field[i][i1] = newField(true, 0);
-            else if (i == 6 && i1 == 0) field[i][i1] = newField(true, 1, "right");
-            else if (i == 0 && i1 == 6) field[i][i1] = newField(true, 1, "left");
-            else if (i == 6 && i1 == 6) field[i][i1] = newField(true, 2, "right");
-            else if (!((i/2 + "").includes(".")) && i1 == 0) field[i][i1] = newField(false, 2, "right");
-            else if (!((i/2 + "").includes(".")) && i1 == 6) field[i][i1] = newField(false, 0);
-            else if (!((i1/2 + "").includes(".")) && i == 0) field[i][i1] = newField(false, 1, "right");
-            else if (!((i1/2 + "").includes(".")) && i == 6) field[i][i1] = newField(false, 1, "left");
-            else field[i][i1] = newField();
+      setTimeout(function () {
+        if ((player.totalPlayer < 3 && message.data == 0) || (message.data + 1 == player.totalPlayer)) {
+          for (var i = 0; i < 7; i++) {
+            field[i] = [];
+            for (var i1 = 0; i1 < 7; i1++) {
+              if (i == 0 && i1 == 0) field[i][i1] = newField(true, 0);
+              else if (i == 6 && i1 == 0) field[i][i1] = newField(true, 1, "right");
+              else if (i == 0 && i1 == 6) field[i][i1] = newField(true, 1, "left");
+              else if (i == 6 && i1 == 6) field[i][i1] = newField(true, 2, "right");
+              else if (!((i/2 + "").includes(".")) && i1 == 0) field[i][i1] = newField(false, 2, "right");
+              else if (!((i/2 + "").includes(".")) && i1 == 6) field[i][i1] = newField(false, 0);
+              else if (!((i1/2 + "").includes(".")) && i == 0) field[i][i1] = newField(false, 1, "right");
+              else if (!((i1/2 + "").includes(".")) && i == 6) field[i][i1] = newField(false, 1, "left");
+              else field[i][i1] = newField();
+            }
           }
+          for (var i = 0; i < Object.keys(allItems).length; i++) {
+            var position = {x: Math.round(Math.random() *6), y: Math.round(Math.random() *6)}
+            if (!field[position.x][position.y][1][1].item && !((position.x == 0 && position.y == 0) || (position.x == 0 && position.y == 6) || (position.x == 6 && position.y == 0) || (position.x == 6 && position.y == 6))) field[position.x][position.y][1][1].item = Object.keys(allItems)[i];
+            else i--;
+          }
+          // player.selectedCard = newField();
+          var coordSpawner = {0: "0-0", 1: "6-0", 2: "0-6", 3: "6-6"}
+          for (var i = 0; i < player.totalPlayer; i++) {
+            field[coordSpawner[i].toString().split('-')[0]][coordSpawner[i].toString().split('-')[1]][1][1].player = i;
+          }
+          player.selectedCard = newField();
+            var itemsNichtVergeben = [];
+            for (var i = 0; i < Object.keys(allItems).length; i++) {
+              itemsNichtVergeben.push(i);
+            }
+            for (var i = 0; i < player.totalPlayer; i++) {
+              var itemsForEachPlayer = {};
+              for (var i1 = 0; i1 < Object.keys(allItems).length/player.totalPlayer; i1++) {
+                var randomNumber = Math.round(Math.random() *(itemsNichtVergeben.length - 1));
+                var randomItem = itemsNichtVergeben[randomNumber];
+                itemsForEachPlayer[Object.keys(allItems)[randomItem]] = allItems[Object.keys(allItems)[randomItem]];
+                itemsNichtVergeben.splice(randomNumber, 1);
+              }
+              room.send({
+                message: {
+                  "type": "items",
+                  data: itemsForEachPlayer,
+                  empfänger: i
+                }
+              });
+            }
+            spielerwechsel(false);
         }
-        for (var i = 0; i < Object.keys(player.items).length; i++) {
-          var position = {x: Math.round(Math.random() *6), y: Math.round(Math.random() *6)}
-          if (!field[position.x][position.y][1][1].item && !((position.x == 0 && position.y == 0) || (position.x == 0 && position.y == 6) || (position.x == 6 && position.y == 0) || (position.x == 6 && position.y == 6))) field[position.x][position.y][1][1].item = Object.keys(player.items)[i];
-          else i--;
-        }
-        // player.selectedCard = newField();
-        var coordSpawner = {0: "0-0", 1: "6-0", 2: "0-6", 3: "6-6"}
-        for (var i = 0; i < player.totalPlayer; i++) {
-          field[coordSpawner[i].toString().split('-')[0]][coordSpawner[i].toString().split('-')[1]][1][1].player = i;
-        }
-        player.selectedCard = newField();
-        spielerwechsel(false);
-      }
+      }, 1000);
     }
+    if (message.type == "items" && message.empfänger == player.myNumber) player.items = message.data;
     if (message.type == "Reihenfolge") {
       player.aktuell = message.data;
       if (player.aktuell == player.myNumber) {
@@ -198,7 +228,6 @@
         turnRight.style.display = "inline";
       }
       }
-      if (!player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
       if (field.length) Layout();
     }
   });
@@ -312,10 +341,8 @@ return newField;
           canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 23, 0, Math.PI * 2, false);
           canvas.fill();
         }
-        if (field[i][i1][i2][i3].item) {
+        if (field[i][i1][i2][i3].item && (!player.items[field[i][i1][i2][i3].item] || !player.items[field[i][i1][i2][i3].item].collected)) {
           var Bild = new Image();
-          if (player.items[field[i][i1][i2][i3].item].collected) canvas.globalAlpha = 0.5;
-          else canvas.globalAlpha = 1;
           Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dasVerrueckteLabyrinth/" + field[i][i1][i2][i3].item + ".png";
           canvas.drawImage(Bild, startx + 50*i2, starty + 50*i3, 50, 50);
           if (!(isNaN(times))) canvas.globalAlpha = 1;
@@ -341,7 +368,7 @@ return newField;
         }
       }
     }
-    if (field[i][i1][1][1].movable/* && field[1] != undefined*/) canvas.fillStyle = "#40FF00";
+    if (field[i][i1][0][0].movable/* && field[1] != undefined*/) canvas.fillStyle = "#40FF00";
     else /*if (field[1] != undefined) */canvas.fillStyle = "red";
     if (!(isNaN(times)) && times == 5 && player.movement == "moveField"/* && i2 == 0 && i3 == 0*/ && (i == 0 || i == 6 || i1 == 0 || i1 == 6) && field[1] != undefined) {
       canvas.globalAlpha = 0.5;
@@ -377,17 +404,19 @@ return newField;
         if (xMaus > 205 + 50*3*i && xMaus < 205 + 50*3*i + 140) {console.log((i + 1) + ". Stein"); stein = i;}
       }
     }
-    if (stein > -1 && stein < 7 && player.movement == "moveField") moveField(stein);
+    if (stein > -1 && stein < 7 && player.movement == "moveField") {
+      moveField(stein);
+    }
     if (player.movement == "movingPlayer") {
       var itemsVerbleibtend = [];
+      if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) player.items[player.searchingCard].collected = true;
       for (var i = 0; i < Object.keys(player.items).length; i++) {
         if (!player.items[Object.keys(player.items)[i]].collected) itemsVerbleibtend.push(Object.keys(player.items)[i]);
       }
       var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
       if (itemsVerbleibtend.length == 0 &&  field[player.movingPlayer.x][player.movingPlayer.y][1][1].player) console.log("gewonnen!!!");
       if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) {
-        player.items[player.searchingCard].collected = true;
-        if (itemsVerbleibtend.length > 1) player.searchingCard = itemsVerbleibtend[Math.round(Math.random() *(itemsVerbleibtend.length - 1))];
+        if (itemsVerbleibtend.length > 0) player.searchingCard = itemsVerbleibtend[Math.round(Math.random() *(itemsVerbleibtend.length - 1))];
       }
       spielerwechsel(true);
     }
@@ -426,6 +455,8 @@ var possibleFields = [];
       }
       field[6][stein] = JSON.parse(JSON.stringify(feldLegen));
       if (checkForPlayerOnRemovingCard()) field[6][stein][1][1].player = checkForPlayerOnRemovingCard(true).player;
+      removePlayerMoved();
+      player.moved = {direction: "l", stein: stein};
     }
     // L
     if (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) {
@@ -437,13 +468,17 @@ var possibleFields = [];
       }
       field[0][stein] =JSON.parse(JSON.stringify(feldLegen));
       if (checkForPlayerOnRemovingCard()) field[0][stein][1][1].player = checkForPlayerOnRemovingCard(true).player;
+      removePlayerMoved();
+      player.moved = {direction: "r", stein: stein};
     }
     // U
-    if (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) {
+    if (yMaus > 1230 && xMaus > 130 && field[stein][6][0][0].movable) {
       player.selectedCard = JSON.parse(JSON.stringify(field[stein][0]));
       field[stein].shift();
       field[stein].push(feldLegen);
       if (checkForPlayerOnRemovingCard()) field[spein][6][1][1].player = checkForPlayerOnRemovingCard(true).player;
+      removePlayerMoved();
+      player.moved = {direction: "o", stein: stein};
     }
     // O
     if (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable) {
@@ -451,6 +486,8 @@ var possibleFields = [];
       field[stein].pop();
       field[stein].unshift(feldLegen);
       if (checkForPlayerOnRemovingCard()) field[spein][0][1][1].player = checkForPlayerOnRemovingCard(true).player;
+      removePlayerMoved();
+      player.moved = {direction: "u", stein: stein}
     }
     if ((xMaus > 1230 && yMaus > 130 && field[6][stein][0][0].movable) || (xMaus < 140 && yMaus > 130 && field[0][stein][0][0].movable) || (yMaus > 1230 && xMaus > 130 && field[stein][0][0][0].movable) || (yMaus < 140 && xMaus > 130 && field[stein][6][0][0].movable)) {
       player.movement = "movePlayer";
@@ -459,6 +496,13 @@ var possibleFields = [];
       clearBorder();
     }
     Layout();
+  }
+
+  function removePlayerMoved() {
+    if (player.moved && player.moved.direction == "u") field[player.moved.stein][6][0][0].movable = true;
+    if (player.moved && player.moved.direction == "o") field[player.moved.stein][0][0][0].movable = true;
+    if (player.moved && player.moved.direction == "r") field[6][player.moved.stein][0][0].movable = true;
+    if (player.moved && player.moved.direction == "l") field[0][player.moved.stein][0][0].movable = true;
   }
 
   function checkForPlayerOnRemovingCard(turnToFalse) {
@@ -497,6 +541,12 @@ var possibleFields = [];
       message: {
         "type": "Reihenfolge",
         data: player.aktuell
+      }
+    });
+    room.send({
+      message: {
+        "type": "fieldMoved",
+        data: player.moved
       }
     });
   }
