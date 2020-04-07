@@ -138,6 +138,7 @@
     if (message.type == "gewonnen") {showResult(message.data, 0);}
     if (message.type == "playerSync" && message.sender != spielerIch) {
       player[message.sender].position = message.position;
+      if (AnzahlSpieler == 2) gegner = message.sender;
     }
     if (message.type == "endRound") {
       times[message.sender] = message.time
@@ -348,6 +349,7 @@
     ay1 = event.accelerationIncludingGravity.y * 5;
   }
   var sphereIch = -1;
+  var gegner = -1;
   setInterval(function() {
     var landscapeOrientation = screen.width;
     if (landscapeOrientation) {
@@ -363,6 +365,10 @@
     }
     vx1 = vx1 * 0.98;
     vy1 = vy1 * 0.98;
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "right") player.gegner.x += 30;
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "left") player.gegner.x -= 30;
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "down") player.gegner.y += 30;
+    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "up") player.gegner.y -= 30;
     if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
     if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
 
@@ -511,6 +517,24 @@
       bounceAufträge[i].zähler++;
     }
   }, 25);
+  function isCollide(a, b) {
+  if (((a.y + a.height) < (b.y))) directionBefore = "up";
+  if (((a.y > (b.y + b.height)))) directionBefore = "down";
+  if ((((a.x + a.width) < b.x))) directionBefore = "right";
+  if (((a.x > (b.x + b.width)))) directionBefore = "left";
+  if (!(
+      ((a.y + a.height) < (b.y)) ||
+      (a.y > (b.y + b.height)) ||
+      ((a.x + a.width) < b.x) ||
+      (a.x > (b.x + b.width))
+  )) console.log("blue collisionFrom " + directionBefore + " side");
+  return !(
+      ((a.y + a.height) < (b.y)) ||
+      (a.y > (b.y + b.height)) ||
+      ((a.x + a.width) < b.x) ||
+      (a.x > (b.x + b.width))
+  );
+}
   var bounceAufträge = [];
     function boundingBoxCheck() {
       if (player[spielerIch].position.x < 0) { // hit left
