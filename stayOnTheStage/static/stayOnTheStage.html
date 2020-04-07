@@ -517,6 +517,7 @@
       bounceAufträge[i].zähler++;
     }
   }, 25);
+  var directionBefore = "";
   function isCollide(a, b) {
   if (((a.y + a.height) < (b.y))) directionBefore = "up";
   if (((a.y > (b.y + b.height)))) directionBefore = "down";
