@@ -390,14 +390,14 @@ function serverDatenLöschen() {
     //  });
   }
 
-  function gewonnenCheck() {
+    function gewonnenCheck() {
     if (Zustand[Zustand.length - 1] + Zustand[Zustand.length - 2] == "Von " + SpielerId + "überrollt" + "Von " + SpielerId + "überrollt") {
       Zustand[Zustand.length] = SpielerId + "gewonnen";
     } else if (Zustand[Zustand.length - 1] + Zustand[Zustand.length - 2] == "Von " + SpielerIdGegner + "überrollt" + "Von " + SpielerIdGegner + "überrollt") {
       Zustand[Zustand.length] = SpielerIdGegner + "gewonnen";
     }
 
-    if (Zustand[Zustand.length - 1] == SpielerId + "gewonnen") {
+    if (Zustand[Zustand.length - 1] == SpielerId + "gewonnen" || Zustand[Zustand.length - 2] == SpielerId + "gewonnen") {
       Sperren[2] = true;
       console.log("Du hast gewonnen!!!");
       clearInterval(koordinatenCheck);
@@ -412,7 +412,7 @@ function serverDatenLöschen() {
           Sperren[2] = true;
         }, 100);
       }, 700);
-    } else if (Zustand[Zustand.length - 1].includes("gewonnen")) {
+    } else if (Zustand[Zustand.length - 1].includes("gewonnen") || Zustand[Zustand.length - 2].includes("gewonnen")) {
       console.log("Du hast verloren!!!");
       Sperren[2] = true;
       clearInterval(koordinatenCheck);
@@ -1858,11 +1858,13 @@ function checkAndromeda() {
       MitteSpieler1[AblageListe[1]][4] += AblageListe[8];
       AblageListe[8] = "beendet";
       AblageListe[2] = "beendet";
+      if (AblageListe[12] == "Angriff") VorAngriffBeenden();
     }
     if (AblageListe[2] == "Spieler2AuswahlLebenPlus") {
       MitteSpieler2[AblageListe[1]][4] += AblageListe[8];
       AblageListe[2] = "beendet";
       AblageListe[8] = "beendet";
+      if (AblageListe[12] == "Angriff") VorAngriffBeenden();
     }
     if (AblageListe[2] == "Spieler1Auswahl2Leben2RundenVerloren") {
       MitteSpieler2[AblageListe[1]][10] = [];
@@ -2751,7 +2753,7 @@ function checkAndromeda() {
           }
         }
 
-        else if (!(MitteSpieler2[zählerListe[11]][0] == undefined) && MitteSpieler2[zählerListe[11]].includes("Laodike") && (!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
+        else if (!(MitteSpieler2[zählerListe[11]][0] == "z") && MitteSpieler2[zählerListe[11]][5].includes("Laodike") && (!zählerListe[11] || AblageListe[9] != zählerListe[11])) {
           MitteSpieler2[zählerListe[11]] = ["z", 0, ""];
         }
       }
