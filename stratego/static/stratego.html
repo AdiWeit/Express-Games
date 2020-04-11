@@ -467,6 +467,7 @@ function aufstellungLaden(aufstellung) {
   }
   if (playerLeft == 0) {
     setTimeout(function () {
+      AblageListe[3] = player.length;
       aufstellungInRunde();
     }, 1777);
   }
@@ -922,8 +923,7 @@ function folgenKeyDown() {
         if (player[i].anzahl < 1) AblageListe[3]++;
       }
       setTimeout(function () {
-        AblageListe[3] = player.length;
-        aufstellungInRunde();
+        if (AblageListe[3] == player.length) aufstellungInRunde();
       }, 500);
     }
   }
