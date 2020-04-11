@@ -75,6 +75,7 @@ class stratego {
     }
     else {
       console.log("Spielerwechsel");
+      console.log("reihenfolge: " + reihenfolge);
       if (reihenfolge[0] == "player1") {
         this.broadcast({
           "type": "spielerIds",
@@ -86,6 +87,7 @@ class stratego {
           "type": "spielerIds",
           "data": [this.player1.id, this.player2.id]
         });
+        reihenfolge = ["player1", "player2"];
       }
   }
 }

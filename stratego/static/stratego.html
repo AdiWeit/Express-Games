@@ -61,6 +61,12 @@ var app = new Vue({
 else {
   kathegorien.style.display = "none";
   aufstellungsText.innerHTML = "Keine gespeicherte Aufstellungen";
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: []
+    }
+  })
 }
 // Ausschreiben
 for (var i = 0; i < spielfeld.length; i++) {
@@ -176,6 +182,8 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     if (message.type.includes("player") && message.rejoin && JSON.parse(localStorage.getItem('spielfeldStratego')) != undefined && JSON.parse(localStorage.getItem('spielfeldStratego')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
       spielfeld = JSON.parse(localStorage.getItem("spielfeldStratego"));
       player = JSON.parse(localStorage.getItem("playerStratego"));
+      ids = JSON.parse(localStorage.getItem("idsStratego"));
+      roundStatus = JSON.parse(localStorage.getItem("roundStatusStratego"));
     }
     else if (message.type.includes("player") && message.rejoin) {
       room.send({
@@ -198,6 +206,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     if (message.type == "spielerIds")    {
        ids = message.data;
+       localStorage.setItem("idsStratego", JSON.stringify(ids));
       if (idsBleibt.length == 0)  idsBleibt = JSON.parse(JSON.stringify(ids));
   //    if (playerMe == 1) myId = idsBleibt[0]
   //    if (playerMe == 2) myId = idsBleibt[1]
@@ -226,6 +235,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       // }
     //  Layout(false, 0);
     roundStatus = message.data;
+    localStorage.setItem("roundStatusStratego", message.data);
     }
     if (message.type == "showNumber"/* && myId == ids[1]*/) {
       if (myId == ids[1])  canvas.fillStyle = "red";
@@ -290,9 +300,6 @@ function removeGame(sendEnd) {
     }
   });
 }
-  localStorage.setItem('spielfeldStratego', undefined);
-  localStorage.setItem('playerStratego', undefined);
-  localStorage.clear('CLIENTIDdieMaulwurfCompany')
 }
 function Layout(sync, time) {
   canvas.fillStyle = "#FA9B0D";
@@ -362,11 +369,11 @@ function Layout(sync, time) {
     Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/saveField.png";
     canvas.drawImage(Bild, 222, 300, 100, 100);
   showChat();
-  if (time < 5) {
-    setTimeout(function () {
-      Layout(sync, time + 1);
-    }, 50);
-  }
+  // if (time < 2) {
+  //   setTimeout(function () {
+  //     Layout(sync, time + 1);
+  //   }, 50);
+  // }
 }
 function showChat() {
   for (var i = 0; i < messages.length; i++) {
@@ -433,10 +440,11 @@ function aufstellungLaden(aufstellung) {
   if ((aufstellung.bottom && myId == idsBleibt[0]) || (!aufstellung.bottom && myId == idsBleibt[1])) {
     var i = 0;
     if (aufstellung.bottom) i += 6;
-    for (i; i < aufstellung.field[0].length; i++) {
+    for (var i2 = 0; i2 < aufstellung.field[0].length; i2++) {
       for (i1 = 0; i1 < aufstellung.field.length; i1++) {
-        spielfeld[i1][i] = aufstellung.field[i1][i];
+        spielfeld[i1][i] = aufstellung.field[i1][i2];
       }
+      i++;
     }
   }
   else {
@@ -453,6 +461,15 @@ function aufstellungLaden(aufstellung) {
   }
   Layout(false, 0);
   player = aufstellung.player;
+  var playerLeft = 0;
+  for (var i = 0; i < player.length; i++) {
+    if (player[i].anzahl != 0) playerLeft += player[i].anzahl;
+  }
+  if (playerLeft == 0) {
+    setTimeout(function () {
+      aufstellungInRunde();
+    }, 1777);
+  }
 }
 function showStats() {
   koordinaten[1] = 37;
@@ -612,6 +629,7 @@ function attack() {
     }, 1333);
   }
   roundStatus[0] = "ingame";
+  localStorage.setItem("roundStatusStratego", message.data);
   Layout(false, 0);
   if (myId == idsBleibt[0]) {
     room.send({
@@ -904,28 +922,8 @@ function folgenKeyDown() {
         if (player[i].anzahl < 1) AblageListe[3]++;
       }
       setTimeout(function () {
-        if (AblageListe[3] == player.length && confirm("Sind sie mit ihrer Aufstellung zufrienden und wollen die Runde starten?")) {
-          if (confirm("wollen sie diese Aufstellung auf ihrem Gerät speichern?")) aufstellungSpeichern();
-          roundStatus[0] = "ingame";
-          document.getElementById('textur').style = "touch-action: none";
-          if (idsBleibt[0] == myId) {  // bottom
-            room.send({
-              message: {
-                "type": "spielfeldBottom",
-                "data": spielfeld
-              }
-            });
-          }
-          else {  // Top
-            room.send({
-              message: {
-                "type": "spielfeldTop",
-                "data": spielfeld
-              }
-            });
-          }
-
-        }
+        AblageListe[3] = player.length;
+        aufstellungInRunde();
       }, 500);
     }
   }
@@ -994,6 +992,30 @@ function folgenKeyDown() {
   });
 
   if (!(JSON.parse(localStorage.getItem("colors")) == null))  colors = JSON.parse(localStorage.getItem("colors"));
+  function aufstellungInRunde() {
+    if (AblageListe[3] == player.length && confirm("Sind sie mit ihrer Aufstellung zufrienden und wollen die Runde starten?")) {
+      if (confirm("wollen sie diese Aufstellung auf ihrem Gerät speichern?")) aufstellungSpeichern();
+      roundStatus[0] = "ingame";
+      document.getElementById('textur').style = "touch-action: none";
+      if (idsBleibt[0] == myId) {  // bottom
+        room.send({
+          message: {
+            "type": "spielfeldBottom",
+            "data": spielfeld
+          }
+        });
+      }
+      else {  // Top
+        room.send({
+          message: {
+            "type": "spielfeldTop",
+            "data": spielfeld
+          }
+        });
+      }
+
+    }
+  }
 function checkClickedField() {
   AblageListe[0] = "none";
   for (var i = 0; i < spielfeld.length; i++) {
