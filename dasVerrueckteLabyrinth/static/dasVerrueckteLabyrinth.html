@@ -149,8 +149,36 @@
 
   ]
   var field = [];
+  function showResult(gewinner, times) {
+    if (player.myNumber == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+          audio.currentTime = 9.0;
+          audio.play();
+          reset();
+      }//audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        var Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      var Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  {var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play(); reset();}
+    }
+    setTimeout(function () {
+      if (times < 5) showResult(gewinner, times + 1,);
+    }, 500);
+  }
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") player.totalPlayer = message.data;
+    if (message.type == "gewonnen") showResult(message.data, 0);
     if (message.type == "fieldMoved" && message.data && message.data.direction == "u") field[message.data.stein][6][0][0].movable = false;
     if (message.type == "fieldMoved" && message.data && message.data.direction == "o") field[message.data.stein][0][0][0].movable = false;
     if (message.type == "fieldMoved" && message.data && message.data.direction == "r") field[6][message.data.stein][0][0].movable = false;
@@ -457,7 +485,16 @@ return newField;
         if (!player.items[Object.keys(player.items)[i]].collected) itemsVerbleibtend.push(Object.keys(player.items)[i]);
       }
       var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
-      if (itemsVerbleibtend.length == 0 && field[player.movingPlayer.x][player.movingPlayer.y][1][1].player != undefined && field[player.movingPlayer.x][player.movingPlayer.y][1][1].spawnPoint) console.log("gewonnen!!!");
+      if (itemsVerbleibtend.length == 0 && field[player.movingPlayer.x][player.movingPlayer.y][1][1].player != undefined && field[player.movingPlayer.x][player.movingPlayer.y][1][1].spawnPoint) {
+        console.log("gewonnen!!!");
+        room.send({
+          message: {
+            type: "gewonnen",
+            data: player.myNumber/*,
+            siegDurch: "Niederlage"*/
+          }
+        });
+      }
       if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) {
         if (itemsVerbleibtend.length > 0) player.searchingCard = itemsVerbleibtend[Math.round(Math.random() *(itemsVerbleibtend.length - 1))];
       }
@@ -569,6 +606,20 @@ var possibleFields = [];
     if (player.aktuell == player.totalPlayer) player.aktuell = 0;
     player.movingPlayer = undefined;
   }
+  setTimeout(function () {
+    room.send({
+      message: {
+        "type": "fieldMoved",
+        data: player.moved
+      }
+    });
+    room.send({
+      message: {
+        "type": "Reihenfolge",
+        data: player.aktuell
+      }
+    });
+  }, 1000);
     room.send({
       message: {
         "type": "field",
@@ -579,18 +630,6 @@ var possibleFields = [];
       message: {
         "type": "selectedCard",
         data: player.selectedCard
-      }
-    });
-    room.send({
-      message: {
-        "type": "Reihenfolge",
-        data: player.aktuell
-      }
-    });
-    room.send({
-      message: {
-        "type": "fieldMoved",
-        data: player.moved
       }
     });
     room.send({

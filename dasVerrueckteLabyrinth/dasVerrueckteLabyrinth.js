@@ -249,7 +249,7 @@ class dasVerrueckteLabyrinth {
     } else {
       this.broadcast(data.message);
     }
-    if (data.message.type == "endGame" || data.message.type == "countingPoints" || (data.message == "" && data.message.includes("gewonnen"))) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
+    if (data.message.type == "endGame" || data.message.type == "gewonnen") {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
   }
   onDispose() {
     console.log("Dispose BasicRoom");
