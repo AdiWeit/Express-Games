@@ -21,32 +21,36 @@
   var NameSpieler = [];
   var nameGegner = "";
   var NameBleibt = [];
-  var kartenZiehen = [
-    [0, "black", false],
-    [0, "white", false],
-    [1, "black", false],
-    [1, "white", false],
-    [2, "black", false],
-    [2, "white", false],
-    [3, "black", false],
-    [3, "white", false],
-    [4, "black", false],
-    [4, "white", false],
-    [5, "black", false],
-    [5, "white", false],
-    [6, "black", false],
-    [6, "white", false],
-    [7, "black", false],
-    [7, "white", false],
-    [8, "black", false],
-    [8, "white", false],
-    [9, "black", false],
-    [9, "white", false],
-    [10, "black", false],
-    [10, "white", false],
-    [11, "black", false],
-    [11, "white", false]
-  ];
+  resetCards();
+  var kartenZiehen;
+  function resetCards() {
+    kartenZiehen = [
+      [0, "black", false],
+      [0, "white", false],
+      [1, "black", false],
+      [1, "white", false],
+      [2, "black", false],
+      [2, "white", false],
+      [3, "black", false],
+      [3, "white", false],
+      [4, "black", false],
+      [4, "white", false],
+      [5, "black", false],
+      [5, "white", false],
+      [6, "black", false],
+      [6, "white", false],
+      [7, "black", false],
+      [7, "white", false],
+      [8, "black", false],
+      [8, "white", false],
+      [9, "black", false],
+      [9, "white", false],
+      [10, "black", false],
+      [10, "white", false],
+      [11, "black", false],
+      [11, "white", false]
+    ];
+  }
   var zähler = kartenZiehen.length,
     j, Ablage;
   var zählerListe = [0, 0];
@@ -55,6 +59,7 @@
   var y = 30;
   var koordinatenSpieler1 = [45, 470, 80, 570, 0, 0, 0, 0]
   var AblageList = [];
+      AblageList[3] = ["beendet"]
   //var TutorialText = ['Das wich- tig- ste ist, dass es 2 ver- schie- de- ne Be- rei- che gibt. Um fort- zu- fahren, auf die Flä- che des Tex- tes kli- cken, oder En- ter drü- cken. ', "Im- mer wenn An- dro- ma- che an- greift und ei- ne grü- ne Ein- heit als Geg- ner hat, er- höht sich ihr An- griffs- wert um 1 bis zum En- de des An- grif- fes. ", "Im- mer wenn du Eu- ry- di- ke wegen ih- rer Scha- dens- mar- ker ab- le- gen müs- stest, kannst du 1 Hand- karte ab- wer- fen, um alle Marker von ihr zu ent- fernen und sie auf einen freien Platz zu ver- schie- ben. "]
   var fertigerText = "";
   var AnfrageCheck;
@@ -69,12 +74,6 @@
   // document.getElementById("Spielregeln").style.display = "none";
   // document.getElementById("textCheckboxBedinungAmPC").style.display = "none";
   // document.getElementById("textCheckboxSpielregeln").style.display = "none";
-  while (--zähler > 0) {
-    j = Math.floor(Math.random() * (zähler + 1));
-    Ablage = kartenZiehen[j];
-    kartenZiehen[j] = kartenZiehen[zähler];
-    kartenZiehen[zähler] = Ablage;
-  }
 
 
   async function sendJson(url = "/", body = {}) {
@@ -147,6 +146,7 @@
     });
     return 'Are you sure you want to leave?';
   };
+  var voting = [];
   room.setOnMessageListener(function(message) {
     if (message.type == "messages") {
       messages = message.data;
@@ -191,7 +191,6 @@
         if (kartenZiehen.length > 0) {
           console.log(kartenZiehen[0]);
           zähler = 0;
-
           if (name == NameBleibt[0]) {
             kartenSpieler1[kartenSpieler1.length] = kartenZiehen[0];
           } else {
@@ -221,7 +220,86 @@
       } else {
         nameGegner = NameBleibt[0]
       }
+      room.send({
+        message: {
+          "type": "vote",
+          "data": confirm("Möchten sie mit Jokern spielen?")
+        }
+      });
     }
+    if (message.type == "vote") {
+      voting.push(message.data);
+      resetCards();
+      if (voting.length == 2 && (voting.includes(false) && voting.includes(true))) {
+        alert("Die Abstimmung resultiert in einem Gleichstand! Deshalb hat der Zufall entschieden!");
+        if ( Math.floor(Math.random() *1) == 0) {
+          room.send({
+          message: {
+            "type": "vote",
+            "data": "Gleichstand mit Joker"
+          }
+          });
+        }
+        else {
+          room.send({
+          message: {
+            "type": "vote",
+            "data": "Gleichstand ohne Joker"
+          }
+          });
+        }
+      }
+      if (voting.length > 1 && (voting.includes("Gleichstand ohne Joker") || (voting.includes(false) && !(voting.includes(true))))) {
+        alert("Die Abstimmung hat ergeben, dass ohne Joker gespielt wird!");
+      }
+      if (voting.length > 1 && (voting.includes("Gleichstand mit Joker") || (!(voting).includes(false) && voting.includes(true)))) {
+        alert("Die Abstimmung hat ergeben, dass mit Joker gespielt wird!");
+        kartenZiehen.push(["-", "black", false]);
+        kartenZiehen.push(["-", "white", false]);
+      }
+      if ((voting.length == 2 && !(voting.includes(false) && voting.includes(true))) || voting.length > 2) {
+        zähler = kartenZiehen.length;
+        while (--zähler > 0) {
+          j = Math.floor(Math.random() * (zähler + 1));
+          Ablage = kartenZiehen[j];
+          kartenZiehen[j] = kartenZiehen[zähler];
+          kartenZiehen[zähler] = Ablage;
+        }
+        if (name == NameSpieler[0]) {
+          AblageList[0] = kartenZiehen;
+          AblageList[1] = [];
+          AblageList[2] = [];
+          for (var i = 0; i < 4; i++) {
+            AblageList[1].push(AblageList[0][0])
+            AblageList[0].shift();
+          }
+          for (var i = 0; i < 4; i++) {
+            AblageList[2].push(AblageList[0][0])
+            AblageList[0].shift();
+          }
+
+          room.send({
+          message: {
+          "type": "KartenSpieler1",
+          "data": AblageList[1]
+        }
+        });
+        room.send({
+        message: {
+        "type": "KartenSpieler2",
+        "data": AblageList[2]
+      }
+        });
+          room.send({
+            message: {
+              "type": "KartenZiehen",
+              "data": kartenZiehen
+            }
+          });
+        }
+      }
+    }
+
     if (message.type == "KarteTipp" && NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
       console.log("LayoutFalscherTippGegner");
       tipp = true;
@@ -366,7 +444,7 @@
     }
   }
 
-  function LayoutIch(popOrange) {
+  function LayoutIch(popOrange, dontSendKarteGegnerGezogen) {
     console.log("LayoutIch");
     if (!(Zustand[Zustand.length - 1].includes("gewonnen"))) {
       canvas.fillStyle = "brown"; //Farbe
@@ -386,12 +464,18 @@
           if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
+          if (!dontSendKarteGegnerGezogen && !popOrange && kartenSpieler1[zähler][0] == "-" && !kartenSpieler1[zähler][3]) {
+            if (zähler == 0) kartenSpieler1[zähler][3] = {side: 1, stone: kartenSpieler1[zähler + 1]};
+            else kartenSpieler1[zähler][3] = {side: -1, stone: kartenSpieler1[zähler - 1]};
+          }
+          if (!dontSendKarteGegnerGezogen) {
           room.send({
             message: {
               "type": "karteGegnerGezogen",
               "data": karteGezogen
             }
           });
+        }
         }
         canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
         canvas.fillStyle = kartenSpieler1[zähler][1]
@@ -423,12 +507,18 @@
           if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
           canvas.fillStyle = "orange"
           karteGezogen = zähler;
+          if (!dontSendKarteGegnerGezogen && !popOrange && kartenSpieler2[zähler][0] == "-" && !kartenSpieler2[zähler][3]) {
+            if (zähler == 0) kartenSpieler2[zähler][3] = {side: 1, stone: kartenSpieler2[zähler + 1]};
+            else kartenSpieler2[zähler][3] = {side: -1, stone: kartenSpieler2[zähler - 1]};
+          }
+          if (!dontSendKarteGegnerGezogen) {
           room.send({
             message: {
               "type": "karteGegnerGezogen",
               "data": karteGezogen
             }
           });
+        }
         }
         canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
         canvas.fillStyle = kartenSpieler2[zähler][1];
@@ -558,6 +648,11 @@ else {
     }
 
   function readMouseMove(e) {
+    if (AblageList[3][0] == "moveJoker" && e.clientY > 400) {
+      LayoutIch(false, true);
+      canvas.fillStyle = "orange";
+      canvas.fillRect(e.clientX, e.clientY, 17, 150);
+    }
     koordinatenSpieler1[4] = e.clientX;
     koordinatenSpieler1[5] = e.clientY;
     //  console.log(e.clientX);
@@ -565,6 +660,42 @@ else {
   document.onmousemove = readMouseMove
 
   window.addEventListener('mousedown', function() {
+    if (AblageList[3][0] == "moveJoker" && name == NameBleibt[0]) {
+      for (var i = 0; i < kartenSpieler1.length; i++) {
+        if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
+          console.log("moveBetween " + (i) + " and following");
+          if (karteGegnerGezogen > -1 && kartenSpieler1[karteGegnerGezogen][3]) kartenSpieler1[karteGegnerGezogen].pop();
+          for (var i1 = kartenSpieler1.length; i1 > i + 1; i1--) {
+            kartenSpieler1[i1] = kartenSpieler1[i1 - 1];
+            if (i1 - 1 == AblageList[3][1]) AblageList[3][1]++;
+          }
+          kartenSpieler1[i + 1] = kartenSpieler1[AblageList[3][1]];
+          kartenSpieler1.splice(AblageList[3][1], 1);
+          AblageList[3] = ["beendet"];
+          LayoutIch(false, true);
+          karteGegnerGezogen = i + 1;
+          kartenSpieler1[i + 1][3] = {side: -1, stone: kartenSpieler1[i]};
+        }
+      }
+    }
+    else if (AblageList[3][0] == "moveJoker") {
+      for (var i = 0; i < kartenSpieler2.length; i++) {
+        if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
+          console.log("moveBetween " + (i) + " and following");
+          if (kartenSpieler2[karteGegnerGezogen][3]) kartenSpieler2[karteGegnerGezogen].pop();
+          for (var i1 = kartenSpieler2.length; i1 > i + 1; i1--) {
+            kartenSpieler2[i1] = kartenSpieler2[i1 - 1];
+            if (i1 - 1 == AblageList[3][1]) AblageList[3][1]++;
+          }
+          kartenSpieler2[i + 1] = kartenSpieler2[AblageList[3][1]];
+          kartenSpieler2.splice(AblageList[3][1], 1);
+          AblageList[3] = ["beendet"];
+          LayoutIch(false, true);
+          karteGegnerGezogen = i + 1;
+          kartenSpieler2[i + 1][3] = {side: -1, stone: kartenSpieler2[i]};
+        }
+      }
+    }
     if (NameSpieler[0] == name) {
       Sperren[0] = false;
       console.log(koordinatenSpieler1[4] + " - " + koordinatenSpieler1[5]);
@@ -573,6 +704,10 @@ else {
       }
       if (NameBleibt[0] == name) {
         while (zähler < kartenSpieler2.length && Ablage == true) {
+          if (koordinatenSpieler1[5] > 439 && koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && (/*(name == NameBleibt[1] && kartenSpieler2[zähler][0] == "-") || (name == NameBleibt[0] && */kartenSpieler1[zähler][0] == "-")/*)*/ && (kartenZiehen[0][0] == "-" || kartenSpieler1.length == 5)) {
+            console.log("moveJoker");
+            AblageList[3] = ["moveJoker", zähler];
+          }
           if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 400) {
             AblageList[2] = Zustand.length;
             console.log(zähler);
@@ -610,6 +745,10 @@ else {
         zähler = 0;
       } else {
         while (zähler < kartenSpieler1.length && Ablage == true) {
+          if (koordinatenSpieler1[5] > 439 && koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && ((name == NameBleibt[1] && kartenSpieler2[zähler][0] == "-")/* || (name == NameBleibt[0] && kartenSpieler1[zähler][0] == "-")*/) && (kartenZiehen[0][0] == "-" || kartenSpieler2.length == 5)) {
+            console.log("moveJoker");
+            AblageList[3] = ["moveJoker", zähler];
+          }
           if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 220 + 180) {
             AblageList[2] = Zustand.length;
             console.log(zähler);
@@ -784,6 +923,40 @@ else {
     zähler++;
   }
   zähler = 0;
+  for (var i = 0; i < kartenSpieler1.length; i++) {
+    if (kartenSpieler1[i][3]) {
+      for (var i1 = 0; i1 < kartenSpieler1.length; i1++) {
+        if ( kartenSpieler1[i][3] && kartenSpieler1[i1][0] == kartenSpieler1[i][3].stone[0] && kartenSpieler1[i1][1] == kartenSpieler1[i][3].stone[1]/* && kartenSpieler1[i][2] == kartenSpieler1[i][3].stone[2]*/) {
+          var i3 = i + kartenSpieler1[i][3].side;
+          AblageList[3][1] = i1;
+          console.log("moveBetween " + (i3) + " and following");
+          for (var i2 = kartenSpieler1.length; i2 > i3 + 1; i2--) {
+            kartenSpieler1[i2] = kartenSpieler1[i2 - 1];
+            if (i2 - 1 == AblageList[3][1]) AblageList[3][1]++;
+          }
+          kartenSpieler1[i3 + 1] = kartenSpieler1[AblageList[3][1]];
+          kartenSpieler1.splice(AblageList[3][1], 1);
+        }
+      }
+    }
+  }
+  for (var i = 0; i < kartenSpieler2.length; i++) {
+    if (kartenSpieler2[i][3]) {
+      for (var i1 = 0; i1 < kartenSpieler2.length; i1++) {
+        if ( kartenSpieler2[i][3] && kartenSpieler2[i1][0] == kartenSpieler2[i][3].stone[0] && kartenSpieler2[i1][1] == kartenSpieler2[i][3].stone[1]/* && kartenSpieler2[i][2] == kartenSpieler2[i][3].stone[2]*/) {
+          var i3 = i + kartenSpieler2[i][3].side;
+          AblageList[3][1] = i1;
+          console.log("moveBetween " + (i3) + " and following");
+          for (var i2 = kartenSpieler2.length; i2 > i3 + 1; i2--) {
+            kartenSpieler2[i2] = kartenSpieler2[i2 - 1];
+            if (i2 - 1 == AblageList[3][1]) AblageList[3][1]++;
+          }
+          kartenSpieler2[i3 + 1] = kartenSpieler2[AblageList[3][1]];
+          kartenSpieler2.splice(AblageList[3][1], 1);
+        }
+      }
+    }
+  }
   }
 
 
