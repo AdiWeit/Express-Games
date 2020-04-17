@@ -366,18 +366,20 @@
     if (message.type == "nextField") {
       fieldAktuell++;
       if (fieldAktuell == 3) {
-        /*var infoM*/messages.push("Info: Wenn die Anzahl der Figuren im Loch bei mehreren Spielern gleich ist, gewinnt derjenige, der als Erster das Loch erreicht hat. ")
-        messages.push("Wenn die Rundenanzahl ausgegangen ist, aber keiner es geschafft hat, gewinnt der, der als nächstes/erstes das Loch erreicht. ");
-        if (ReihenfolgeBleibt.length == 4) /*infoM*/messages.push("Falls jeder Spieler nur 1 Figur übrig hat, gewinnt der, der das Loch zuerst erreicht. ");
-        /*infoM*/messages.push("Wenn keine der eben genannten Sonderfälle auftritt, gewinnt der Spieler, der zuerst 2 Figuren zum Loch gebracht hat. ");
+        setTimeout(function () {
+          /*var infoM*/messages.push("Info: Wenn die Anzahl der Figuren im Loch bei mehreren Spielern gleich ist, gewinnt derjenige, der als Erster das Loch erreicht hat. ")
+          messages.push("Wenn die Rundenanzahl ausgegangen ist, aber keiner es geschafft hat, gewinnt der, der als nächstes/erstes das Loch erreicht. ");
+          if (ReihenfolgeBleibt.length == 4) /*infoM*/messages.push("Falls jeder Spieler nur 1 Figur übrig hat, gewinnt der, der das Loch zuerst erreicht. ");
+          /*infoM*/messages.push("Wenn keine der eben genannten Sonderfälle auftritt, gewinnt der Spieler, der zuerst 2 Figuren zum Loch gebracht hat. ");
 
-          room.send({
-            message: {
-              "type": "messages",
-              data: messages,
-              noAudio: true
-            }
-          });
+            room.send({
+              message: {
+                "type": "messages",
+                data: messages/*,
+                noAudio: true*/
+              }
+            });
+        }, 2000);
       }
       for (var i = 0; i < 9; i++) {
         for (var i1 = 0; i1 < 9 + i; i1++) {
@@ -622,12 +624,13 @@
        }
      }
     if ((player[spielerIch].lastWhole > 1 || (ReihenfolgeBleibt.length == 4 && fieldAktuell == 3 && anzahlPlayer[ReihenfolgeBleibt[0]] < 2 && anzahlPlayer[ReihenfolgeBleibt[1]] < 2 && anzahlPlayer[ReihenfolgeBleibt[2]] < 2 && anzahlPlayer[ReihenfolgeBleibt[3]] < 2 && player[spielerIch].lastWhole > 0)) || /*(fieldAktuell + 1 >= colours.length && fields[fieldAktuell][4][6].player != false) || */(player[spielerIch].roundsLeft < 1 && highest.anzahl > 0)) {
-      var anzahlInLoch = {zahl: 0, player: ""};
+      var draw = false;//anzahlInLoch = {zahl: 0, player: ""};
       for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
-        if (anzahlInLoch.zahl == 0 || player[ReihenfolgeBleibt[i]].lastWhole == anzahlInLoch.zahl) anzahlInLoch.zahl = player[ReihenfolgeBleibt[i]].lastWhole;
-        else anzahlInLoch.zahl = -1;
+        if (ReihenfolgeBleibt[i] != highest.player && player[ReihenfolgeBleibt[i]].lastWhole == highest.anzahl) draw = true;
+        //if (anzahlInLoch.zahl == 0 || player[ReihenfolgeBleibt[i]].lastWhole == anzahlInLoch.zahl) anzahlInLoch.zahl = player[ReihenfolgeBleibt[i]].lastWhole;
+        //else anzahlInLoch.zahl = -1;
       }
-      if (anzahlInLoch.zahl != -1) {
+      if (draw/*anzahlInLoch.zahl != -1*/) {
         highest.player = player.firstPlayer;
       }
       room.send({
