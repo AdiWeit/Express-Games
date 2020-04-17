@@ -647,7 +647,23 @@ else {
     }
     }
 
+    document.addEventListener('touchmove', touch);
+    document.addEventListener('touchstart', touch);
+    function touch(ev) {
+
+      if (ev.type == "touchmove") {
+        /*
+        xMaus = ev.touches[0]["pageX"]// + scrollX;
+        yMaus = ev.touches[0]["pageY"]// + scrollY;
+        */
+        folgenMouseMove({clientX: ev.touches[0]["pageX"], clientY: ev.touches[0]["pageY"]});
+      }
+    }
   function readMouseMove(e) {
+    folgenMouseMove(e);
+  }
+  document.onmousemove = readMouseMove
+  function folgenMouseMove(e) {
     if (AblageList[3][0] == "moveJoker" && e.clientY > 400) {
       LayoutIch(false, true);
       canvas.fillStyle = "orange";
@@ -657,8 +673,6 @@ else {
     koordinatenSpieler1[5] = e.clientY;
     //  console.log(e.clientX);
   }
-  document.onmousemove = readMouseMove
-
   window.addEventListener('mousedown', function() {
     if (AblageList[3][0] == "moveJoker" && name == NameBleibt[0]) {
       for (var i = 0; i < kartenSpieler1.length; i++) {
