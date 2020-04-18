@@ -191,6 +191,7 @@
   var colours = ["green", "brown", "#FFBF00", "#0174DF"];
   var fieldAktuell = 0;
   var player = {firstPlayer: ""};
+  var playerList = [];
   for (var i2 = 0; i2 < wholeSpots.length; i2++) {
   for (var i = 0; i < 9; i++) {
     field[i] = [];
@@ -210,8 +211,12 @@
 }
   var movePlayerInt;
   var AblageListe = [];
+  var movementList = [];
   room.setOnMessageListener(function(message) {
     if (message.type == "movePlayer") {
+      if (!movementList[fieldAktuell]) movementList[fieldAktuell] = [];
+      movementList[fieldAktuell].push(JSON.parse(JSON.stringify(message)));
+      localStorage.setItem("movementListDieMaulwurfCompany", JSON.stringify(movementList));
       setTimeout(function () {
         audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
         audio.currentTime = 32;
@@ -242,7 +247,20 @@
           // }, 1000);
           // player[spielerIch].finished = true;
         }
-        if (fields[fieldAktuell][movingStats.endPosition.y][movingStats.endPosition.x].repeat && player[spielerIch].movement == "waitingForEndingMove") spielerKommtDran();
+        if (fields[fieldAktuell][movingStats.endPosition.y][movingStats.endPosition.x].repeat && player[spielerIch].movement == "waitingForEndingMove") {
+          spielerKommtDran();
+          ReihenfolgeList[fieldAktuell].push(JSON.parse(JSON.stringify(Reihenfolge)));
+          localStorage.setItem("ReihenfolgeListDieMaulwurfCompany", JSON.stringify(ReihenfolgeList));
+          room.send({
+            message: {
+              "type": "player",
+              data: player[spielerIch],
+              player: spielerIch,
+              firstPlayer: player.firstPlayer,
+              repeatField: true
+            }
+          });
+        }
       }
       else {
         if (placed) fields[fieldAktuell][position.y][position.x].player = false;
@@ -264,7 +282,12 @@
           Reihenfolge = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolge'));
           ReihenfolgeBleibt = JSON.parse(localStorage.getItem('dieMaulwurfCompanyReihenfolgeBliebt'));
           fieldAktuell = JSON.parse(localStorage.getItem('dieMaulwurfCompanyFieldAktuell'));
-      //    player = JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'));
+
+          // spielfeld:  spielerIch: spielerIch, playerList: playerList, movementList: movementList};
+          figurePlacement = JSON.parse(localStorage.getItem('figurePlacementDieMaulwurfCompany'));
+          ReihenfolgeList = JSON.parse(localStorage.getItem('ReihenfolgeListDieMaulwurfCompany'));
+          playerList = JSON.parse(localStorage.getItem('playerListDieMaulwurfCompany'));
+          movementList = JSON.parse(localStorage.getItem('movementListDieMaulwurfCompany'));
           for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'))).length; i++) {
             player[Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer')))[i]] = JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer'))[Object.keys(JSON.parse(localStorage.getItem('dieMaulwurfCompanyPlayer')))[i]];
           }
@@ -314,6 +337,14 @@
     }
     if (message.type == "gewonnen") {
       showResults(message.data, 0);
+      setTimeout(function () {
+        if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/dieMaulwurfCompany.html angucken.")) {
+          if (localStorage.getItem("playBacksDieMaulwurfCompany")) var replays = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"));
+          else var replays = {};
+          replays[prompt("Wie wollen sie ihr Replay nennen?")] = {spielfeld: figurePlacement, ReihenfolgeList: ReihenfolgeList, ReihenfolgeBleibt: ReihenfolgeBleibt, spielerIch: spielerIch, playerList: playerList, movementList: movementList};
+          localStorage.setItem("playBacksDieMaulwurfCompany", JSON.stringify(replays));
+        }
+      }, 2222);
       /* removeGame(true);*/
       room.send({
         message: {
@@ -325,8 +356,11 @@
     if (message.type == "endGame") {if (message.alert) alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "fields") {
       fields = message.data;
+      if (player[spielerIch].movement == "waitingForOpponentPlacingPlayer") {figurePlacement[0] = JSON.parse(JSON.stringify(fields[0])); localStorage.setItem("figurePlacementDieMaulwurfCompany", JSON.stringify(figurePlacement));}
       if (message.figurePlaced && ReihenfolgeBleibt[message.empfänger] == spielerIch) {
-        if (player[spielerIch].figuresPlaced > (11 - 3*(ReihenfolgeBleibt.length - 2) - 1)) {spielerKommtDran();}
+        if (player[spielerIch].figuresPlaced > (11 - 3*(ReihenfolgeBleibt.length - 2) - 1)) {
+          spielerKommtDran();
+        }
         else player[spielerIch].movement = "placePlayer";
         room.send({
           message: {
@@ -351,6 +385,7 @@
       //     audio.pause();
       //   }, 900);
       // }
+      playerSynced = 0;
     }
     if (message.type == "messages") {
       window.scroll(0, 0);
@@ -386,12 +421,21 @@
           if (fields[fieldAktuell - 1][i][i1] != undefined && fields[fieldAktuell - 1][i][i1].player != false && fields[fieldAktuell - 1][i][i1].whole) fields[fieldAktuell][i][i1].player = fields[fieldAktuell - 1][i][i1].player;
         }
       }
+      figurePlacement[fieldAktuell] = JSON.parse(JSON.stringify(fields[fieldAktuell]));
+      localStorage.setItem("figurePlacementDieMaulwurfCompany", JSON.stringify(figurePlacement));
       Layout();
     }
     if (message.type == "player") {
       player[message.player] = message.data;
+      playerSynced++;
       if (message.firstPlayer != "") player.firstPlayer = message.firstPlayer;
       Layout();
+      if ((message.repeatField || playerSynced == Object.keys(player).length - 2) && (player[spielerIch].movement == "movePlayer" || player[spielerIch].movement == "waitingForOpponent")) {
+        if (!playerList[fieldAktuell]) playerList[fieldAktuell] = [];
+        playerList[fieldAktuell].push(JSON.parse(JSON.stringify(player)))
+        localStorage.setItem("playerListDieMaulwurfCompany", JSON.stringify(playerList));
+        playerSynced = 0;
+      }
     }
     if (message.type == "Reihenfolge") {
       if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
@@ -401,6 +445,11 @@
       }
       if ((!Reihenfolge || message.join/* || (!Reihenfolge || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3])))*/) && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
       Reihenfolge = message.data;
+      setTimeout(function () {
+        if (!ReihenfolgeList[fieldAktuell]) ReihenfolgeList[fieldAktuell] = [];
+        ReihenfolgeList[fieldAktuell].push(JSON.parse(JSON.stringify(Reihenfolge)));
+        localStorage.setItem("ReihenfolgeListDieMaulwurfCompany", JSON.stringify(ReihenfolgeList));
+      }, 1500);
       if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
         spielerKommtDran();
       }
@@ -423,6 +472,9 @@
       localStorage.setItem("dieMaulwurfCompanyPlayer", JSON.stringify(player));
     }
   });
+  var figurePlacement = [];
+  var ReihenfolgeList = [];
+  var playerSynced = 0;
   function serverDatenLöschen() {
     // localStorage.clear("dieMaulwurfCompanyFields");
     // localStorage.clear("dieMaulwurfCompanyReihenfolge");

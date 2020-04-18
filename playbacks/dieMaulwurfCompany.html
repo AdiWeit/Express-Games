@@ -1,0 +1,250 @@
+<canvas id="textur" width="1566" height="744"></canvas>
+<meta charset="utf-8">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+<button type="button" onclick="play(true)" name="button">play/pause</button>
+⟲
+<select onmouseout="movementAktuell = -1; ebene = JSON.parse(value - 1);" id="restartEbene">
+  <option value="1">1. Ebene</option>
+  <option value="2">2. Ebene</option>
+  <option value="3">3. Ebene</option>
+  <option value="4">4. Ebene</option>
+</select>
+<h2>speed (right: slower)</h2>
+<input type="range" min="2222" oninput="playing.speed = value" max="4444" value="3333" class="slider" id="sliderSpeed">
+<button type="button" id="backToNormal" onclick="playing.speed = 1500;" name="button">back to normal</button>
+<div id="app">
+<li v-for="title in db" id="kathegorien">
+  {{ title }}
+</li>
+</div>
+<script>
+  var colours = ["green", "brown", "#FFBF00", "#0174DF"];
+  var fields = [];
+  var ebene = 0;
+  var canvas = textur.getContext('2d'); //Dimension
+  if (localStorage.getItem("playBacksDieMaulwurfCompany")) {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: Object.keys(JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany")))
+    }
+  })
+}
+else {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: []
+    }
+  })
+}
+  function Layout() {
+    canvas.fillStyle = colours[ebene];
+    canvas.fillRect(0, 0, textur.width, textur.height);
+    for (var i = 0; i < 9; i++) {
+      for (var i1 = 0; i1 < 9 + i; i1++) {
+        layoutField(i, i1);
+      }
+    }
+  var plusCoordinates = [{x: 0, y: 0}, {x: 950, y: 0}, {x: 950, y: 600}, {x: 0, y: 600}];
+  var coloursLayout = ["red", "orange", "#00FF00", "blue"];
+  for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+    if (ReihenfolgeBleibt[i] == spielerIch) canvas.fillStyle = "#02A1FD";
+    if ((Reihenfolge[0] == ReihenfolgeBleibt[i] && player[ReihenfolgeBleibt[i]].movement != undefined && player[ReihenfolgeBleibt[i]].movement != "waitingForOpponentPlacingPlayer" && player[ReihenfolgeBleibt[i]].movement != "placePlayer") || (player[ReihenfolgeBleibt[i]] != undefined && player[ReihenfolgeBleibt[i]].movement == "placePlayer")) canvas.fillStyle = "#DF0101";
+    else if (ReihenfolgeBleibt[i] != spielerIch) canvas.fillStyle = "white";
+    canvas.fillRect(10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y, 66, 100);
+    canvas.font = "50px Georgia";
+    canvas.fillStyle = coloursLayout[i];//"green";
+    if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].cards) canvas.fillText(player[ReihenfolgeBleibt[i]].cards.length ,33 + plusCoordinates[i].x, 77 + plusCoordinates[i].y);
+    canvas.beginPath();
+    canvas.arc(27 + plusCoordinates[i].x, 27 + plusCoordinates[i].y, 13, 0, Math.PI * 2, false);
+    canvas.fill();
+    canvas.fillStyle = "white";
+    canvas.font = "30px Georgia";
+    if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
+    canvas.font = "50px Georgia";
+    canvas.fillText(player[ReihenfolgeBleibt[i]].name, 10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y + 150);
+  }
+  canvas.fillStyle = "white";
+  canvas.font = "44px Georgia";
+  if (player[spielerIch] != undefined && (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced) > 0) canvas.fillText("verbleibende Steine zum legen: " + (11 - 3*(ReihenfolgeBleibt.length - 2) - player[spielerIch].figuresPlaced), 211, 755);
+  if (player[spielerIch] != undefined && ebene == 3 && ReihenfolgeBleibt.length == 4) {
+    canvas.fillText("Verbleibende Runden, bis der Spieler mit", 211, 755);
+    canvas.fillText("mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
+  }
+  if (player[spielerIch] != undefined && ebene == 3 && ReihenfolgeBleibt.length == 3) {
+    canvas.font = "33px Georgia";  canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch", 11, 755);
+    canvas.fillText("gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
+  }
+  else if (player[spielerIch] != undefined && ebene == 3) {
+    canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 100, 755);
+  }
+  }
+
+  function layoutField(i, i1, showNextMove) {
+    canvas.fillStyle = "black";
+    try {
+      if (fields[ebene][i][i1] != undefined && fields[ebene][i][i1].player != undefined && fields[ebene][i][i1].player == ReihenfolgeBleibt[0]) canvas.fillStyle = "red";
+      if (fields[ebene][i][i1] != undefined && fields[ebene][i][i1].player != undefined && fields[ebene][i][i1].player == ReihenfolgeBleibt[1]) canvas.fillStyle = "yellow";
+      if (fields[ebene][i][i1] != undefined && fields[ebene][i][i1].player != undefined && fields[ebene][i][i1].player == ReihenfolgeBleibt[2]) canvas.fillStyle = "#00FF00";
+      if (fields[ebene][i][i1] != undefined && fields[ebene][i][i1].player != undefined && fields[ebene][i][i1].player == ReihenfolgeBleibt[3]) canvas.fillStyle = "blue";
+    } catch (e) {
+      console.log("please debug :(");
+    }
+    if (player[spielerIch] && player[spielerIch].moving != undefined && player[spielerIch].movement == "movePlayer" && i + "" + i1 == player[spielerIch].moving[0] + "" + player[spielerIch].moving[1]) canvas.fillStyle = "#24D1DB";
+    if (showNextMove) canvas.fillStyle = "#DF013A";
+    if (fields[ebene][i][i1]) {
+      canvas.beginPath();
+      canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+      canvas.fill();
+      if (fields[ebene][i][i1].whole && ebene != 3) {
+        canvas.fillStyle = colours[ebene];
+        canvas.beginPath();
+        canvas.arc(50 + 77*i1, 50 + 77*i, 22, 0, Math.PI * 2, false);
+        canvas.fill();
+      }
+      else if (fields[ebene][i][i1].whole) {
+        canvas.lineWidth = 7;
+        canvas.fillStyle = "red";
+        canvas.fillRect(50 + 77*i1, 50 + 77*i, 33, 33);
+        canvas.fillStyle = "yellow";
+        canvas.fillRect(50 + 77*i1 - 33, 50 + 77*i, 33, 33);
+        canvas.fillStyle = "#00FF00";
+        canvas.fillRect(50 + 77*i1 - 33, 50 + 77*i - 33, 33, 33);
+        canvas.fillStyle = "blue";
+        canvas.fillRect(50 + 77*i1, 50 + 77*i - 33, 33, 33);
+        canvas.strokeStyle = "gold";
+        canvas.beginPath();
+        canvas.arc(50 + 77*i1, 50 + 77*i, 33, 100, 133, false);
+        canvas.stroke();
+        canvas.strokeStyle = colours[ebene];
+        canvas.lineWidth = 7;
+        canvas.beginPath();
+        canvas.arc(50 + 77*i1, 50 + 77*i, 38, 100, 133, false);
+        canvas.stroke();
+        canvas.fillStyle = "#FE642E";
+        canvas.font = "30px Georgia";
+        canvas.fillText(player[ReihenfolgeBleibt[0]].lastWhole, + 7 + 50 + 77*i1, 50 + 77*i + 22);
+        canvas.fillText(player[ReihenfolgeBleibt[1]].lastWhole, + 11 + 50 + 77*i1 - 33, 50 + 77*i + 22);
+        if (ReihenfolgeBleibt[2]) canvas.fillText(player[ReihenfolgeBleibt[2]].lastWhole, + 11 + 50 + 77*i1 - 33, 50 + 77*i - 33 + 33);
+        else canvas.fillText("0", 11 + 50 + 77*i1 - 33, 50 + 77*i - 33 + 33);
+        if (ReihenfolgeBleibt[3]) canvas.fillText(player[ReihenfolgeBleibt[3]].lastWhole, + 11 + 50 + 77*i1, 50 + 77*i - 33 + 33);
+        else canvas.fillText("0", 11 + 50 + 77*i1, 50 + 77*i - 33 + 33);
+      }
+    }
+    if (fields[ebene][i][i1] != undefined && fields[ebene][i][i1].player != undefined && fields[ebene][i][i1].repeat) {
+      canvas.fillStyle = colours[ebene];
+      canvas.font = "50px Georgia";
+      canvas.fillText("⟲", 25 + 77*i1, 66 + 77*i);
+    }
+  }
+
+  function movePlayer(message) {
+    setTimeout(function () {
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
+      audio.currentTime = 32;
+      audio.play();
+      setTimeout(function () {
+        audio.pause();
+      }, 1000);
+    }, 200);
+    var movingStats = message;
+    var position = {x: message.startPosition.x, y: message.startPosition.y}
+    var placed = true;
+    // player[spielerIch].finished = false;
+    movePlayerInt = setInterval(function () {
+    if (position.x == movingStats.endPosition.x && position.y == movingStats.endPosition.y) {
+      clearInterval(movePlayerInt);
+      if (fields[ebene][position.y][position.x].whole) {
+        setTimeout(function () {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+          audio.play();
+          setTimeout(function () {
+            audio.pause();
+          }, 900);
+        }, 1333);
+      }
+      if (!fields[ebene][movingStats.endPosition.y][movingStats.endPosition.x].repeat && /*spielerIch == Reihenfolge[0] && !player[spielerIch].finished*/player[spielerIch].movement == "waitingForEndingMove") {
+        // setTimeout(function () {
+          Spielerwechsel();
+        // }, 1000);
+        // player[spielerIch].finished = true;
+      }
+      if (fields[ebene][movingStats.endPosition.y][movingStats.endPosition.x].repeat && player[spielerIch].movement == "waitingForEndingMove") spielerKommtDran();
+    }
+    else {
+      if (placed) fields[ebene][position.y][position.x].player = false;
+      placed = false;
+      position.x += movingStats.direction.x;
+      position.y += movingStats.direction.y;
+      if (fields[ebene][position.y][position.x] && !fields[ebene][position.y][position.x].player) {fields[ebene][position.y][position.x].player = movingStats.playerId; placed = true;}
+      Layout();
+      }
+    }, /*playing.speed - 2000*/222);
+  }
+
+  var movementAktuell = 0;
+  var ebene = 0;
+  var playing = {boolean: false, speed: 3333};
+  function play(userInteraction) {
+    if (userInteraction && playing.boolean) playing.boolean = false;
+    else if (userInteraction) {playing.boolean = true;}
+    player = lists.player[ebene][movementAktuell];
+    Reihenfolge = lists.reihenfolge[ebene][movementAktuell];
+    if (movementAktuell == 0) {fields = JSON.parse(JSON.stringify(lists.spielfeld)); Layout();}
+   if (movementAktuell < lists.movement[ebene].length) {
+     movePlayer(lists.movement[ebene][movementAktuell]);
+     setTimeout(function () {
+       player = lists.player[ebene][movementAktuell + 1];
+       Reihenfolge = lists.reihenfolge[ebene][movementAktuell + 1];
+       Layout();
+       layoutField(lists.movement[ebene][movementAktuell + 1].startPosition.y, lists.movement[ebene][movementAktuell + 1].startPosition.x, true);
+     }, 2222);
+     setTimeout(function () {
+         movementAktuell++;
+         play();
+     }, playing.speed);
+   }
+   else if (ebene < lists.spielfeld.length) {
+     ebene++;
+     movementAktuell = 0;
+     play();
+   }
+   else {
+     playing.boolean = false
+   }
+  }
+
+  var items = document.querySelectorAll("#kathegorien"),
+      tab = [], liIndex;
+
+
+          for(i = 0; i < items.length; i++){
+              tab.push(items[i].innerHTML);
+          }
+
+
+          for(var i = 0; i < items.length; i++){
+
+              items[i].onclick = function(){
+
+                  liIndex = tab.indexOf(this.innerHTML);
+                  console.log(this.innerText + " INDEX = " + liIndex);
+                  spielerIch = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].spielerIch;
+                  ReihenfolgeBleibt = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].ReihenfolgeBleibt;
+                  lists.reihenfolge = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].ReihenfolgeList;
+                  lists.spielfeld = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].spielfeld;
+                  lists.player = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].playerList;
+                  lists.movement = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].movementList;
+                  name = this.innerText;
+                  // myId = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].myId;
+              };
+
+          }
+          var name = "";
+          var spielerIch = -1;
+          var ReihenfolgeBleibt = [];
+          var lists = {};
+
+</script>
