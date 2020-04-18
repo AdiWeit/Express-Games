@@ -66,6 +66,9 @@ app.use('/galgenmaennchen/', galgenmaennchen);
 const dasVerrueckteLabyrinth = require('./dasVerrueckteLabyrinth/index.js');
 app.use('/dasVerrueckteLabyrinth/', dasVerrueckteLabyrinth);
 
+/* just file Test*/
+app.use('/index.html', express.static(__dirname + '/playbacks'))
+
 app.get('/', (req, res) => {
   res.sendFile('index.html', {
     root: __dirname
