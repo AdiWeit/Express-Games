@@ -650,20 +650,21 @@ else {
     document.addEventListener('touchmove', touch);
     document.addEventListener('touchstart', touch);
     function touch(ev) {
-
+      if (ev.type == "touchstart" && ev.touches[0]["pageY"] > 400) folgenMouseDown();
       if (ev.type == "touchmove") {
         /*
         xMaus = ev.touches[0]["pageX"]// + scrollX;
         yMaus = ev.touches[0]["pageY"]// + scrollY;
         */
-        folgenMouseMove({clientX: ev.touches[0]["pageX"], clientY: ev.touches[0]["pageY"]});
+        folgenMouseMove({clientX: ev.touches[0]["pageX"], clientY: ev.touches[0]["pageY"]}, true);
       }
     }
   function readMouseMove(e) {
     folgenMouseMove(e);
   }
   document.onmousemove = readMouseMove
-  function folgenMouseMove(e) {
+  var coordinatesBefore;
+  function folgenMouseMove(e, fromHandy) {
     if (AblageList[3][0] == "moveJoker" && e.clientY > 400) {
       LayoutIch(false, true);
       canvas.fillStyle = "orange";
@@ -674,7 +675,11 @@ else {
     //  console.log(e.clientX);
   }
   window.addEventListener('mousedown', function() {
+    folgenMouseDown();
+  });
+  function folgenMouseDown() {
     if (AblageList[3][0] == "moveJoker" && name == NameBleibt[0]) {
+      if (coordinatesBefore) koordinatenSpieler1[4] = coordinatesBefore.x; koordinatenSpieler1[5] = coordinatesBefore.y;
       for (var i = 0; i < kartenSpieler1.length; i++) {
         if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
           console.log("moveBetween " + (i) + " and following");
@@ -801,8 +806,7 @@ else {
         zähler = 0;
       }
     }
-  });
-
+  }
   function Spielerwechsel() {
     gewonnenCheck();
     LayoutIch(true);
