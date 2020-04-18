@@ -679,7 +679,10 @@ else {
   });
   function folgenMouseDown() {
     if (AblageList[3][0] == "moveJoker" && name == NameBleibt[0]) {
-      if (coordinatesBefore) koordinatenSpieler1[4] = coordinatesBefore.x; koordinatenSpieler1[5] = coordinatesBefore.y;
+      if (coordinatesBefore) {
+        koordinatenSpieler1[4] = coordinatesBefore.x;
+        koordinatenSpieler1[5] = coordinatesBefore.y;
+      }
       for (var i = 0; i < kartenSpieler1.length; i++) {
         if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
           console.log("moveBetween " + (i) + " and following");
