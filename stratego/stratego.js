@@ -70,7 +70,7 @@ class stratego {
   }
   onMessage(client, data) {
     if (data.message != "Spielerwechsel") {
-      if (data.message.type == "endGame") {this.player1 = null; this.player2 = null; console.log("remove room");}
+      if (data.message.type == "endGame" && this.player1) {this.player1 = null; this.player2 = null; console.log("remove room");}
           this.broadcast(data.message);
     }
     else {

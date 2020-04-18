@@ -37,6 +37,7 @@ var yMaus = 0;
 var hinzufügenX = 0;
 var hinzufügenY = 0;
 var player = [{number: 0, anzahl: 1}, {number: 1, anzahl: 1},{number: 2, anzahl: 8},{number: 3, anzahl: 5},{number: 4, anzahl: 4},{number: 5, anzahl: 4},{number: 6, anzahl: 4},{number: 7, anzahl: 3},{number: 8, anzahl: 2},{number: 9, anzahl: 1}, {number: 10, anzahl: 1}, {number: 11, anzahl: 6}];
+var spielfeldList = [];
 var spielfeld = [];
     spielfeld[0] = [["land", 5]];
     spielfeld[1] = [["land", 5]];
@@ -121,7 +122,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
   }
 
   register();
-  setInterval(getMessages, 3000);
+  setInterval(getMessages, 1000);
 
   function getMessages() {
     sendJson('/stratego/message-queue', {
@@ -164,7 +165,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
 
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
-    if (message.type == "endGame") {removeGame(false); alert("somebody doesn't want to continue playing, so the game ends!")}
+    if (message.type == "endGame" && message.alert != false) {removeGame(false, false); alert("somebody doesn't want to continue playing, so the game ends!")}
     if (message.type == "messages") {
       messages = message.data
 
@@ -176,7 +177,32 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
         AblageListe[1] = "beendet";
       }, 3777);
     };
-    if (message.type == "gewonnen") {showResults(message.data, 0, message.siegDurch); removeGame(true);}
+    if (message.type == "gewonnen") {
+      if (message.siegDurch == "Niederlage" && message.data != myId) {
+        for (var i = 0; i < spielfeld.length; i++) {
+          for (var i1 = 0; i1 < spielfeld[i].length; i1++) {
+            if (spielfeld[i][i1].player.id == opponentId && spielfeld[i][i1].player.number == 0) {
+              Bild.src = links.pictures["redFlag"];
+              var flagCoordinates = {x: i, y: i1}
+              canvas.drawImage(Bild, 477 + 70*i, 17 + 70*i1, 60, 60);
+              setTimeout(function () {
+                Bild.src = links.pictures["redFlag"];
+                canvas.drawImage(Bild, 477 + 70*flagCoordinates.x, 17 + 70*flagCoordinates.y, 60, 60);
+                setTimeout(function () {
+                  Bild.src = links.pictures["redFlag"];
+                  canvas.drawImage(Bild, 477 + 70*flagCoordinates.x, 17 + 70*flagCoordinates.y, 60, 60);
+                }, 500);
+              }, 500);
+            }
+          }
+        }
+        var messageAblage = {data: message.data, siegDurch: message.siegDurch}
+        setTimeout(function () {
+          showResults(messageAblage.data, 0, messageAblage.siegDurch); removeGame(true, false);
+        }, 5000);
+      }
+      else showResults(message.data, 0, message.siegDurch);
+    }
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
     if (message.type.includes("player") && message.rejoin && JSON.parse(localStorage.getItem('spielfeldStratego')) != undefined && JSON.parse(localStorage.getItem('spielfeldStratego')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
@@ -184,13 +210,18 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       player = JSON.parse(localStorage.getItem("playerStratego"));
       ids = JSON.parse(localStorage.getItem("idsStratego"));
       roundStatus = JSON.parse(localStorage.getItem("roundStatusStratego"));
+      spielfeldList = JSON.parse(localStorage.getItem("spielfeldListStratego"));
+      Layout();
     }
     else if (message.type.includes("player") && message.rejoin) {
       room.send({
-        message: {
+        mesconfirmsage: {
           "type": "endGame"
         }
       });
+    }
+    else if (message.type.includes("player")) {
+      localStorage.setItem("roundStatusStratego", JSON.stringify(roundStatus/*message.data*/));
     }
     if (message.type == "onLeave") idsBleibt = [];
     if (message.type == "playerMoved" && myId == ids[1]) {
@@ -204,7 +235,9 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
         audio.pause();
       }, 333);
     }
-    if (message.type == "spielerIds")    {
+    if (message.type == "spielerIds")  {
+      spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
+      localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
        ids = message.data;
        localStorage.setItem("idsStratego", JSON.stringify(ids));
       if (idsBleibt.length == 0)  idsBleibt = JSON.parse(JSON.stringify(ids));
@@ -226,7 +259,11 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     }
     if (message.type == "spielfeld")  {
-      if (!(myId == message.idSender))  spielfeld = message.data;
+      if (!(myId == message.idSender))  {
+        spielfeld = message.data;
+        localStorage.setItem("spielfeldStratego",JSON.stringify(message.data));
+        localStorage.setItem("roundStatusStratego", JSON.stringify(roundStatus/*message.data*/));
+      }
   //    if (!(roundStatus[0] == "showRewardsAttack"))  Layout(false, 0);
       }
     if (message.type == "roundStatus"/* && myId == ids[1]*/) {
@@ -235,7 +272,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       // }
     //  Layout(false, 0);
     roundStatus = message.data;
-    localStorage.setItem("roundStatusStratego", message.data);
+    localStorage.setItem("roundStatusStratego", JSON.stringify(message.data));
     }
     if (message.type == "showNumber"/* && myId == ids[1]*/) {
       if (myId == ids[1])  canvas.fillStyle = "red";
@@ -276,6 +313,16 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       if (times < 5) showResults(gewinner, times + 1, siegDurch);
       else if (myId == gewinner) alert("Sieg durch " + siegDurch);
     }, 500);
+    if (times == 0) {
+    setTimeout(function () {
+      if (confirm("Wollen sie diese Runde als Replay festhalten? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/stratego.html angucken.")) {
+        if (localStorage.getItem("playBacksStratego")) var replays = JSON.parse(localStorage.getItem("playBacksStratego"));
+        else var replays = {};
+        replays[prompt("Wie wollen sie ihr Replay nennen?")] = {spielfeld: spielfeldList, idsBleibt: idsBleibt, myId: myId, opponentId: opponentId};
+        localStorage.setItem("playBacksStratego", JSON.stringify(replays));
+      }
+    }, 2222);
+  }
   }
 roundStatus[0] = "placePlayer";
 function submit() {
@@ -292,11 +339,12 @@ function submit() {
       document.getElementById('message').select();
   }, 3000);
 }
-function removeGame(sendEnd) {
+function removeGame(sendEnd, alert) {
   if (sendEnd) {
   room.send({
     message: {
-      "type": "endGame"
+      "type": "endGame",
+      alert: alert
     }
   });
 }
@@ -364,9 +412,8 @@ function Layout(sync, time) {
     syncData();
   }
     Bild = new Image();
-    Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/whiteFlag.png";
-    canvas.drawImage(Bild, 222, 300, 100, 100);
-    Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/saveField.png";
+    if (roundStatus[0] != "placePlayer") Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/whiteFlag.png";
+    else Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/saveField.png";
     canvas.drawImage(Bild, 222, 300, 100, 100);
   showChat();
   // if (time < 2) {
@@ -402,6 +449,13 @@ function showIcon(coordinates, number) {
 }
 
 function syncData() {
+  var flaggsOnField = 0;
+  for (var i = 0; i < spielfeld.length; i++) {
+    for (var i1 = 0; i1 < spielfeld[i].length; i1++) {
+      if (spielfeld[i][i1].player && spielfeld[i][i1].player.number == 0) flaggsOnField++;
+    }
+  }
+  if (flaggsOnField == 2) {
   room.send({
     message: {
       "type": "spielfeld",
@@ -409,6 +463,7 @@ function syncData() {
       "idSender": myId
     }
   });
+}
 }
 function aufstellungSpeichern() {
   // myId == idsBleibt[0]) canvas.fillText("your side: bottom", 157, 97);
@@ -460,6 +515,9 @@ function aufstellungLaden(aufstellung) {
     }
   }
   Layout(false, 0);
+  setTimeout(function () {
+    Layout();
+  }, 500);
   player = aufstellung.player;
   var playerLeft = 0;
   for (var i = 0; i < player.length; i++) {
@@ -502,7 +560,7 @@ function showStats() {
 //  ( && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)
   canvas.font = "37px Georgia";
   for (var i = 0; i < player.length; i++) {
-    for (var i1 = 0; player[i].anzahl < 1 && !(i == player.length); i++) {
+    for (var i1 = 0;  !(i == player.length) && player[i].anzahl < 1; i++) {
       koordinaten[1] += 94;
       if (i == 6) {
         koordinaten[0] += 77;
@@ -538,6 +596,8 @@ player.pop();
 }
 
 function attack() {
+  spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
+  localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
   spielfeld[roundStatus[3][0]][roundStatus[3][1]].player = false; playerMoved[0] = false;//roundStatus[0] = "ingame";
   canvas.fillStyle = colors[0];
   canvas.fillRect(477 + 70*roundStatus[3][0], 17 + 70*roundStatus[3][1], 60, 60);
@@ -630,7 +690,6 @@ function attack() {
     }, 1333);
   }
   roundStatus[0] = "ingame";
-  localStorage.setItem("roundStatusStratego", message.data);
   Layout(false, 0);
   if (myId == idsBleibt[0]) {
     room.send({
