@@ -314,7 +314,7 @@ function serverDatenLöschen() {
     } else if (message.type == "Spieler2KarteGegnerZurrücknehmen") kartenSpieler1[kartenSpieler1.length] = message.data
     else if (message.type == "Spieler1KarteGegnerZurrücknehmen") kartenSpieler2[kartenSpieler2.length] = message.data
   //  else if (message.includes("left")) location.reload();
-    else if (message == "gegnerKartenZiehen") {
+    else if (message.type == "gegnerKartenZiehen" && SpielerId == message.empfänger) {
       eineKarteZiehen();
     } else {
       messages = message
@@ -3766,7 +3766,10 @@ function checkAndromeda() {
 function gegnerKarteZiehen() {
   kartenZiehen.shift();
   room.send({
-    message: "gegnerKartenZiehen"
+    message: {
+    type: "gegnerKartenZiehen",
+    empfänger: SpielerIdGegner
+  }
   });
 }
 document.onkeydown = function(event) {

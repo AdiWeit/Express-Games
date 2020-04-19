@@ -281,8 +281,6 @@ class heldenDesOlymp {
     else if (data.message.type == "MitteSpieler2" || data.message.type == "MitteSpieler1" || data.message.type == "kartenZiehen" || data.message.type == "Siegpunkte" || data.message.type == "Zustand") this.broadcast(data.message);
     else if (data.message.type == "Spieler1KarteGegnerZurrücknehmen") this.send(this.player2.client, data.message);
     else if (data.message.type == "Spieler2KarteGegnerZurrücknehmen") this.send(this.player1.client, data.message);
-    else if (data.message == "gegnerKartenZiehen" && this.client == this.player1.client) this.send(this.player1.client, "gegnerKartenZiehen");
-    else if (data.message == "gegnerKartenZiehen") this.send(this.player2.client, "gegnerKartenZiehen");
     else {
       this.broadcast(data.message)
     }
