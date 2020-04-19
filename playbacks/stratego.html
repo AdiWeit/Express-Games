@@ -83,7 +83,7 @@ else {
             //   Layout(true, 0)true);
             // }
             // }, 100);
-            if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahllMovement - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
+            if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
           AblageListe[1].shift();
       }
       }, 10);
@@ -91,7 +91,7 @@ else {
       else if (!(spielfeld[i][i1].player == false))  canvas.fillStyle = "#FC2600";
       try {
         if (spielfeld[i][i1].player != false && spielfeldAktuell > 1 && !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - 1][i][i1]))) canvas.fillStyle = colors[1];
-        if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahllMovement - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+        if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
       } catch (e) {
         console.log("please debug!");
       }
@@ -175,16 +175,16 @@ else {
    function play(userInteraction) {
      if (userInteraction && playing.boolean) playing.boolean = false;
      else if (userInteraction) {playing.boolean = true;
-       if (!(spielfeldAktuell == anzahllMovement && playing.direction == -1) && spielfeldAktuell > -1) Layout();
+       if (!(spielfeldAktuell == anzahlMovements && playing.direction == -1) && spielfeldAktuell > -1) Layout();
      }
-     if (spielfeldAktuell == anzahllMovement && playing.direction == -1) spielfeldAktuell--;
-    if (spielfeldAktuell < anzahllMovement && !(playing.direction == -1 && spielfeldAktuell == -1)) {
+     if (spielfeldAktuell == anzahlMovements && playing.direction == -1) spielfeldAktuell--;
+    if (spielfeldAktuell < anzahlMovements && !(playing.direction == -1 && spielfeldAktuell == -1)) {
       spielfeld = JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld[spielfeldAktuell];
       if (spielfeldAktuell > -1) Layout();
       setTimeout(function () {
         if (playing.boolean) {
         spielfeldAktuell += playing.direction;
-        // while (angular.equals(spielfeldList[spielfeldAktuell], spielfeldList[spielfeldAktuell - 1]) && spielfeldAktuell < anzahllMovement) {
+        // while (angular.equals(spielfeldList[spielfeldAktuell], spielfeldList[spielfeldAktuell - 1]) && spielfeldAktuell < anzahlMovements) {
         //   spielfeldAktuell++;
         // }
         play();
