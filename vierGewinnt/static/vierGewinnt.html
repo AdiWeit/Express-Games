@@ -182,7 +182,7 @@
         for (var i = 0; i < selectedMode.length; i++) {
           if (selectedMode[i]) i1++;
         }
-        var modeSelected = "";
+        modeSelected = "";
         if (i1 - (selectedMode.length - i1) > 0) modeSelected = "runterrutschen";
         else if (i1 - (selectedMode.length - i1) < 0) modeSelected = "Plätchen";
         if (!modeSelected) alert("random gamemode selected (" + document.getElementById('modi').value + "), because the players wanted to play different modes!");
@@ -203,6 +203,7 @@
       }
     }
      else if (message.includes("koord:")) {
+       placedList.push(JSON.parse(JSON.stringify(message)));
       if (document.getElementById('modi').value == "runterrutschen") {
         Ablage = message.replace("koord: ", "");
         PlazierungM2(true);
@@ -251,6 +252,8 @@
           // document.querySelector("#messages").appendChild(p);
     }
   });
+  var placedList = [];
+  var modeSelected;
   var selectedMode = [];
   // send message to room on submit
   /*  document.querySelector("#form").onsubmit = function(e) {
@@ -596,6 +599,14 @@
         message: SpielerIds[0] + " hat gewonnen!"
       });
     }, 200);
+    setTimeout(function () {
+      if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/vierGewinnt.html angucken.")) {
+        if (localStorage.getItem("playBacksVierGewinnt")) var replays = JSON.parse(localStorage.getItem("playBacksVierGewinnt"));
+        else var replays = {};
+        replays[prompt("Wie wollen sie ihr Replay nennen?")] = {movementList: placedList, selectedMode: modeSelected, farben: Farben, spielerId: SpielerId};
+        localStorage.setItem("playBacksVierGewinnt", JSON.stringify(replays));
+      }
+    }, 2222);
   }
 
   function Markierungen() {

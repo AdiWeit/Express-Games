@@ -1,0 +1,224 @@
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<h2 id="Name"></h2>
+<canvas id="textur" width="1582" height="750"></canvas>
+<div id="app">
+<li v-for="title in db" id="kathegorien">
+  {{ title }}
+</li>
+</div>
+<script>
+  if (localStorage.getItem("playBacksVierGewinnt")) {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: Object.keys(JSON.parse(localStorage.getItem("playBacksVierGewinnt")))
+    }
+  })
+}
+else {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: []
+    }
+  })
+}
+  var canvas = textur.getContext('2d'); //Dimension
+  function LayoutStart() {
+    KoordinatenY = 65;
+    KoordinatenX = 300;
+    canvas.fillStyle = 'white'; //Farbe
+    canvas.fillRect(0, 0, 1800, 750);
+    zähler = 0;
+    zählerNummerierung = 0;
+    Layout();
+  }
+  function Layout() {
+    Start = true;
+    canvas.font = "20px Georgia";
+    canvas.fillStyle = "brown"
+    canvas.fillText(zählerNummerierung + "-" + zähler, 150, KoordinatenY);
+    zähler++;
+    diff = ((1) * Math.PI * 2 * 10).toFixed(2)
+    canvas.lineWidth = 95;
+    canvas.fillStyle = '#09F'
+    canvas.strokeStyle = '#09F'
+    canvas.textAlign = 'center'
+    canvas.beginPath();
+    canvas.arc(150, KoordinatenY, 5, 4.72, diff / 10 + 4.72, false)
+    canvas.stroke();
+    KoordinatenY = KoordinatenY + 120
+    if (KoordinatenY > 784) {
+      KoordinatenY = 65
+      zählerNummerierung++;
+      zähler = 0;
+      Layout1();
+    } else {
+      Layout();
+    }
+  }
+  function Layout1() {
+    canvas.font = "20px Georgia";
+    canvas.fillStyle = "brown"
+    canvas.fillText(zählerNummerierung + "-" + zähler, KoordinatenX, KoordinatenY);
+
+    diff = ((1) * Math.PI * 2 * 10).toFixed(2)
+    canvas.lineWidth = 95;
+    canvas.fillStyle = '#09F'
+    canvas.strokeStyle = '#09F'
+    canvas.textAlign = 'center'
+    canvas.beginPath();
+    canvas.arc(KoordinatenX, KoordinatenY, 5, 4.72, diff / 10 + 4.72, false)
+    canvas.stroke();
+    zähler++;
+    KoordinatenY = KoordinatenY + 120;
+    if (zähler == 6) {
+      zählerNummerierung++;
+      KoordinatenY = 65;
+      KoordinatenX = KoordinatenX + 150
+      zähler = 0;
+    }
+    if (KoordinatenX == 1200) {
+      console.log("L. fertig!")
+      // if (selectedMode == "runterrutschen") {
+      //   zähler = 1;
+      //   Zustand = "inline"
+      // }
+      // else {
+      //   zähler = 1;
+      //   Zustand = "none"
+      // }
+    }
+    else {
+      Layout1();
+    }
+  }
+  function LayoutZurrück() {
+    zähler = 0;
+    KoordinatenX = 150;
+    KoordinatenY = 65;
+    while (zähler < 42) {
+      if (Felder[zähler] == "red") {
+
+        canvas.fillStyle = "red";
+        canvas.beginPath();
+        canvas.arc(KoordinatenX, KoordinatenY, 43, 10, 0, Math.PI * 2, true);
+        canvas.fill();
+      } else if (Felder[zähler] == "blue") {
+        canvas.fillStyle = "blue";
+        canvas.beginPath();
+        canvas.arc(KoordinatenX, KoordinatenY, 43, 10, 0, Math.PI * 2, true);
+        canvas.fill();
+      }
+
+      KoordinatenX = KoordinatenX + 150;
+
+      if (KoordinatenX == 150 + 150 * 7) {
+        KoordinatenX = 150;
+        KoordinatenY = KoordinatenY + 120;
+      }
+      zähler++;
+    }
+  }
+  var Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"];
+  function placed(message) {
+    if (selectedMode == "runterrutschen") {
+      Ablage = message.replace("koord: ", "");
+      PlazierungM2(true);
+    } else {
+      if ((spielfeldAktuell/2 + "").includes(".")) Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[0];
+      else Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[1];
+      LayoutStart();
+      LayoutZurrück();
+    }
+  }
+  var zählerM2 = ""
+  function PlazierungM2() {
+    if (zählerM2 == "") {
+      antwort = JSON.parse(Ablage[0]);
+      zählerM2 = JSON.parse(Ablage[2]);
+    } else {
+      KoordinatenY = 65;
+      KoordinatenX = 300;
+      canvas.fillStyle = 'white'; //Farbe
+      canvas.fillRect(0, 0, 1800, 750);
+      zähler = 0;
+      zählerNummerierung = 0;
+      Layout();
+      LayoutZurrück();
+    }
+    if ((spielfeldAktuell/2 + "").includes(".")) canvas.fillStyle = Farben[0];
+    else canvas.fillStyle = Farben[1];
+    canvas.beginPath();
+    canvas.arc(150 + antwort * 150, 65 + zählerM2 * 120, 45, 0, Math.PI * 2, true);
+    canvas.fill();
+    canvas.stroke
+
+    zählerM2++;
+    if (Felder[antwort + 7 * JSON.parse(zählerM2)] == "-" && zählerM2 < 6) {
+      setTimeout(function() {
+        PlazierungM2();
+      }, 37);
+    } else {
+      setTimeout(function() {
+        if ((spielfeldAktuell/2 + "").includes(".")) {
+          Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[0];
+        } else {
+          Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[1];
+        }
+        LayoutStart();
+        LayoutZurrück();
+        zählerM2 = "";
+      }, 100);
+    }
+  }
+  var playing = {boolean: false, speed: 1500, direction: 1};
+  var spielfeldAktuell = 0;
+  function play(userInteraction) {
+    if (userInteraction && playing.boolean) playing.boolean = false;
+    else if (userInteraction) {playing.boolean = true;
+    }
+   if (spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[name].movementList.length && !(playing.direction == -1 && spielfeldAktuell == -1)) {
+     placed(movementList[spielfeldAktuell]);
+     setTimeout(function () {
+       if (playing.boolean) {
+       spielfeldAktuell += playing.direction;
+       play();
+     }
+     }, playing.speed);
+   }
+   else {
+     playing.boolean = false
+   }
+ }
+
+  var items = document.querySelectorAll("#kathegorien"),
+      tab = [], liIndex;
+
+
+          for(i = 0; i < items.length; i++){
+              tab.push(items[i].innerHTML);
+          }
+
+
+          for(var i = 0; i < items.length; i++){
+
+              items[i].onclick = function(){
+
+                  liIndex = tab.indexOf(this.innerHTML);
+                  console.log(this.innerText + " INDEX = " + liIndex);
+                  movementList = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].movementList;
+                  selectedMode = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].selectedMode;
+                  Farben = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].farben;
+                  SpielerId = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].spielerId;
+                  name = this.innerText;
+              };
+
+          }
+var name = "";
+var Farben = [];
+var movementList = [];
+var selectedMode = "";
+var SpielerId;
+
+</script>
