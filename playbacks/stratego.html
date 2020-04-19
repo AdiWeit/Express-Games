@@ -7,7 +7,7 @@
 <button type="button" onclick="spielfeldAktuell = 0;" name="button">⟲</button>
 <button type="button" onclick="playing.direction = -1;" name="button">⏪</button>
 <h2>speed (right: slower)</h2>
-<input type="range" min="50" oninput="playing.speed = value" max="2000" value="1500" class="slider" id="sliderSpeed">
+<input type="range" min="50" oninput="playing.speed = JSON.parse(value)" max="2000" value="1500" class="slider" id="sliderSpeed">
 <button type="button" id="backToNormal" onclick="playing.speed = 1500;" name="button">back to normal</button>
 <div id="app">
 <li v-for="title in db" id="kathegorien">
@@ -83,7 +83,7 @@ else {
             //   Layout(true, 0)true);
             // }
             // }, 100);
-            if ((spielfeldAktuell < 1 || spielfeldAktuell == JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
+            if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahllMovement - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
           AblageListe[1].shift();
       }
       }, 10);
@@ -91,7 +91,7 @@ else {
       else if (!(spielfeld[i][i1].player == false))  canvas.fillStyle = "#FC2600";
       try {
         if (spielfeld[i][i1].player != false && spielfeldAktuell > 1 && !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - 1][i][i1]))) canvas.fillStyle = colors[1];
-        if ((spielfeldAktuell < 1 || spielfeldAktuell == JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+        if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahllMovement - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
       } catch (e) {
         console.log("please debug!");
       }
@@ -175,16 +175,16 @@ else {
    function play(userInteraction) {
      if (userInteraction && playing.boolean) playing.boolean = false;
      else if (userInteraction) {playing.boolean = true;
-       if (!(spielfeldAktuell == JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length && playing.direction == -1) && spielfeldAktuell > -1) Layout();
+       if (!(spielfeldAktuell == anzahllMovement && playing.direction == -1) && spielfeldAktuell > -1) Layout();
      }
-     if (spielfeldAktuell == JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length && playing.direction == -1) spielfeldAktuell--;
-    if (spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length && !(playing.direction == -1 && spielfeldAktuell == -1)) {
+     if (spielfeldAktuell == anzahllMovement && playing.direction == -1) spielfeldAktuell--;
+    if (spielfeldAktuell < anzahllMovement && !(playing.direction == -1 && spielfeldAktuell == -1)) {
       spielfeld = JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld[spielfeldAktuell];
       if (spielfeldAktuell > -1) Layout();
       setTimeout(function () {
         if (playing.boolean) {
         spielfeldAktuell += playing.direction;
-        // while (angular.equals(spielfeldList[spielfeldAktuell], spielfeldList[spielfeldAktuell - 1]) && spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length) {
+        // while (angular.equals(spielfeldList[spielfeldAktuell], spielfeldList[spielfeldAktuell - 1]) && spielfeldAktuell < anzahllMovement) {
         //   spielfeldAktuell++;
         // }
         play();
@@ -235,9 +235,11 @@ else {
                   idsBleibt = JSON.parse(localStorage.getItem("playBacksStratego"))[this.innerText].idsBleibt;
                   opponentId = JSON.parse(localStorage.getItem("playBacksStratego"))[this.innerText].opponentId;
                   myId = JSON.parse(localStorage.getItem("playBacksStratego"))[this.innerText].myId;
+                  anzahlMovements = JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld.length;
                   Layout();
               };
 
           }
           var spielfeldList;
+          var anzahlMovements = 0;
 </script>
