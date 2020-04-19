@@ -75,6 +75,8 @@
   turnLeft.style.position = "relative";
   turnRight.style.position = "relative";
   var canvas = textur.getContext('2d'); //Dimension
+  canvas.fillStyle = "black";
+  canvas.fillRect(0, 0, 2000, 2000);
   // var  spielerIch = -1;
   var allItems = {totenschaedel: {collected: false}/*, kaefer: {collected: false}*/, clownMuetze: {collected: false}, fledermaus: {collected: false}, gespenst: {collected: false}, cat: {collected: false}, kerze: {collected: false}, kuerbis: {collected: false}, ritter: {collected: false}, schwert: {collected: false}, ratte: {collected: false}, drache: {collected: false}/*, eule: {collected: false}*/, clownMuetze: {collected: false}, schatzkiste: {collected: false}};
   var player = {aktuell: -1, totalPlayer: -1, myNumber: -1, itemsEachPlayer: {}, selectedCard: {}, movement: "waitingForOpponent", items: {}};
@@ -379,12 +381,12 @@ return newField;
         else if (i2 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 45, 50);
         else if (i3 == 2) canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 45);
         else/* (i2 != 2 && i3 != 2)*/ canvas.fillRect(startx + 50*i2, starty + 50*i3, 50, 50);
-        var itemsVerbleibtend = 0;
+        var itemsVerbleibend = 0;
         for (var i4 = 0; i4 < Object.keys(player.items).length; i4++) {
-          if (!player.items[Object.keys(player.items)[i4]].collected) itemsVerbleibtend++;
+          if (!player.items[Object.keys(player.items)[i4]].collected) itemsVerbleibend++;
         }
         var colourPlayer = ["red", "blue", "green", "yellow"];
-        if (field[i][i1][i2][i3].item == player.searchingCard && itemsVerbleibtend > 0) {
+        if (field[i][i1][i2][i3].item == player.searchingCard && itemsVerbleibend > 0) {
           canvas.fillStyle = colourPlayer[player.myNumber];
           canvas.beginPath();
           canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 27, 0, Math.PI * 2, false);
@@ -412,10 +414,10 @@ return newField;
           canvas.arc(startx + 50*i2 + 50/2, starty + 50*(i3) + 50/2, 17 - 5, 0, Math.PI * 2, false);
           canvas.fill();
         }
-        itemsVerbleibtend = [0, 0, 0, 0];
+        itemsVerbleibend = [0, 0, 0, 0];
         for (var i4 = 0; i4 < player.totalPlayer; i4++) {
           for (var i5 = 0; i5 < Object.keys(player.items).length; i5++) {
-            if (!player.itemsEachPlayer[i4][Object.keys(player.itemsEachPlayer[i4])[i5]].collected) itemsVerbleibtend[i4]++;
+            if (!player.itemsEachPlayer[i4][Object.keys(player.itemsEachPlayer[i4])[i5]].collected) itemsVerbleibend[i4]++;
           }
         }
         if (field[i][i1][i2][i3].player !== false) {
@@ -426,7 +428,7 @@ return newField;
           canvas.fill();
           canvas.fillStyle = "gray";
           canvas.font = "35px Georgia";
-          if (itemsVerbleibtend[field[i][i1][i2][i3].player] > 0) canvas.fillText(itemsVerbleibtend[field[i][i1][i2][i3].player], startx + 50*i2 + 50/2 - 8, starty + 50*i3 + 50/2 + 10);
+          if (itemsVerbleibend[field[i][i1][i2][i3].player] > 0) canvas.fillText(itemsVerbleibend[field[i][i1][i2][i3].player], startx + 50*i2 + 50/2 - 8, starty + 50*i3 + 50/2 + 10);
           else if (!field[i][i1][i2][i3].spawnPoint) {
             canvas.beginPath();
             canvas.arc(startx + 50*i2 + 50/2, starty + 50*i3 + 50/2, 13, 0, Math.PI * 2, false);
@@ -457,10 +459,11 @@ return newField;
     if (gerät == "PC" && (player.movement == "movingPlayer" || player.movement == "moveField")) folgenMouseMove();
   }
   function clearBorder() {
-    canvas.clearRect(0, 0, 173, 2000);
-    canvas.clearRect(0, 1227, 2000, 1000);
-    canvas.clearRect(0, 0, 2000, 173);
-    canvas.clearRect(1227, 0, textur.width, 2050);
+    canvas.fillStyle = "black";
+    canvas.fillRect(0, 0, 173, 2000);
+    canvas.fillRect(0, 1227, 2000, 1000);
+    canvas.fillRect(0, 0, 2000, 173);
+    canvas.fillRect(1227, 0, textur.width, 2050);
   }
   function canvasClicked() {
     var stein = -1;
@@ -479,13 +482,15 @@ return newField;
       moveField(stein);
     }
     if (player.movement == "movingPlayer") {
-      var itemsVerbleibtend = [];
+      if (playerAblage == undefined) {
+      var itemsVerbleibend = [];
       if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) player.items[player.searchingCard].collected = true;
       for (var i = 0; i < Object.keys(player.items).length; i++) {
-        if (!player.items[Object.keys(player.items)[i]].collected) itemsVerbleibtend.push(Object.keys(player.items)[i]);
+        if (!player.items[Object.keys(player.items)[i]].collected) itemsVerbleibend.push(Object.keys(player.items)[i]);
       }
       var colourAndPlayerObj = {"0-0": {colour: "red", player: player.totalPlayer > 0}, "6-0": {colour: "blue", player: player.totalPlayer > 1}, "0-6": {colour: "green", player: player.totalPlayer > 2}, "6-6": {colour: "yellow", player: player.totalPlayer > 3}}
-      if (itemsVerbleibtend.length == 0 && field[player.movingPlayer.x][player.movingPlayer.y][1][1].player != undefined && field[player.movingPlayer.x][player.movingPlayer.y][1][1].spawnPoint) {
+      var playerSpawnpoint = {"0-0": 0, "6-0": 1, "0-6": 2, "6-6": 3};
+      if (itemsVerbleibend.length == 0 && playerSpawnpoint[player.movingPlayer.x + "-" + player.movingPlayer.y] == player.myNumber && field[player.movingPlayer.x][player.movingPlayer.y][1][1].spawnPoint) {
         console.log("gewonnen!!!");
         room.send({
           message: {
@@ -496,10 +501,14 @@ return newField;
         });
       }
       if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) {
-        if (itemsVerbleibtend.length > 0) player.searchingCard = itemsVerbleibtend[Math.round(Math.random() *(itemsVerbleibtend.length - 1))];
+        if (itemsVerbleibend.length > 0) player.searchingCard = itemsVerbleibend[Math.round(Math.random() *(itemsVerbleibend.length - 1))];
       }
       spielerwechsel(true);
     }
+    else {
+      alert("Sie dürfen ihre Figur nicht auf einem bereits besetzen Feld plazieren!");
+    }
+  }
     for (var i = 0; i < 7; i++) {
       for (var i1 = 0; i1 < 7; i1++) {
         // 177 + 50*3*i, 177 + 50*3*i1
@@ -513,7 +522,8 @@ return newField;
               player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
               // setTimeout(function () {
                 player.movement = "movingPlayer";
-                canvas.clearRect(0, 0, textur.width, textur.height);
+                canvas.fillStyle = "black";
+                canvas.fillRect(0, 0, textur.width, textur.height);
                 Layout();
               // }, 1000);
              }
@@ -722,7 +732,7 @@ function folgenMouseMove() {
               field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].player = false;
               if (playerAblage != undefined) field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].player = JSON.parse(JSON.stringify(playerAblage));
               if (playerAblage != undefined) playerAblage = undefined
-              if (field[i][i1][i2][i3].player != "false") playerAblage = field[i][i1][i2][i3].player;
+              if (!(field[i][i1][i2][i3].player === false)) playerAblage = field[i][i1][i2][i3].player;
               field[i][i1][i2][i3].player = player.myNumber;
               Layout(0);
               player.movingPlayer = {x: i, y: i1, i2: i2, i3: i3};
