@@ -232,7 +232,7 @@
       resetCards();
       if (voting.length == 2 && (voting.includes(false) && voting.includes(true))) {
         alert("Die Abstimmung resultiert in einem Gleichstand! Deshalb hat der Zufall entschieden!");
-        if ( Math.floor(Math.random() *1) == 0) {
+        if ( Math.round(Math.random() *1) == 0) {
           room.send({
           message: {
             "type": "vote",
@@ -297,6 +297,9 @@
             }
           });
         }
+        setTimeout(function () {
+          LayoutIch();
+        }, 3000);
       }
     }
 
@@ -368,6 +371,9 @@
   });
 
   function showResults(picture, sounds, colour, time) {
+    var timeoutTime = 0;
+    if (colour == "red") timeoutTime = 3000;
+    setTimeout(function () {
   setTimeout(function () {
     if (time == 0) audio = new Audio(sounds).play();
     canvas.fillStyle = colour;
@@ -376,7 +382,10 @@
     Bild.src = picture;
     canvas.drawImage(Bild, 260, 0);
     if (time < 5) showResults(picture, sounds, colour, time + 1);
-  }, 5000);
+    if (time == 0) Zustand = ["start"];
+  }, 1000);
+}, timeoutTime);
+  if (time == 0 && colour == "red") LayoutGegner(true);
   }
 
   var kartenSpieler1 = [];
@@ -557,7 +566,7 @@
   showChat();
   }
 
-  function LayoutGegner() {
+  function LayoutGegner(showNumbers) {
     console.log("LayoutGegner");
     if (NameBleibt[0] == name) {
       while (zähler < kartenSpieler2.length) {
@@ -572,7 +581,7 @@
         canvas.fillStyle = kartenSpieler2[zähler][1]
         canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
 
-        if (kartenSpieler2[zähler][2] == true || kartenSpieler2[zähler][2] == "true") {
+        if (kartenSpieler2[zähler][2] == true || kartenSpieler2[zähler][2] == "true" || showNumbers) {
 
           if (kartenSpieler2[zähler][1] == "black") {
             canvas.fillStyle = "white";
@@ -605,7 +614,7 @@
         canvas.fillStyle = kartenSpieler1[zähler][1]
         canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
 
-        if (kartenSpieler1[zähler][2] == true || kartenSpieler1[zähler][2] == "true") {
+        if (kartenSpieler1[zähler][2] == true || kartenSpieler1[zähler][2] == "true" || showNumbers) {
 
           if (kartenSpieler1[zähler][1] == "black") {
             canvas.fillStyle = "white";
@@ -686,7 +695,7 @@ else {
       for (var i = 0; i < kartenSpieler1.length; i++) {
         if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
           console.log("moveBetween " + (i) + " and following");
-          if (karteGegnerGezogen > -1 && kartenSpieler1[karteGegnerGezogen][3]) kartenSpieler1[karteGegnerGezogen].pop();
+          if (karteGegnerGezogen > -1 && kartenSpieler1[karteGegnerGezogen] && kartenSpieler1[karteGegnerGezogen][3]) kartenSpieler1[karteGegnerGezogen].pop();
           for (var i1 = kartenSpieler1.length; i1 > i + 1; i1--) {
             kartenSpieler1[i1] = kartenSpieler1[i1 - 1];
             if (i1 - 1 == AblageList[3][1]) AblageList[3][1]++;
@@ -947,7 +956,7 @@ else {
   for (var i = 0; i < kartenSpieler1.length; i++) {
     if (kartenSpieler1[i][3]) {
       for (var i1 = 0; i1 < kartenSpieler1.length; i1++) {
-        if ( kartenSpieler1[i][3] && kartenSpieler1[i1][0] == kartenSpieler1[i][3].stone[0] && kartenSpieler1[i1][1] == kartenSpieler1[i][3].stone[1]/* && kartenSpieler1[i][2] == kartenSpieler1[i][3].stone[2]*/) {
+        if (!(kartenSpieler1[i][0] == "-" && kartenSpieler1[i][1] == kartenSpieler1[i1][1]) && kartenSpieler1[i][3] && kartenSpieler1[i1][0] == kartenSpieler1[i][3].stone[0] && kartenSpieler1[i1][1] == kartenSpieler1[i][3].stone[1]/* && kartenSpieler1[i][2] == kartenSpieler1[i][3].stone[2]*/) {
           var i3 = i + kartenSpieler1[i][3].side;
           AblageList[3][1] = i1;
           console.log("moveBetween " + (i3) + " and following");
@@ -964,7 +973,7 @@ else {
   for (var i = 0; i < kartenSpieler2.length; i++) {
     if (kartenSpieler2[i][3]) {
       for (var i1 = 0; i1 < kartenSpieler2.length; i1++) {
-        if ( kartenSpieler2[i][3] && kartenSpieler2[i1][0] == kartenSpieler2[i][3].stone[0] && kartenSpieler2[i1][1] == kartenSpieler2[i][3].stone[1]/* && kartenSpieler2[i][2] == kartenSpieler2[i][3].stone[2]*/) {
+        if (!(kartenSpieler2[i][0] == "-" && kartenSpieler2[i][1] == kartenSpieler2[i1][1]) && kartenSpieler2[i][3] && kartenSpieler2[i1][0] == kartenSpieler2[i][3].stone[0] && kartenSpieler2[i1][1] == kartenSpieler2[i][3].stone[1]/* && kartenSpieler2[i][2] == kartenSpieler2[i][3].stone[2]*/) {
           var i3 = i + kartenSpieler2[i][3].side;
           AblageList[3][1] = i1;
           console.log("moveBetween " + (i3) + " and following");
