@@ -318,6 +318,7 @@ setTimeout(function () {
     }
   }
   function showScores() {
+    guess.value = auswertungAnzahlKisten();
     cards[1] = [];
     cards[1][0] = [];
     for (var i = 0; i < AnzahlSpieler*4 - 1*AnzahlSpieler + 1; i++) {
