@@ -1,0 +1,168 @@
+
+<canvas id="textur" onclick="canvasClicked();" width="1888" height="700"></canvas>
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/Kaesekaestchen/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  //let oldId = localStorage.getItem('CLIENTIDKaesekaestchen');
+  const clientId = /*oldId ? oldId : */makeid(10);
+//  localStorage.setItem('CLIENTIDKaesekaestchen', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/Kaesekaestchen/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/Kaesekaestchen/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/Kaesekaestchen/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+  var player = {colours: ["green", "blue", "red", "yellow"]};
+  var field = [];
+  var canvas = textur.getContext('2d'); //Dimension
+  room.setOnMessageListener(function(message) {
+    if (message.type == "sideAdded") {
+      field[message.data.x][message.data.y][message.data.side] = message.player;
+      if (!field[message.data.x][message.data.y].completed && (!(isNaN(field[message.data.x][message.data.y].left)) || field[message.data.x][message.data.y].left == "border") && (!(isNaN(field[message.data.x][message.data.y].top)) || field[message.data.x][message.data.y].top == "border") && (!(isNaN(field[message.data.x + 1][message.data.y].left)) || field[message.data.x + 1][message.data.y].left == "border") && (!(isNaN(field[message.data.x][message.data.y + 1].left)) || field[message.data.x][message.data.y + 1].left == "border")) field[message.data.x][message.data.y].completed = message.player;
+      console.log("completed: " + field[message.data.x][message.data.y].completed);
+      gewonnenCheck();
+    }
+    if (message.type == "Reihenfolge") {
+      player.aktuell = message.data;
+      if (message.alert) layout();
+    }
+    if (message.type == "spielerDu") player.myNumber = message.data;
+    if (message.type == "AnzahlSpieler") {
+      player.total = message.data;
+      for (var i = 0; i < 10 + 2*(message.data - 2); i++) {
+        field[i] = [];
+        for (var i1 = 0; i1 < 10 + 2*(message.data - 2); i1++) {
+          field[i][i1] = {left: false/*, right: false*/, top: false/*, bottom: false*/, completed: false};
+          if (i == 0) field[i][i1].left = "border";
+          // if (i == 10 + 2*(message.data - 2) - 1) field[i][i1].right = "border";
+          if (i1 == 0) field[i][i1].top = "border";
+        //  if (i1 == 10 + 2*(message.data - 2) - 1) field[i][i1].bottom = "border";
+        }
+      }
+      layout();
+    }
+  });
+
+  function layout() {
+    for (var i = 0; i < 10 + 2*(player.total - 2); i++) {
+      for (var i1 = 0; i1 < 10 + 2*(player.total - 2); i1++) {
+        if (field[i][i1].left == "border" || field[i][i1].left === false) canvas.fillStyle = "black";
+        else canvas.fillStyle = player.colours[field[i][i1].left];
+        canvas.fillRect(10 + 50*i, 10 + 50*i1, 10, 50);
+        if (field[i][i1].top == "border" || field[i][i1].top === false) canvas.fillStyle = "black";
+        else canvas.fillStyle = player.colours[field[i][i1].top];
+        canvas.fillRect(10 + 50*i, 10 + 50*i1, 50, 10);
+        // if (field[i][i1].right == "border" || !field[i][i1].right) canvas.fillStyle = "black";
+        // else canvas.fillStyle = player.colours[field[i][i1].right];
+        // canvas.fillRect(10 + 50*i + 50, 10 + 50*i1, 10, 50);
+        // if (field[i][i1].bottom == "border" || !field[i][i1].bottom) canvas.fillStyle = "black";
+        // else canvas.fillStyle = player.colours[field[i][i1].bottom];
+        // canvas.fillRect(10 + 50*i, 10 + 50*i1 + 50, 50, 10);
+      }
+    }
+    canvas.fillStyle = "black";
+    canvas.fillRect(10 + (10 + 2*(player.total - 2))*50, 10, 10, 50*(10 + 2*(player.total - 2)));
+    canvas.fillStyle = "black";
+    canvas.fillRect(10, 10 + (10 + 2*(player.total - 2))*50, 50*(10 + 2*(player.total - 2)) + 10, 10);
+  }
+
+  function canvasClicked() {
+    if (player.aktuell == player.myNumber && checkClicked() != undefined && field[checkClicked().x][checkClicked().y][checkClicked().side] === false) {
+      room.send({
+        message: {
+          "type": "sideAdded",
+          "data": checkClicked(),
+          player: player.myNumber
+        }
+      });
+      player.aktuell++;
+      if (player.aktuell == player.total) player.aktuell = 0;
+      room.send({
+        message: {
+          "type": "Reihenfolge",
+          "data": player.aktuell,
+          alert: true
+        }
+      });
+    }
+  }
+  var xMaus;
+  var yMaus;
+  function gewonnenCheck() {
+
+  }
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY;
+    //    console.log(xMaus + " - " + yMaus);
+  }
+  document.onmousemove = readMouseMove
+  function checkClicked() {
+    for (var i = 0; i < 10 + 2*(player.total - 2); i++) {
+      for (var i1 = 0; i1 < 10 + 2*(player.total - 2); i1++) {
+        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 50 + 12 && yMaus > 9 + 50*i1 && yMaus < 9 + 50*i1 + 10 + 12) return {side: "top", x: i, y: i1}
+        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 10 + 12 && yMaus > 9 + 50*i1 && yMaus < 9 + 50*i1 + 50 + 12) return {side: "left", x: i, y: i1}
+      }
+    }
+  }
+
+</script>

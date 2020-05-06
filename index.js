@@ -60,11 +60,16 @@ app.use('/stayOnTheStage/', stayOnTheStage);
 const galgenmaennchen = require('./galgenmaennchen/index.js');
 app.use('/galgenmaennchen/', galgenmaennchen);
 
+const turnbasedClashRoyale = require('./turnbasedClashRoyale/index.js');
+app.use('/turnbasedClashRoyale/', turnbasedClashRoyale);
 // const tabu = require('./tabu/index.js');
 // app.use('/tabu/', tabu);
 
 const dasVerrueckteLabyrinth = require('./dasVerrueckteLabyrinth/index.js');
 app.use('/dasVerrueckteLabyrinth/', dasVerrueckteLabyrinth);
+
+const Kaesekaestchen = require('./Kaesekaestchen/index.js');
+app.use('/Kaesekaestchen/', Kaesekaestchen);
 
 /* just file Test*/
 app.use('/index.html', express.static(__dirname + '/playbacks'))
