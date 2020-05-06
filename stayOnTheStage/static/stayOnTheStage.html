@@ -141,7 +141,7 @@
     //   if (AnzahlSpieler == 2) gegner = message.sender;
     // }
     if (message.type == "playerMoved") {
-      player[message.id][message.achse] += message.pixel;
+      player[message.id].position[message.achse] += message.pixel;
     }
     if (message.type == "endRound") {
       times[message.sender] = message.time
