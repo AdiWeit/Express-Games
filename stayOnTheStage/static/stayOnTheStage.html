@@ -77,7 +77,7 @@
     sendJson('/stayOnTheStage/message-queue', {
       clientId
     }).then(messages => {
-      //if (messages.length > 0) console.log("MESSAGES", messages);
+      if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
@@ -136,9 +136,12 @@
   room.setOnMessageListener(function(message) {
     if (message.type == "AnzahlSpieler") {AnzahlSpieler = message.data;}
     if (message.type == "gewonnen") {showResult(message.data, 0);}
-    if (message.type == "playerSync" && message.sender != spielerIch) {
-      player[message.sender].position = message.position;
-      if (AnzahlSpieler == 2) gegner = message.sender;
+    // if (message.type == "playerSync" && message.sender != spielerIch) {
+    //   player[message.sender].position = message.position;
+    //   if (AnzahlSpieler == 2) gegner = message.sender;
+    // }
+    if (message.type == "playerMoved") {
+      player[message.id][message.achse] += message.pixel;
     }
     if (message.type == "endRound") {
       times[message.sender] = message.time
@@ -148,7 +151,14 @@
         showResults();
       }
     }/* removeGame(true);*/
+    if (message.type == "forGegnerId" && message.id != spielerIch) {gegner = message.id; player[message.id] = {selectedSensibility: "high", selected: false, points: 0, position: {x: 10, y: 10}, confirmed: 0, pointsRequired: 5}}
     if (message.type == "spielerDu") {
+      room.send({
+        message: {
+          "type": "forGegnerId",
+          id: message.data
+        }
+      });
       spielerIch = message.data;
       player[spielerIch] = {};
       player[spielerIch].selectedSensibility = "high";
@@ -365,21 +375,14 @@
     }
     vx1 = vx1 * 0.98;
     vy1 = vy1 * 0.98;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "right") player[gegner].position.x += 30;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "left") player[gegner].position.x -= 30;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "down") player[gegner].position.y += 30;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "up") player[gegner].position.y -= 30;
-    if (isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77})) {
-      room.send({
-        message: {
-          "type": "playerSync",
-          position: player[gegner].position,
-          sender: gegner
-        }
-      });
-    }
-    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
-    if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
+    if (player[spielerIch].pointsRequired > 0 && isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "right") {/*player[gegner].position.x += 30;*/sendMovement("x", 30, gegner);}
+    if (player[spielerIch].pointsRequired > 0 && isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "left") {/*player[gegner].position.x -= 30;*/sendMovement("x", -30, gegner);}
+    if (player[spielerIch].pointsRequired > 0 && isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "down") {/*player[gegner].position.y += 30;*/ sendMovement("y", 30, gegner);}
+    if (player[spielerIch].pointsRequired > 0 && isCollide({x: player[spielerIch].position.x, y: player[spielerIch].position.y, width: 77, height: 77}, {x: player[gegner].position.x, y: player[gegner].position.y, width: 77, height: 77}) && directionBefore == "up") {/*player[gegner].position.y -= 30;*/sendMovement("y", -30, gegner);}
+    sendMovement("y", parseInt(player[spielerIch].position.y + vy1 / 50) - player[spielerIch].position.y, spielerIch);
+    sendMovement("x", parseInt(player[spielerIch].position.x + vx1 / 50) - player[spielerIch].position.x, spielerIch);
+    // if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.y = parseInt(player[spielerIch].position.y + vy1 / 50);
+    // if (player[spielerIch] && player[spielerIch].position) player[spielerIch].position.x = parseInt(player[spielerIch].position.x + vx1 / 50);
 
     vx2 = vx2 * 0.98;
     vy2 = vy2 * 0.98;
@@ -516,17 +519,27 @@
       else {
         bounceAufträge.splice(i, 1);
       }
-      room.send({
-        message: {
-          "type": "playerSync",
-          position: player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position,
-          sender: Object.keys(playerSame)[bounceAufträge[i].i - 1]
-        }
-      });
+      // room.send({
+      //   message: {
+      //     "type": "playerSync",
+      //     position: player[Object.keys(playerSame)[bounceAufträge[i].i - 1]].position,
+      //     sender: Object.keys(playerSame)[bounceAufträge[i].i - 1]
+      //   }
+      // });
       bounceAufträge[i].zähler++;
     }
   }, 25);
   var directionBefore = "";
+  function sendMovement(achse, pixel, id) {
+    room.send({
+      message: {
+        "type": "playerMoved",
+        achse: achse,
+        id: id,
+        pixel: pixel
+      }
+    });
+  }
   function isCollide(a, b) {
   if (((a.y + a.height) < (b.y))) directionBefore = "up";
   if (((a.y > (b.y + b.height)))) directionBefore = "down";
