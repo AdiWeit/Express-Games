@@ -230,7 +230,7 @@
     if (message.type == "vote") {
       voting.push(message.data);
       resetCards();
-      if (voting.length == 2 && (voting.includes(false) && voting.includes(true))) {
+      if (voting.length == 2 && (voting.includes(false) && voting.includes(true)) && name == NameSpieler[0]) {
         alert("Die Abstimmung resultiert in einem Gleichstand! Deshalb hat der Zufall entschieden!");
         if ( Math.round(Math.random() *1) == 0) {
           room.send({
