@@ -71,7 +71,7 @@
     }
   };
 
-  var player = {colours: ["green", "blue", "red", "yellow"]};
+  var player = {colours: ["#40FF00", "#21D0D5", "red", "yellow"]};
   var field = [];
   var canvas = textur.getContext('2d'); //Dimension
   function completedCheck(message) {
@@ -103,7 +103,17 @@
       message.data.x++;
       completedCheck(message);
       if (!player.gepunktet && player.myNumber == playerAktuellAblage) spielerwechsel();
-      else  {player.aktuell = playerAktuellAblage; layout();}
+      else  {
+        player.aktuell = playerAktuellAblage;
+        if (layout() && mode == "last") {
+          room.send({
+            message: {
+              "type": "gewonnen",
+              data: message.player
+            }
+          });
+        }
+      }
   //    else layout();
     }
     if (message.type == "Reihenfolge") {
@@ -125,8 +135,44 @@
         }
       }
       layout();
+      votes = [];
+      room.send({
+        message: {
+          "type": "vote",
+          data: confirm('Wollen sie, dass derjenige gewinnt, der die meisten Punkte hat gewinnt? Wenn sie auf "abbrechen" klicken wollen sie, dass derjenige gewinnt, der das letzte Kästchen einnimmt. ')
+        }
+      });
+    }
+    if (message.type == "vote") {
+      votes.push(message.data);
+      if (votes.length >= player.total) {
+        var result = 0;
+        for (var i = 0; i < votes.length; i++) {
+          if (votes[i]) result++;
+          else result--;
+        }
+        if (result == 0) {
+          alert("Auf Grund eines Gleichstands wird der Spielmodus zufällig entschieden!")
+          room.send({
+            message: {
+              "type": "vote",
+              data: Math.floor(Math.random() *1)
+            }
+          });
+        }
+        else if (result > 0) {
+          alert("Derjenige, der die meisten Kästchen/Punkte hat gewinnt!");
+          mode = "most";
+        }
+        else {
+          alert("Derjenige, der die letzte Kiste einnimmt/den letzten Punkt macht hat gewonnen!");
+          mode = "last";
+        }
+      }
     }
   });
+  var votes = [];
+  var mode = "";
   function showResult(gewinner, times) {
     if (player.myNumber == gewinner) {
       console.log("Du hast gewonnen!!!");
@@ -197,7 +243,7 @@
     for (var i = 0; i < Object.keys(pointsPlayer).length; i++) {
       if (!highest.number || pointsPlayer[Object.keys(pointsPlayer)[i]] > highest.number) {highest.number = pointsPlayer[Object.keys(pointsPlayer)[i]]; highest.player = Object.keys(pointsPlayer)[i];}
     }
-    if (freeFields == 0) {
+    if (freeFields == 0 && mode == "most") {
       room.send({
         message: {
           "type": "gewonnen",
@@ -205,6 +251,7 @@
         }
       });
     }
+    else if (freeFields == 0) return true;
   }
   var playerAktuellAblage;
   function canvasClicked() {
