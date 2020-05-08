@@ -1,5 +1,5 @@
 <div id="vote">
-<input type="text" placeholder="field format" id="fieldFormat">
+<input type="text" placeholder="field format" value="5" id="fieldFormat">
 <br>
 <input checked="true" onchange="if (checked) lastPoint.checked = false;" id="mostPoints" type="checkbox"> most points win
 <br>
@@ -28,9 +28,9 @@
     return content;
   }
 
-  //let oldId = localStorage.getItem('CLIENTIDKaesekaestchen');
-  const clientId = /*oldId ? oldId : */makeid(10);
-//  localStorage.setItem('CLIENTIDKaesekaestchen', clientId);
+  let oldId = localStorage.getItem('CLIENTIDKaesekaestchen');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDKaesekaestchen', clientId);
 
   var messageListener = null;
 
@@ -101,6 +101,7 @@
   }
   room.setOnMessageListener(function(message) {
     if (message.type == "gewonnen") showResult(message.data, 0);
+    if (message.type == "endGame") {if (message.alert) alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!");}
     if (message.type == "sideAdded") {
       field[message.data.x][message.data.y][message.data.side] = message.player;
       player.gepunktet = false;
@@ -123,13 +124,34 @@
         }
       }
   //    else layout();
+  localStorage.setItem("fieldKaesekaestchen", JSON.stringify(field));
+  localStorage.setItem("playerKaesekaestchen", JSON.stringify(player));
     }
     if (message.type == "Reihenfolge") {
       player.aktuell = message.data;
       playerAktuellAblage = message.data;
-      if (message.alert) layout();
+      if (message.alert) {
+        layout();
+        localStorage.setItem("playerKaesekaestchen", JSON.stringify(player));
+      }
+      }
+    if (message.type == "spielerDu") {
+      player.myNumber = message.data;
+      if (!message.newRound && confirm("Es ist noch eine angefangene Runde gespeichert. Wollen sie die Runde fortsetzen?")) {
+        field = JSON.parse(localStorage.getItem("fieldKaesekaestchen"));
+        player = JSON.parse(localStorage.getItem("playerKaesekaestchen"));
+        vote.style.display = "none";
+        layout();
+      }
+      else if (!message.newRound) {
+        room.send({
+          message: {
+            "type": "endGame",
+            alert: true
+          }
+        });
+      }
     }
-    if (message.type == "spielerDu") player.myNumber = message.data;
     if (message.type == "AnzahlSpieler") {
       player.total = message.data;
       fieldFormat.value = 5 + 2*(message.data - 2);
@@ -150,6 +172,7 @@
           result.field += votes[i].field;
         }
         if (isNaN(message.data.mode + "")) {
+          vote.style.display = "none";
           fieldFormat.value = result.field/player.total;
           for (var i = 0; i < result.field/player.total; i++) {
             field[i] = [];
@@ -194,6 +217,16 @@
     });
   }
   function showResult(gewinner, times) {
+    if (!makeAudio && times == 0) {
+      room.send({
+        message: {
+          "type": "endGame"
+        }
+      });
+      setTimeout(function () {
+        alert("Please relaod the page to play an other round!");
+      }, 3333);
+    }
     if (player.myNumber == gewinner) {
       console.log("Du hast gewonnen!!!");
       if (times == 0 && !makeAudio) {
@@ -225,16 +258,18 @@
   }
   var makeAudio = false;
   function layout() {
+    canvas.fillStyle = "white";
+    canvas.fillRect(0, 0, textur.width, textur.height);
     var freeFields = 0;
     var pointsPlayer = [];
     for (var i = 0; i < JSON.parse(fieldFormat.value); i++) {
       for (var i1 = 0; i1 < JSON.parse(fieldFormat.value); i1++) {
         if (field[i][i1].left == "border" || field[i][i1].left === false) canvas.fillStyle = "black";
         else canvas.fillStyle = player.colours[field[i][i1].left];
-        canvas.fillRect(10 + 50*i, 10 + 50*i1, 10, 50);
+        canvas.fillRect(10 + 50*i, 10 + 50*player.total + 50*i1, 10, 50);
         if (field[i][i1].top == "border" || field[i][i1].top === false) canvas.fillStyle = "black";
         else canvas.fillStyle = player.colours[field[i][i1].top];
-        canvas.fillRect(10 + 50*i, 10 + 50*i1, 50, 10);
+        canvas.fillRect(10 + 50*i, 10 + 50*player.total + 50*i1, 50, 10);
         // if (field[i][i1].right == "border" || !field[i][i1].right) canvas.fillStyle = "black";
         // else canvas.fillStyle = player.colours[field[i][i1].right];
         // canvas.fillRect(10 + 50*i + 50, 10 + 50*i1, 10, 50);
@@ -247,11 +282,11 @@
           canvas.strokeStyle = player.colours[field[i][i1].completed];
           canvas.lineWidth = 7;
           canvas.beginPath();
-          canvas.moveTo(10 + 50*i + 10, 10 + 50*i1 + 10);
-          canvas.lineTo(10 + 50*i + 10 + 50, 10 + 50*i1 + 10 + 50);
+          canvas.moveTo(10 + 50*i + 10, 10 + 50*i1 + 10 + 50*player.total);
+          canvas.lineTo(10 + 50*i + 10 + 50, 10 + 50*i1 + 10 + 50 + 50*player.total);
 
-          canvas.moveTo(10 + 50*i + 50, 10 + 10 + 50*i1);
-          canvas.lineTo(10 + 50*i, 10 + 50*i1 + 10 + 50);
+          canvas.moveTo(10 + 50*i + 50, 10 + 10 + 50*i1 + 50*player.total);
+          canvas.lineTo(10 + 50*i, 10 + 50*i1 + 10 + 50 + 50*player.total);
           canvas.stroke();
         }
         else {
@@ -260,13 +295,34 @@
       }
     }
     canvas.fillStyle = "black";
-    canvas.fillRect(10 + (JSON.parse(fieldFormat.value))*50, 10, 10, 50*(JSON.parse(fieldFormat.value)));
+    canvas.fillRect(10 + (JSON.parse(fieldFormat.value))*50, 10 + 50*player.total, 10, 50*(JSON.parse(fieldFormat.value)));
     canvas.fillStyle = "black";
-    canvas.fillRect(10, 10 + (JSON.parse(fieldFormat.value))*50, 50*(JSON.parse(fieldFormat.value)) + 10, 10);
+    canvas.fillRect(10, 10 + 50*player.total + (JSON.parse(fieldFormat.value))*50, 50*(JSON.parse(fieldFormat.value)) + 10, 10);
     // check winner
     var highest = {};
     for (var i = 0; i < Object.keys(pointsPlayer).length; i++) {
       if (!highest.number || pointsPlayer[Object.keys(pointsPlayer)[i]] > highest.number) {highest.number = pointsPlayer[Object.keys(pointsPlayer)[i]]; highest.player = Object.keys(pointsPlayer)[i];}
+    }
+    for (var i = 0; i < player.total; i++) {
+      canvas.strokeStyle = player.colours[i];
+      canvas.lineWidth = 7;
+      canvas.beginPath();
+      canvas.moveTo(10 + 10, 10 + 50*i + 10);
+      canvas.lineTo(10 + 10 + 50, 10 + 50*i + 10 + 50);
+
+      canvas.moveTo(10 + 50, 10 + 10 + 50*i);
+      canvas.lineTo(10, 10 + 50*i + 10 + 50);
+      canvas.stroke();
+      canvas.fillRect(10, 10 + 50*i, 10 + JSON.parse(fieldFormat.value)*50, 10);
+      if (pointsPlayer[i] === undefined) pointsPlayer[i] = 0;
+      if (JSON.parse(fieldFormat.value) > 3) showPoints(i, ":" + pointsPlayer[i] + "P");
+      else if (JSON.parse(fieldFormat.value) > 2) showPoints(i, pointsPlayer[i] + "P");
+      else showPoints(i, pointsPlayer[i] + "");
+      canvas.fillStyle = "black";
+    }
+    canvas.fillRect(10, 10 + 50*i, 10 + JSON.parse(fieldFormat.value)*50, 10);
+    for (var i = 0; i < JSON.parse(fieldFormat.value) + 1; i++) {
+      canvas.fillRect(10 + 50*i, 10, 10, player.total*50);
     }
     if (freeFields == 0 && mode == "most") {
       room.send({
@@ -279,6 +335,15 @@
     else if (freeFields == 0) return true;
   }
   var playerAktuellAblage;
+  function showPoints(i1, text) {
+    canvas.font = "33px Georgia";
+    for (var i = 0; i < text.length; i++) {
+      if ((text[i] == "P" || !(isNaN(text[i]))) && i1 == player.aktuell) canvas.fillStyle = "red";
+      else if ((text[i] == "P" || !(isNaN(text[i]))) && i1 == player.myNumber) canvas.fillStyle = "blue";
+      else canvas.fillStyle = "black";
+      canvas.fillText(text[i], 30 + 50*(i + 1), 50 + 50*i1);
+    }
+  }
   function canvasClicked() {
     if (player.aktuell == player.myNumber && checkClicked() != undefined && field[checkClicked().x][checkClicked().y][checkClicked().side] === false) {
       room.send({
@@ -303,8 +368,8 @@
   function checkClicked() {
     for (var i = 0; i < JSON.parse(fieldFormat.value); i++) {
       for (var i1 = 0; i1 < JSON.parse(fieldFormat.value); i1++) {
-        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 50 + 12 && yMaus > 9 + 50*i1 && yMaus < 9 + 50*i1 + 10 + 12) return {side: "top", x: i, y: i1}
-        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 10 + 12 && yMaus > 9 + 50*i1 && yMaus < 9 + 50*i1 + 50 + 12) return {side: "left", x: i, y: i1}
+        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 50 + 12 && yMaus > 10 + 50*player.total - 1 + 50*i1 && yMaus < 10 + 50*player.total - 1 + 50*i1 + 10 + 12) return {side: "top", x: i, y: i1}
+        if (xMaus > 9 + 50*i && xMaus < 9 + 50*i + 10 + 12 && yMaus > 10 + 50*player.total - 1 + 50*i1 && yMaus < 10 + 50*player.total - 1 + 50*i1 + 50 + 12) return {side: "left", x: i, y: i1}
       }
     }
   }

@@ -30,8 +30,8 @@ class Kaesekaestchen {
 
     this.spielerOnlineGleich0++;
     console.log("spielerOnlineGleich0: " + this.spielerOnlineGleich0);
-    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
-      console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
+    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId)) && this.player2) {
+    //  console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
       if (client.sessionId == this.player1.id) {
       this.send(this.player1.client, {
         "type": "spielerDu",
@@ -66,14 +66,14 @@ class Kaesekaestchen {
       //     "type": "sendDataToRejoinedPlayer"
       //   });
       // }
-      this.broadcast({
-        "type": "setAblageListe[4]AfterRejoin"
-      });
 
       console.warn("Rejoin, skipping usual onJoin…");
       return;
     }
-
+    else if (!this.player2 && [this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
+      console.log("skipping, but not rejoining");
+      return;
+    }
     console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if (!this.player1) {
       this.player1 = newPlayer;
@@ -90,7 +90,7 @@ class Kaesekaestchen {
     this.spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
         console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
-    if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && this.spielerOnline > 1*/) {
+    if (/*(this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && */this.spielerOnline > 1) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
       this.broadcast({
@@ -249,21 +249,6 @@ class Kaesekaestchen {
           AblageListe[1] = "abgebrochen";
         }, 500);
       } */
-    if (data.message.type == "kartenMitte") {
-      zählerListe[0] = 0;
-      AblageListe[0] = [];
-      AblageListe[0][data.message.sender] = 0;
-      while (zählerListe[0] < data.message.data.length) {
-        if ( /*data.message.data[zählerListe[0]]*/!(data.message.data[zählerListe[0]][5] == undefined) && data.message.data[zählerListe[0]][5].length < data.message.data[zählerListe[0]][2].length == false) {
-          AblageListe[0][data.message.sender]++;
-        }
-        zählerListe[0]++;
-      }
-      if (AblageListe[0][data.message.sender] > 0) {
-        console.log(AblageListe[0][data.message.sender] + " Straßen vollständig Spieler " + data.message.sender);
-      }
-      if (AblageListe[0][data.message.sender] > 2) {this.broadcast(data.message.sender + " hat gewonnen!!!"); this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
-    }
     if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
