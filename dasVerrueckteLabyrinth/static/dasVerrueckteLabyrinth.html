@@ -186,7 +186,7 @@
     if (message.type == "fieldMoved" && message.data && message.data.direction == "r") field[6][message.data.stein][0][0].movable = false;
     if (message.type == "fieldMoved" && message.data && message.data.direction == "l") field[0][message.data.stein][0][0].movable = false;
     if (message.type == "fieldMoved") player.moved = message.data;
-    if (message.type == "fieldMoved" && !player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
+    // if (message.type == "fieldMoved" && !player.searchingCard) player.searchingCard = Object.keys(player.items)[Math.round(Math.random() *(Object.keys(player.items).length - 1))];
     if (message.type == "field") {
       field = message.data;
       Layout();
@@ -269,6 +269,7 @@
     }
     if (message.type == "items" && message.empfänger == player.myNumber && !message.sync) player.items = message.data;
     if (message.type == "items" && Object.keys(message.data).length > 0) player.itemsEachPlayer[message.empfänger] = message.data;
+    if (message.type == "items" && message.empfänger == player.myNumber && !message.sync) player.searchingCard = Object.keys(player.items)[Math.round(Math.random()*(Object.keys(player.items).length - 1))];
     if (message.type == "Reihenfolge") {
       player.aktuell = message.data;
       if (player.aktuell == player.myNumber) {
