@@ -4,6 +4,8 @@
   <input type="text" placeholder="y" value="20" onchange="textur.height = JSON.parse(value)*33; createNewCard(document.getElementById('fieldSizeX').value, value);" id="fieldSizeY"></input>
   <input type="text" placeholder="points required for win" value="5" id="pointsRequiredForWin"></input>
   <br>
+  <input id="truhenDurchlässig" checked="true" type="checkbox"> Truhen durchlässig
+  <br>
 </div>
 <button type="button" id="nextRound" onclick="ready(true);" name="button">nextRound!</button>
 <br>
@@ -147,15 +149,38 @@
       suggestion.x.push(message.data.map[0]);
       suggestion.y.push(message.data.map[1]);
       suggestion.requiredPoints.push(message.data.points);
+      suggestion.truhenDurchlässig.push(message.data.truhenDurchlässig);
       if (suggestion.x.length == AnzahlSpieler) {
     document.getElementById('fieldSelection').style.display = "none";
     xLength = 0;
     yLength = 0;
     points.required = 0;
+    var truhenDurchlässig = 0;
     for (var i = 0; i < AnzahlSpieler; i++) {
       xLength += JSON.parse(suggestion.x[i]);
       yLength += JSON.parse(suggestion.y[i]);
       points.required += JSON.parse(suggestion.requiredPoints[i]);
+      truhenDurchlässig += suggestion.truhenDurchlässig[i];
+    }
+    if (truhenDurchlässig > 0) {
+      alert("More people wanted to play truhen durchlässig, so that mode is selected!");
+      gameMode = "truhen durchlässig";
+    }
+    else if (truhenDurchlässig < 0) {
+      alert('More people didn´t wanted to play truhen durchlässig, so you can´t "go through" chests');
+      gameMode = "truhen nicht durchlässig";
+    }
+    else {
+      alert("The mode vote results a draw, so the mode will be selected randomly!");
+      var modeObj = ["truhen durchlässig", "truhen nicht durchlässig"];
+      if ((id == Object.keys(points)[0]) || (Object.keys(points)[0] == "required" && id == Object.keys(points)[1])) {
+      room.send({
+        message: {
+        type: "modeRandom",
+        data: modeObj[Math.round(Math.random() *(1))]
+      }
+      });
+    }
     }
     xLength /= AnzahlSpieler;
     yLength /= AnzahlSpieler;
@@ -167,6 +192,10 @@
     // points.required = Math.round((JSON.parse(document.getElementById('pointsRequiredForWin').value) + JSON.parse(message.data.points))/2);
     visible([["nextRound", "inline"]]);
   }
+  }
+  else if (message.type == "modeRandom") {
+    alert("The mode " + message.data + " is selected!");
+    gameMode = message.data;
   }
   else if (message.type == "nextRound") {nextRound.push(true);
     if (nextRound.length == AnzahlSpieler) {visible([["nextRound", "none"]]); guess.value = "0";
@@ -192,7 +221,7 @@
   else if (message.type == "name") {
     player1 = false;
     id = message.data;
-    suggestion = {x: [], y: [], requiredPoints: []};
+    suggestion = {x: [], y: [], requiredPoints: [], truhenDurchlässig: []};
     document.getElementById('fieldSelection').style.display = "inline";
     document.getElementById("nextRound").style.display = "inline";
     document.getElementById("nextRound").innerHTML = "this is my vote!";
@@ -201,10 +230,11 @@
     setTimeout(function () {
       if (!voted) {
         voted = true;
+        var modeObj = {true: 1, false: -1};
         room.send({
           message: {
           type: "settings",
-          data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
+          data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[truhenDurchlässig.checked]},
           sender: id
         }
         });
@@ -218,6 +248,7 @@
     showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", /*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3", "green", 0);
   }
 });
+var gameMode = "truhenDurchlässig";
 function timerFun() {
   secs--;
   if (secs > 0) playAudio(0, 500, "https://adi.nicolaiweitkemper.de/Sounds/130046__maxdemianagl__alarmclock-clicking.wav");
@@ -288,10 +319,11 @@ setTimeout(function () {
     document.getElementById('nextRound').innerHTML = "nextRound!";
     voted = true;
     visible([["nextRound", "none"]]);
+    var modeObj = {true: 1, false: -1};
     room.send({
       message: {
       type: "settings",
-      data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value},
+      data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[truhenDurchlässig.checked]},
       sender: id
     }
     });
@@ -354,6 +386,7 @@ setTimeout(function () {
     // else if (cards[0][i1][i].item != false) item.normal = true;
     if (cards[0][i1][i] == "truhe") anzahlTruhen++;
     // console.log(i1 > 0 && (cards[0][i1 - 1][i] == "truhe" || cards[0][i1 - 1][i] == "weg"));
+    if (gameMode == "truhen durchlässig" || (cards[0][i1][i] != "truhe")) {
     if (i1 > 0 && (cards[0][i1 - 1][i] == "truhe" || cards[0][i1 - 1][i] == "weg") && commingFrom != "left") checkAnzahlKisten(i1 - 1, i, "right", felderChecked);
     // console.log(i > 0 && (cards[0][i1][i - 1] == "truhe" || cards[0][i1][i - 1] == "weg"));
     if (i > 0 && (cards[0][i1][i - 1] == "truhe" || cards[0][i1][i - 1] == "weg") && commingFrom != "up") checkAnzahlKisten(i1, i - 1, "down", felderChecked);
@@ -361,6 +394,7 @@ setTimeout(function () {
     if (i1 < cards[0].length - 1 && (cards[0][i1 + 1][i] == "truhe" || cards[0][i1 + 1][i] == "weg") && commingFrom != "right") checkAnzahlKisten(i1 + 1, i, "left", felderChecked);
     // console.log(i < cards[0][0].length - 1 && cards[0][i1][i + 1] == "truhe" || ));
     if (i < cards[0][0].length - 1 && (cards[0][i1][i + 1] == "truhe" || cards[0][i1][i + 1] == "weg") && commingFrom != "down") checkAnzahlKisten(i1, i + 1, "up", felderChecked);
+  }
   }
 }
   var anzahlTruhen = 0;
