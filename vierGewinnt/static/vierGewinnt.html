@@ -178,6 +178,8 @@
     else if (message.includes("voteModeRutschen")) {
       selectedMode.push(JSON.parse(message.replace("voteModeRutschen: ", "")));
       if (selectedMode.length > 1) {
+        if (SpielerIds[0] == SpielerId) yourColour = "red";
+        else yourColour = "blue";
         var i1 = 0;
         for (var i = 0; i < selectedMode.length; i++) {
           if (selectedMode[i]) i1++;
@@ -240,8 +242,10 @@
         canvas.font = "135px Arial";
         canvas.fillStyle = "#cc0000";
         canvas.fillText("Du hast Verloren!", 750, 370);
+        askReplay();
       }, 1535);
     } else if (message.includes("Markierungen: ")) {
+      markierungMessage = message;
       TeileMarkierung = message.replace("Markierungen: ").toString().split(',');
       TeileMarkierung[0] = TeileMarkierung[0].replace("undefined", "");
     }  /* else if (message.includes("left")) {
@@ -255,6 +259,8 @@
   var placedList = [];
   var modeSelected;
   var selectedMode = [];
+  var yourColour;
+  var markierungMessage;
   // send message to room on submit
   /*  document.querySelector("#form").onsubmit = function(e) {
       e.preventDefault();
@@ -484,6 +490,7 @@
       room.send({
         message: antwort
       });
+      placedList.push(JSON.parse(JSON.stringify("koord: " + antwort)));
       zähler = 0;
       Gewinncheck();
     }
@@ -599,18 +606,19 @@
         message: SpielerIds[0] + " hat gewonnen!"
       });
     }, 200);
+    askReplay();
+  }
+  function askReplay() {
     setTimeout(function () {
       if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/vierGewinnt.html angucken.")) {
         if (localStorage.getItem("playBacksVierGewinnt")) var replays = JSON.parse(localStorage.getItem("playBacksVierGewinnt"));
         else var replays = {};
-        replays[prompt("Wie wollen sie ihr Replay nennen?")] = {movementList: placedList, selectedMode: modeSelected, farben: Farben, spielerId: SpielerId};
+        replays[prompt("Wie wollen sie ihr Replay nennen?")] = {movementList: placedList, selectedMode: modeSelected, farben: Farben, yourColour: yourColour, markierung: markierungMessage};
         localStorage.setItem("playBacksVierGewinnt", JSON.stringify(replays));
       }
     }, 2222);
   }
-
   function Markierungen() {
-
     Ablage = TeileMarkierung[zähler1]
     eins = Ablage.toString().split('');
     diff = ((1) * Math.PI * 2 * 10).toFixed(2)
@@ -635,6 +643,7 @@
       room.send({
         message: Position
       });
+      placedList.push(JSON.parse(JSON.stringify("koord: " + Position)));
       PlazierungM2(false);
     }
   }

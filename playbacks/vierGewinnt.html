@@ -1,6 +1,15 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <h2 id="Name"></h2>
 <canvas id="textur" width="1582" height="750"></canvas>
+
+<!-- <button type="button" onclick="playing.direction = 1;" name="button">⏩</button> -->
+<button type="button" onclick="play(true)" name="button">play/pause</button>
+<button type="button" onclick='spielfeldAktuell = 0; Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"];' name="button">⟲</button>
+<!-- <button type="button" onclick="playing.direction = -1;" name="button">⏪</button> -->
+<h2>speed (right: slower)</h2>
+<input type="range" min="400" oninput="playing.speed = JSON.parse(value)" max="2000" value="1500" class="slider" id="sliderSpeed">
+<button type="button" id="backToNormal" onclick="playing.speed = 1500; sliderSpeed.value = 1500;" name="button">back to normal</button>
+
 <div id="app">
 <li v-for="title in db" style="font-size: 33px" id="kathegorien">
   {{ title }}
@@ -122,11 +131,12 @@ else {
   }
   var Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"];
   function placed(message) {
+    Name.innerHTML = "Du bist " + yourColour;
     if (selectedMode == "runterrutschen") {
       Ablage = message.replace("koord: ", "");
       PlazierungM2(true);
     } else {
-      if ((spielfeldAktuell/2 + "").includes(".")) Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[0];
+      if (!((spielfeldAktuell/2 + "").includes("."))) Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[0];
       else Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[1];
       LayoutStart();
       LayoutZurrück();
@@ -147,7 +157,7 @@ else {
       Layout();
       LayoutZurrück();
     }
-    if ((spielfeldAktuell/2 + "").includes(".")) canvas.fillStyle = Farben[0];
+    if (!((spielfeldAktuell/2 + "").includes("."))) canvas.fillStyle = Farben[0];
     else canvas.fillStyle = Farben[1];
     canvas.beginPath();
     canvas.arc(150 + antwort * 150, 65 + zählerM2 * 120, 45, 0, Math.PI * 2, true);
@@ -161,7 +171,7 @@ else {
       }, 37);
     } else {
       setTimeout(function() {
-        if ((spielfeldAktuell/2 + "").includes(".")) {
+        if (!((spielfeldAktuell/2 + "").includes("."))) {
           Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[0];
         } else {
           Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[1];
@@ -189,6 +199,8 @@ else {
    }
    else {
      playing.boolean = false
+     zähler1 = 0;
+     Markierungen();
    }
  }
 
@@ -210,8 +222,12 @@ else {
                   movementList = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].movementList;
                   selectedMode = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].selectedMode;
                   Farben = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].farben;
-                  SpielerId = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].spielerId;
+                  // SpielerId = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].spielerId;
+                  yourColour = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].yourColour;
                   name = this.innerText;
+                  TeileMarkierung = JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[this.innerText].markierung;
+                  TeileMarkierung = TeileMarkierung.replace("Markierungen: ").toString().split(',');
+                  TeileMarkierung[0] = TeileMarkierung[0].replace("undefined", "");
               };
 
           }
@@ -219,6 +235,26 @@ var name = "";
 var Farben = [];
 var movementList = [];
 var selectedMode = "";
-var SpielerId;
+var yourColour = "";
+// var SpielerId;
+var TeileMarkierung = [];
+
+var zähler1 = 0;
+function Markierungen() {
+  var eins = TeileMarkierung[zähler1].toString().split('');
+  var diff = ((1) * Math.PI * 2 * 10).toFixed(2)
+  canvas.lineWidth = 95;
+  canvas.fillStyle = 'green'
+  canvas.strokeStyle = '#40FF00'
+  canvas.textAlign = 'center'
+  canvas.beginPath();
+  canvas.arc(150 + 150 * JSON.parse(eins[0]), 65 + 120 * JSON.parse(eins[1]), 5, 4.72, diff / 10 + 4.72, false)
+  canvas.stroke();
+  zähler1++;
+
+  if (zähler1 == TeileMarkierung.length == false) {
+    Markierungen();
+  }
+}
 
 </script>
