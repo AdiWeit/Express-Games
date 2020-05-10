@@ -178,7 +178,6 @@
         document.getElementById('message').select();
     }, 3000);
   }
-
   room.setOnMessageListener(function(message) {
     if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "spielerAktuell" && message.empfänger == spielerIch) spielerAktuell = message.data;
@@ -275,7 +274,11 @@
         }
       }, 1000);
       if (spielerAktuell == spielerIch) {
-        new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+        try {
+          new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
+        } catch (e) {
+
+        }
         setTimeout(function () {
           zweiKartenZiehen();
           datenAktuallisieren(false, true);
@@ -294,6 +297,7 @@
     }
     if (message.type == "spielerDu") {
       spielerIch = message.data;
+      spieler[spielerIch].ereignisBevor = {};
       if (message.newRound != true)
        {
         if (JSON.parse(localStorage.getItem('spielerAktuellMonopoly')) != undefined && JSON.parse(localStorage.getItem('spielerAktuellMonopoly')) != "undefined" && confirm("wollen sie die vorherige Runde weiterspielen?"))  {
@@ -317,8 +321,8 @@
         }
       }
       else {
-        if (!localStorage.getItem("nameMonopoly")) {spieler[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameMonopoly", spieler[spielerIch].name);}
-        else spieler[spielerIch].name = localStorage.getItem("nameMonopoly");
+        if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {spieler[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames", spieler[spielerIch].name);}
+        else spieler[spielerIch].name = localStorage.getItem("nameOnlineGames");
         room.send({
           message: {
             "type": "syncPlayerName",
@@ -343,12 +347,19 @@
       }
     }
     if (message.type == "Bezahlen vollständig" && spielerIch == spielerAktuell) {
-      AblageListe[4][0] = ["beendet"];
+      // AblageListe[4][0] = ["beendet"];
       alert("Bezahlung vollendet! Sie können nun weiterspielen, wenn sie noch Züge zur Verfügung haben.")
-      // checkRundenende();
-      if (!((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet")) {
-        datenAktuallisieren();
+      if (AnzahlSpieler == 2) {
+        if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
+        else if (AblageListe[4][1] && AblageListe[4][1] > 0) AblageListe[4] = afterNixDa["AblageListe[4]"];
+        else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
+        if (afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
       }
+      afterNixDa["Warten Bezahlen Gegner"] = false;
+      // checkRundenende();
+      // if (!((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet")) {
+      //   datenAktuallisieren();
+      // }
     }
     if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
     if (message.type == "kartenMitte") spieler[message.sender].kartenMitte = message.data;
@@ -399,12 +410,15 @@
       }, 9000);
     }
     if (message.type == "gebotBeendet") {spieler[spielerIch].coverMoney = false;
-      if (AblageListe[4][1] && AblageListe[4][1] > 0) AblageListe[4][0] = "bezahlen Gegner";
-      else if (AblageListe[4][0] == "Auswahl Karten ablegen") AblageListe[4][0] = "Auswahl Karten ablegen";
-      else AblageListe[4][0] = "beendet";
+      if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
+      else if ((AblageListe[4][1] && AblageListe[4][1] > 0)) AblageListe[4] = afterNixDa["AblageListe[4]"];
+      else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
+      if (afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
+      if (afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
+      // else AblageListe[4][0] = "beendet";
       //checkRundenende();
     }
-    if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1) {
+    if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u") {
       spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = message.data[0];
       spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length - 1][5] = [];
       AblageListe[3] = spielerIch;
@@ -421,6 +435,18 @@
       alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
   //    datenAktuallisieren();
     }
+    else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1) {
+      spieler[spielerIch].einkommen[0] += message.data[0][1];
+      spieler[spielerIch].einkommen.push(message.data[0][1]);
+    }
+      if (message.type == "gebotBeendet" && spielerIch == spielerAktuell) {
+      if (ereignis == "Geburtstag")  {
+        GeburtstagFunction();
+      }
+      else if (ereignis == "Miete") {
+        MieteAlle();
+      }
+    }
     if (message.type == "NixDa") {
       if (message.Status[0] == "abgebrochen" || message.Status[0] == "richtigerSpielerEmpfangen") {
         zustand[0] = "abgebrochen";
@@ -428,10 +454,11 @@
         setTimeout(function () {
           zustand[0] = "inGame";
         }, 1000);
-        AblageListe[4][0] = "beendet";
+        // AblageListe[4][0] = "beendet";
         console.log("AblageListe[0]: " + AblageListe[0]);
         if (spielerIch == spielerAktuell && message["AblageListe[3]"] != undefined) AblageListe[3] = message["AblageListe[3]"];
         if (spielerIch == spielerAktuell && message["AblageListe[2]"] != undefined) AblageListe[2] = message["AblageListe[2]"];
+        if (message.Empfänger == spielerIch) {AblageListe[4][0] = "beendet"; console.log("NixDa request/battle beendet");}
         if (message.Status[1] == spielerIch == false) {
           console.log("Nix Da battle gewonnen :)");
       //    alert("Sie haben sich durchgesetzt! (Uventuell waren sie von der Nix-Da Aktion nicht betroffen)")
@@ -440,7 +467,7 @@
           }, 1777);
           console.log(AblageListe[2] + " - " + AblageListe[3]);
           if (spielerIch == spielerAktuell) {
-            AblageListe[4][0] = "beendet";
+            // AblageListe[4][0] = "beendet";
             AblageListe[8] = "NixDaVollendet";
             if (message.data == "einen Geldhai") {
               geldhai();
@@ -448,7 +475,7 @@
             if (message.data == "einen Zwangstausch") {
               schlauGeklaut();
               if (AnzahlSpieler == 2 && spieler[spielerGegner].kartenMitte.length == 1 && spieler[spielerIch].kartenMitte.length == 1 && spieler[spielerIch].kartenMitte[0][5].length == spieler[spielerIch].kartenMitte[0][2].length == false &&
-                spieler[spielerGegner].kartenMitte[0][5].length == spieler[spielerGegner].kartenMitte[0][2].length == false) {
+                spieler[spielerGegner].kartenMitte[0][5].length != spieler[spielerGegner].kartenMitte[0][2].length) {
                 karteWeggeben();
               } else {
                 AblageListe[4][0] = "karteWeggeben";
@@ -474,6 +501,7 @@
               zählerListe[2] = AblageListe[11];
               GeburtstagFunction();
             }
+            console.log("trotz nix-da ausgeführt");
           } else if (spielerIch == spielerAktuell == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && message.Empfänger == spielerAktuell == false) {
             room.send({
               message: {
@@ -492,9 +520,9 @@
             }, 500); */
             /* Fehlerquelle? */
           if (!(message.data == "Miete gegen sie" || message.data == "Miete für alle" || message.data == "einen Geldhai" || message.data == "einen Geburtstag") && AblageListe[4][0] != "beendet") {
-              setTimeout(function() {
-                datenAktuallisieren();
-              }, 500);
+              // setTimeout(function() {
+              //   datenAktuallisieren();
+              // }, 500);
             }
         } else if (spielerIch == spielerAktuell) {
           console.log("Nix da Battle verloren :(");
@@ -538,8 +566,8 @@
         Layout();
         window.scroll(250, 0);
         setTimeout(function() {
-          if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte") && !(Object.keys(colorObj).includes(spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]))) alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4] + ") ");
-          else if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte"))  alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + colorObj[spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]] + ") ");
+          if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte") && !(Object.keys(colorObj).includes(spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]))) alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4] + ") (klicken sie auf OK , um ihre Nix da  Wahl zu treffen.)");
+          else if ((message["AblageListe[4]"] == "einen Zwangstausch" || message["AblageListe[4]"] == "eine Schlau Geklaut Karte"))  alert("Ein Gegner will folgende Straße klauen: " + spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][3] + " (" + colorObj[spieler[message["AblageListe[3]"]].kartenMitte[message["AblageListe[2]"]][4]] + ")  (klicken sie auf OK , um ihre Nix da Wahl zu treffen.)");
           if (confirm("Wollen sie ihre Nix Da Karte gegen " + message.data + " einsetzen?")) {
             zählerListe[3] = 0;
             while (zählerListe[3] < spieler[spielerIch].kartenIch.length) {
@@ -604,8 +632,13 @@
   });
   // check ereignisBeendet
   setInterval(function () {
-    if (AblageListe[4] != spieler[spielerIch].ereignisBevor && spielerAktuell == spielerIch) Layout();
-    spieler[spielerIch].ereignisBevor = AblageListe[4];
+    try {
+      if ((AblageListe[4] != spieler[spielerIch].ereignisBevor.AblageListe || (nixDaType/* && nixDaType != "beendet"*/ && nixDaType != spieler[spielerIch].ereignisBevor.nixDaType)) && spielerAktuell == spielerIch) Layout()//datenAktuallisieren();
+    } catch (e) {
+
+    }
+    if (!nixDaType || nixDaType == "beendet" || !spieler[spielerIch].ereignisBevor.AblageListe) spieler[spielerIch].ereignisBevor.AblageListe = AblageListe[4];
+    else if (spieler[spielerIch].ereignisBevor.nixDaType != nixDaType) spieler[spielerIch].ereignisBevor.nixDaType = nixDaType;
   }, 1000);
   function checkRundenende() {
     if (/*AblageListe[3] > -1 && */spielerIch == spielerAktuell) {
@@ -623,7 +656,7 @@
     //   }, timeOutTime);
     // }
   }
-setInterval(checkRundenende, 1000);
+setInterval(checkRundenende, 500);
 function showPoints(highest) {
 //document.getElementById('textur').style.display = "none";
 var cell = [ /*row.insertCell(0)*/ ];
@@ -704,15 +737,15 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
 
     while (zählerListe[0] < AnzahlSpieler) {
       console.log(AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0]);
-      if ( /*AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == 0 || (AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0])*/ AblageListe[1][2] ==
+      if (zählerListe[0] != spielerAktuell && /*AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == 0 || (AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0])*/ AblageListe[1][2] ==
         spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0]) {
         zählerListe[1]++;
       }
       zählerListe[0]++;
     }
-    if (zählerListe[1] >= AnzahlSpieler - 1) {
+    if (zählerListe[1] >= AnzahlSpieler - 1 || spieler[spielerIch].einkommen[0] < AblageListe[1][0][1]) {
       console.log("Niemand kriegt die Karte");
-      AblageListe[0] = "aus Gebot aussteigen";
+      AblageListe[0] = ["aus Gebot aussteigen", "niemandKriegtSie"];
     }
     zählerListe[0] = 0;
     zählerListe[1] = 0;
@@ -722,10 +755,10 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       }
       zählerListe[0]++;
     }
-    if (zählerListe[1] < 2) {
+    if (zählerListe[1] < 2 || AblageListe[0][1] == "niemandKriegtSie") {
       //  AblageListe[1][1][spielerIch + 1] = false;
       console.log("Gebot beenden");
-      AblageListe[0] = "aus Gebot aussteigen";
+      if (AblageListe[0][1] != "niemandKriegtSie") AblageListe[0] = "aus Gebot aussteigen";
       zählerListe[0] = 1;
       while (zählerListe[0] < AblageListe[1][1].length) {
         if (AblageListe[1][1][zählerListe[0]] == true) {
@@ -737,26 +770,27 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         message: {
           "type": "gebotBeendet",
           "data": AblageListe[1],
-          "Empfänger": zählerListe[1]
+          "Empfänger": zählerListe[1],
+          gleichstand: AblageListe[0][1]
         }
       });
-    } else if (spieler[spielerIch].einkommen[0] <= JSON.parse(AblageListe[1][1][0])) {
+    } else if (AblageListe[0][1] != "aus Gebot aussteigen" && spieler[spielerIch].einkommen[0] <= JSON.parse(AblageListe[1][1][0])) {
       console.log("aus Gebot aussteigen");
       alert("Sie haben nicht genug Geld, um bei der Versteigerung mithalten zu können!")
-      AblageListe[0] = "aus Gebot aussteigen";
+      if (AblageListe[0][1] != "niemandKriegtSie") AblageListe[0] = "aus Gebot aussteigen";
       AblageListe[1][1][spielerIch + 1] = false;
       bieten();
     }
 
 
-    if (AblageListe[0] == "aus Gebot aussteigen" == false) {
+    if ((AblageListe[0] != "aus Gebot aussteigen" && AblageListe[0][0] != "aus Gebot aussteigen")) {
       AblageListe[3] = prompt("Wie viel Geld wollen sie für die " + AblageListe[1][0][3] + ' (' + AblageListe[1][0][4] + ') ' + "ausgeben? Das Gebot muss " + AblageListe[1][1][0] +
         "€ überschreiten! Klicken sie auf abbrechen, um aus dem Gebot auszusteigen.")
     }
-    if (AblageListe[3] == null == false && AblageListe[0] == "aus Gebot aussteigen" == false && (isNaN(AblageListe[3]) || (AblageListe[3] + "").includes(".") || JSON.parse(AblageListe[3]) <= JSON.parse(AblageListe[1][1][0]) || spieler[spielerIch].einkommen[0] < JSON.parse(AblageListe[3]))) {
+    if (AblageListe[3] != "" && AblageListe[3] == null == false && (AblageListe[0] != "aus Gebot aussteigen" && AblageListe[0][0] != "aus Gebot aussteigen") && (isNaN(AblageListe[3]) || (AblageListe[3] + "").includes(".") || JSON.parse(AblageListe[3]) <= JSON.parse(AblageListe[1][1][0]) || spieler[spielerIch].einkommen[0] < JSON.parse(AblageListe[3]))) {
       alert("Ungültige Eingabe. Bitte erneut versuchen!");
       bieten();
-    } else if (AblageListe[0] == "aus Gebot aussteigen" == false) {
+    } else if ((AblageListe[0] != "aus Gebot aussteigen" && AblageListe[0][0] != "aus Gebot aussteigen")) {
       if (AblageListe[3] == null) {
         AblageListe[1][1][spielerIch + 1] = false;
         console.log("Gebot aufgegeben");
@@ -815,29 +849,35 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       }
       gebote[spielerIch + 1] = false;
+      afterNixDa["AblageListe[4]"] = JSON.parse(JSON.stringify(AblageListe[4]));
       AblageListe[4][0] = "warten auf Gebot";
   }
   return gebote.includes(true)
 }
   function gebotAnServer(data, Empfänger, Straße, Sender) {
-    if (data[0] == 0) {
-      data[0] = Straße[1];
+    setTimeout(function () {
+      datenAktuallisieren(false, true);
+    }, 333);
+    setTimeout(function () {
+      if (data[0] == 0) {
+        data[0] = Straße[1];
+        room.send({
+          message: {
+            "type": "gebotEröffnet",
+            "data": Sender
+          }
+        });
+      }
       room.send({
         message: {
-          "type": "gebotEröffnet",
-          "data": Sender
+          "type": "Gebot",
+          "data": data,
+          "Empfänger": Empfänger,
+          "Straße": Straße,
+          "Sender": Sender
         }
       });
-    }
-    room.send({
-      message: {
-        "type": "Gebot",
-        "data": data,
-        "Empfänger": Empfänger,
-        "Straße": Straße,
-        "Sender": Sender
-      }
-    });
+    }, 1222);
   }
 
   function serverDatenLöschen() {
@@ -845,6 +885,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     localStorage.removeItem('spielerAktuellMonopoly');
     localStorage.removeItem('restlicheZügeMonopoly');
     localStorage.removeItem('kartenZiehenMonopoly');
+    localStorage.removeItem("CLIENTIDMonopoly");
   }
   AblageListe[10] = "none"
 
@@ -876,10 +917,14 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     yMaus = e.clientY + hinzufügenY;
     //  console.log(xMaus + " - " + yMaus);
     if (e.clientX > x - 71 /*1519*/ && e.clientY < /*1575*/ x - 15) {
-      if (AblageListe[10] == "none") {
+      if (AblageListe[10] == "none" && ((localStorage.getItem('scrollRightMonopoly') != undefined && localStorage.getItem('scrollRightMonopoly') == "true") || (localStorage.getItem('scrollRightMonopoly') == undefined && confirm("Wollen sie, dass der Bildschirm bei Berühren des rechten Randes automatisch nach rechts scrollt?")))) {
+        if (localStorage.getItem('scrollRightMonopoly') == undefined) localStorage.setItem('scrollRightMonopoly', true);
         AblageListe[10] = ["right"];
         IntervalScroll = setInterval(scrollWindow, 1);
         console.log("setInterval");
+      }
+      else {
+        if (localStorage.getItem('scrollRightMonopoly') == undefined) localStorage.setItem('scrollRightMonopoly', false);
       }
     } else {
       AblageListe[10][0] = "none"
@@ -918,7 +963,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (xMaus > 10 && yMaus > 44 + 33*(AnzahlSpieler - 1) - i*33 && yMaus < 44 + 33*(AnzahlSpieler - 1) - i*33 + 22) {
         if (i == spielerIch && confirm("Sind sie sich sicher, dass sie sich umbenennen wollen? (Wenn sie sich nur für diese Runde umbenennen wollen, wählen sie abbrechen.)")) {
           spieler[spielerIch].name = prompt("Wie wollen sie sich nennen?");
-          localStorage.setItem("nameMonopoly", spieler[spielerIch].name);
+          localStorage.setItem("nameOnlineGames", spieler[spielerIch].name);
           room.send({
             message: {
               "type": "syncPlayerName",
@@ -963,20 +1008,20 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     }
     if (!(AblageListe[4][0].includes("ein") || AblageListe[4][0].includes("für") || AblageListe[4][0].includes("gegen") || nixDaType.includes("ein") || nixDaType.includes("für") || nixDaType.includes("gegen"))) {
     AblageListe[2] = -1;
-    koordinatenCheck();
-    if (AblageListe[4][0] == "Auswahl Karten ablegen" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
+    koordinatenCheck(false);
+    if (AblageListe[4][0] == "Auswahl Karten ablegen" && textButton == "Spielfeld" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
       if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "Straße" && vorbereitungGebot()) {
         gebotAnServer(gebote, bieter, spieler[spielerIch].kartenIch[AblageListe[2]], spielerIch);
       }
       spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
       Layout();
       if (spieler[spielerIch].kartenIch.length < 8) {
+        AblageListe[4] = ["beendet"];
         Spielerwechsel();
       }
     }
     if (AblageListe[4][0] == "bezahlen Gegner" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false) {
       AblageListe[4][1] -= spieler[spielerIch].kartenMitte[AblageListe[2]][1];
-
         if (vorbereitungGebot()) {
           gebotAnServer(gebote, bieter, spieler[AblageListe[3]].kartenMitte[AblageListe[2]], spielerIch);
         }
@@ -1013,10 +1058,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (AblageListe[4][0] == "Haus") AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "Übernahme" && AblageListe[3] < AnzahlSpieler && spieler[AblageListe[3]].kartenMitte[AblageListe[2]] == undefined == false && spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length == spieler[
         AblageListe[3]].kartenMitte[AblageListe[2]][2].length) {
+        afterNixDa["AblageListe[2]"] = AblageListe[2];
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
+        //AblageListe[2] = AblageListe[0][0];
         AblageListe[4][0] = "eine Übernahme Karte";
       } else {
         setTimeout(function () {
+          AblageListe[2] = afterNixDa["AblageListe[2]"];
           uebernahme();
           if (AblageListe[4][0] == "Übernahme") AblageListe[4][0] = "beendet";
           nixDaType = "beendet";
@@ -1028,7 +1076,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         AblageListe[4][0] = "einen Geldhai";
       } else {
         nixDaType = "einen Geldhai";
+        afterNixDa["AblageListe[3]"] = AblageListe[3];
         setTimeout(function () {
+          AblageListe[3] = afterNixDa["AblageListe[3]"];
           geldhai();
           if (AblageListe[4][0] == "Geldhai") AblageListe[4][0] = "beendet";
           nixDaType = "beendet";
@@ -1046,21 +1096,26 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           AblageListe[12] = AblageListe[3];
           AblageListe[4][0] = "karteWeggeben";
         }, 573);
+        afterNixDa["AblageListe[2]"] = AblageListe[2];
+        afterNixDa["AblageListe[3]"] = AblageListe[3];
         setTimeout(function () {
+          AblageListe[3] = afterNixDa["AblageListe[3]"];
+          AblageListe[2] = afterNixDa["AblageListe[2]"];
           schlauGeklaut();
           nixDaType = "beendet";
         }, (Math.floor(Math.random() * 3333) + 2222));
       }
-    } else if (AblageListe[4][0] == "spielerKarteWeggeben" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch == false) {
+    } /*else if (AblageListe[4][0] == "spielerKarteWeggeben" && AblageListe[3] < AnzahlSpieler && AblageListe[3] != spielerIch) {
       karteWeggeben();
       AblageListe[4][0] = "beendet";
-    } else if (AblageListe[4][0] == "karteWeggeben" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch) {
+    }*/ else if (AblageListe[4][0] == "karteWeggeben" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch) {
       if (AnzahlSpieler == 2) {
         AblageListe[3] = spielerGegner;
       } else {
         AblageListe[3] = JSON.parse(JSON.stringify(AblageListe[12]));
       }
       karteWeggeben();
+      AblageListe[12] = undefined;
       AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler) {
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da")) && AblageListe[3] == spielerIch == false) {
@@ -1088,6 +1143,10 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         /* bieten: prompt("Gebot");
          */
         AblageListe[1] = spieler[spielerIch].kartenIch[AblageListe[2]];
+        if (!vorbereitungGebot()) {
+          spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
+          spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][1];
+        }
         setTimeout(function() {
             if (vorbereitungGebot()) {
               gebotAnServer(gebote, bieter, AblageListe[1], spielerIch);
@@ -1108,10 +1167,10 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           } else if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "T Miete") {
             spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][3];
             spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][3];
-          } */else {
-            spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
-            spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][1];
-          }
+          } *///else {
+            // spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
+            // spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][1];
+          // }
         }, 500);
       } else if (spieler[spielerIch].kartenIch[AblageListe[2]][3] == undefined == false) {
         spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][3];
@@ -1173,7 +1232,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
               AblageListe[4][0] = "einen Geldhai";
             } else {
               nixDaType = "einen Geldhai";
+              afterNixDa["AblageListe[3]"] = AblageListe[3];
               setTimeout(function () {
+                AblageListe[3] = afterNixDa["AblageListe[3]"];
                 geldhai();
                 nixDaType = "beendet";
               }, (Math.floor(Math.random() * 3333) + 2222));
@@ -1221,7 +1282,11 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
                 AblageListe[4][0] = "eine Schlau Geklaut Karte";
               } else {
                 nixDaType = "eine Schlau Geklaut Karte";
+                afterNixDa["AblageListe[2]"] = AblageListe[2];
+                afterNixDa["AblageListe[3]"] = AblageListe[3];
                 setTimeout(function () {
+                  AblageListe[2] = afterNixDa["AblageListe[2]"];
+                  AblageListe[3] = afterNixDa["AblageListe[3]"]
                   schlauGeklaut();
                   nixDaType = "beendet";
                 }, (Math.floor(Math.random() * 3333) + 2222));
@@ -1347,7 +1412,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
               AblageListe[4][0] = "Spieler Miete";
             }
           } else {
-            AblageListe[6] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
+            AblageListe[6] = JSON.parse(JSON.stringify(spieler[spielerIch].kartenIch[AblageListe[2]][1]));
             zählerListe[2] = -1;
             zählerListe[0] = 0;
             AblageListe[0] = -1;
@@ -1367,13 +1432,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
         if (AblageListe[4][0] == "beendet" && spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Übernahme") {
           zählerListe[0] = 0;
-          AblageListe[0] = -1;
+          AblageListe[0] = [];
           while (zählerListe[0] < AnzahlSpieler) {
             zählerListe[1] = 0;
             if (zählerListe[0] != spielerIch) {
               while (zählerListe[1] < spieler[zählerListe[0]].kartenMitte.length) {
                 if (spieler[zählerListe[0]].kartenMitte[zählerListe[1]][2].length == spieler[zählerListe[0]].kartenMitte[zählerListe[1]][5].length) {
-                  AblageListe[0]++;
+                  AblageListe[0].push(zählerListe[1]);
                 }
                 zählerListe[1]++;
 
@@ -1381,18 +1446,20 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
             }
             zählerListe[0]++;
           }
-          if (AblageListe[0] == -1) {
+          if (AblageListe[0].length == 0) {
             alert("Keine Karte für eine Übernahme verfügbar!");
             AblageListe[3] = -1;
           }
-          if (AnzahlSpieler == 2 && spieler[spielerGegner].kartenMitte.length == 1 && spieler[spielerGegner].kartenMitte[0][5].length == spieler[spielerGegner].kartenMitte[0][2].length) {
+          else if (AnzahlSpieler == 2 && AblageListe[0].length == 1) {
             AblageListe[3] = spielerGegner;
             if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da"))) {
-              AblageListe[2] = 0;
+              AblageListe[2] = AblageListe[0][0];
               AblageListe[4][0] = "eine Übernahme Karte";
             } else {
               nixDaType = "eine Übernahme Karte";
+              afterNixDa["AblageListe[2]"] = AblageListe[0][0];
               setTimeout(function () {
+                AblageListe[2] = afterNixDa["AblageListe[2]"];
                 uebernahme();
                 nixDaType = "beendet";
               }, (Math.floor(Math.random() * 3333) + 2222));
@@ -1409,7 +1476,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     }
     if (AblageListe[4][0] == "einen Zwangstausch" || AblageListe[4][0] == "Miete gegen sie"/* || AblageListe[4][0] == "einen Geburtstag" || AblageListe[4][0] == "Miete für alle"*/ || AblageListe[4][0] == "eine Schlau Geklaut Karte" || AblageListe[4]
       [0] == "einen Geldhai" || AblageListe[4][0] == "eine Übernahme Karte") {
-      console.log(AblageListe[2] + " - " + AblageListe[3]);
+      console.log(AblageListe[2] + " - " + AblageListe[3] + " (Nix-Da request(s))");
       askNixDa();
     }
   //  checkRundenende();
@@ -1423,15 +1490,17 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
   if (AblageListe[2] != "beendet") localStorage.setItem("AblageListe[2]Monopoly", JSON.stringify(AblageListe[2]));
   });
+  var afterNixDa = {};
   function checkZugZuEnde() {
-    if (AblageListe[3] > -1 && (textButton == "Spielfeld" && spieler[spielerIch].kartenIch[AblageListe[3]])) {
+    if (AblageListe[3] > -1/* && (textButton == "Spielfeld"*//* && spieler[spielerIch].kartenIch[AblageListe[2]])*/) {
     // if (!((nixDaType && nixDaType != "beendet") || AblageListe[4][0] != "beendet")) {
     restlicheZüge--;
     console.log("restlich Züge: " + restlicheZüge);
-    spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
+    spieler[spielerIch].kartenIch.splice(/*[AblageListe[2]]*/koordinatenCheck(true), 1);
     if (nixDaType == "einen Geburtstag" || nixDaType == "Miete für alle") var timeOutTime = (Math.floor(Math.random() * 3333) + 3777)*(AnzahlSpieler-1);
     else if (nixDaType && nixDaType != "beendet") var timeoutTime = (Math.floor(Math.random() * 3333) + 3777);
     else var timeoutTime = 0;
+    datenAktuallisieren();
     setTimeout(function () {
       datenAktuallisieren();
     }, timeoutTime);
@@ -1533,6 +1602,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         AblageListe[8] = "beendet";
       }
     }
+    else {
+      ereignis = "Miete";
+    }
     /* else {
        //  spieler[spielerIch].einkommen[0] += 2 * (AnzahlSpieler - 1);
          zählerListe[1] = 0;
@@ -1549,12 +1621,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       else var timeOutTime = (Math.floor(Math.random() * 3333) + 2222);
         setTimeout(function () {
           /*AblageListe[4][0]*/nixDaType = "beendet";
-          MieteAlle();
+          if (AblageListe[4][0] != "Warten Bezahlen Gegner") MieteAlle();
         }, timeOutTime);
     }
-    // if (zählerListe[2] == AnzahlSpieler) {
-    //   checkRundenende();
-    // }
+    if (zählerListe[2] == AnzahlSpieler) {
+      ereignis = "";
+    }
   }
   function Miete() {
     zählerListe[0] = 0;
@@ -1699,6 +1771,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       } else if (AblageListe[0] != null) {
         AblageListe[4][0] = "Warten Bezahlen Gegner";
+        afterNixDa["Warten Bezahlen Gegner"] = true;
         room.send({
           message: {
             "type": "Auswahl bezahlen",
@@ -1731,34 +1804,45 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
 
 
+  var ablageSpielerAktuell = -1;
   function Spielerwechsel() {
-    datenAktuallisieren();
     if (spieler[spielerIch].kartenIch.length > 7) {
       AblageListe[4][0] = "Auswahl Karten ablegen";
       alert("Sie dürfen maximal 7 Karten auf der Hand haben! Klicken sie Karten an, die sie los werden wollen! (Die Karten werden NICHT ausgespielt, sondern nur weggenommen!)")
+      textButton = "Spielfeld";
     } else {
-      spielerAktuell++;
-      if (spielerAktuell > AnzahlSpieler - 1) {
-        spielerAktuell = 0;
+      console.log("Sielerwechsel call (spielerAktuell auf -1 setzen)");
+      ablageSpielerAktuell = spielerAktuell;
+      spielerAktuell = -1;
+      setTimeout(function () {
+        if (AblageListe[4][0] == "beendet") {
+        console.log("Spielerwechsel ausführen...");
+        datenAktuallisieren();
+        spielerAktuell = ablageSpielerAktuell;
+        spielerAktuell++;
+        if (spielerAktuell > AnzahlSpieler - 1) {
+          spielerAktuell = 0;
+        }
+        restlicheZüge = 3;
+        room.send({
+          message: {
+            "type": "kartenZiehen",
+            "data": kartenZiehen,
+          }
+        });
+        room.send({
+          message: {
+            "type": "Reihenfolge",
+            "data": spielerAktuell,
+          }
+        });
       }
-      restlicheZüge = 3;
-      room.send({
-        message: {
-          "type": "kartenZiehen",
-          "data": kartenZiehen,
-        }
-      });
-      room.send({
-        message: {
-          "type": "Reihenfolge",
-          "data": spielerAktuell,
-        }
-      });
+      }, 1000);
     }
   }
 
   // function Fähigkeiten Ausspielen:
-
+  var ereignis = "";
   function GeburtstagFunction() {
       // if (zählerListe[2] == -1) {
       //   AblageListe[4][0] = "einen Geburtstag";
@@ -1787,6 +1871,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           AblageListe[8] = "beendet";
         }
       }
+      else {
+        ereignis = "Geburtstag";
+      }
       /* else {
          //  spieler[spielerIch].einkommen[0] += 2 * (AnzahlSpieler - 1);
            zählerListe[1] = 0;
@@ -1804,12 +1891,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         else var timeOutTime = (Math.floor(Math.random() * 3333) + 2222);
           setTimeout(function () {
             /*AblageListe[4][0]*/nixDaType = "beendet";
-            GeburtstagFunction();
+            if (AblageListe[4][0] != "Warten Bezahlen Gegner") GeburtstagFunction();
           }, timeOutTime);
       }
-      // if (zählerListe[2] == AnzahlSpieler) {
-      //   checkRundenende();
-      // }
+      if (zählerListe[2] == AnzahlSpieler) {
+        ereignis = "";
+      }
     }
 
 
@@ -1848,14 +1935,15 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       zählerListe[0]++;
     }
     if (zählerListe[1] > -1) {
-      if (spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5].length == spieler[AblageListe[3]].kartenMitte[zählerListe[1]][2].length) {
-        spieler[AblageListe[3]].einkommen[0] += (spieler[spielerIch].kartenMitte[zählerListe[1]][1]) * spieler[spielerIch].kartenMitte[zählerListe[1]][5].length;
-        while (spieler[spielerIch].kartenMitte[zählerListe[1]][5].length > 0) {
-          spieler[AblageListe[3]].einkommen[spieler[AblageListe[3]].einkommen.length] = spieler[spielerIch].kartenMitte[zählerListe[0]][1];
-          spieler[spielerIch].kartenMitte[zählerListe[1]][5].shift();
-        }
-        spieler[spielerIch].kartenMitte.splice(AblageListe[2], 1);
-      } else {
+      // if (spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5].length == spieler[AblageListe[3]].kartenMitte[zählerListe[1]][2].length) {
+      //   spieler[AblageListe[3]].einkommen[0] += (spieler[spielerIch].kartenMitte[zählerListe[1]][1]) * spieler[spielerIch].kartenMitte[zählerListe[1]][5].length;
+      //   while (spieler[spielerIch].kartenMitte[zählerListe[1]][5].length > 0) {
+      //     spieler[AblageListe[3]].einkommen[spieler[AblageListe[3]].einkommen.length] = spieler[spielerIch].kartenMitte[zählerListe[0]][1];
+      //     spieler[spielerIch].kartenMitte[zählerListe[1]][5].shift();
+      //   }
+      //   spieler[spielerIch].kartenMitte.splice(AblageListe[2], 1);
+      // } else {
+      if (!(spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5].length == spieler[AblageListe[3]].kartenMitte[zählerListe[1]][2].length)) {
         spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5][spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5].length] = spieler[spielerIch].kartenMitte[AblageListe[2]][3];
         if (spieler[AblageListe[3]].kartenMitte[zählerListe[1]][5].length == spieler[AblageListe[3]].kartenMitte[zählerListe[1]][2].length == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length < 2) {
           spieler[spielerIch].kartenMitte.splice(AblageListe[2], 1);
@@ -1875,6 +1963,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
 
   function schlauGeklaut() {
+    if (!AblageListe[12]) AblageListe[12] = AblageListe[3];
     zählerListe[0] = 0;
     zählerListe[1] = -1;
     while (zählerListe[0] < spieler[spielerIch].kartenMitte.length) {
@@ -2192,7 +2281,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       canvas.fillStyle = "white"
       canvas.font = "30px Georgia";
       canvas.fillText(textButton, 15 + 13, 557);
-      if ( /* karten.length > 5 */ 335 + 250 * karten.length > x) {
+      if ( /* karten.length > 5 */ 335 + 250 * karten.length > x + window.scrollX) {
+        x = w.innerWidth || e.clientWidth || g.clientWidth;
         Bild = new Image();
         Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/PfeilTranzparent.png"
         canvas.drawImage(Bild, /* 1488 */ x - 102 + scrollX, 635 - koordinaten[2], 100, 100);
@@ -2210,7 +2300,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   spieler[3] = new classSpieler();
 
   function Layout() {
-    if (!(Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" || Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg")) {
+    if (!(Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" || Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg") && spielerAktuell != -1) {
     canvas.fillStyle = "#DF7401"
     canvas.fillRect(0, 0, textur.width, textur.height);
     canvas.fillStyle = "white";
@@ -2230,14 +2320,14 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     /*} else */if (AblageListe[4][0] == "beendet" && (!nixDaType || nixDaType == "beendet") && spielerAktuell == spielerIch) {
       canvas.fillText(" Verbleibende Züge: " + restlicheZüge, 10 + scrollX, 750 + 27);
     } else if (AblageListe[4][0] == "beendet" && spielerIch != spielerAktuell/* && spieler[spielerAktuell].name == undefined*/) {
-      canvas.fillText("warten auf Gegner (" + spieler[spielerAktuell].name + " (" + (spielerAktuell + 1) + "))", 10 + scrollX, 750 + 27);
+      canvas.fillText("warten auf Gegner (" + spieler[spielerAktuell].name/* + " (" + (spielerAktuell + 1) + ")"*/ + ")", 10 + scrollX, 750 + 27);
     }  /*else if (AblageListe[4][0] == "beendet") {
         canvas.fillText("warten auf Gegner (" + (spielerAktuell + 1) + ", namens " + spieler[spielerAktuell].name + ")", 10 + scrollX, 750 + 27);
     }*/
     else if (Object.keys(displayObject).includes(AblageListe[4][0])) {
       canvas.fillText(displayObject[AblageListe[4][0]], 10 + scrollX, 750 + 27);
     }
-    else if (nixDaType && nixDaType != "beendet") canvas.fillText(nixDaType, 10 + scrollX, 750 + 27);
+    else if (nixDaType && nixDaType != "beendet" && AblageListe[4][0] != "Warten Bezahlen Gegner") canvas.fillText(nixDaType, 10 + scrollX, 750 + 27);
     else {
       canvas.fillText(AblageListe[4][0], 10 + scrollX, 750 + 27);
     }
@@ -2282,11 +2372,12 @@ function showChat() {
     canvas.fillText(messages[messages.length - 1 - i], 33, 822 + 44*i);
   }
   }
-  function koordinatenCheck() {
+  function koordinatenCheck(wantReturn) {
     zählerListe[0] = 0;
     while (zählerListe[0] < 20) {
       if (xMaus > 335 + 248 * zählerListe[0] && xMaus < 335 + 248 * zählerListe[0] + 182 && !(yMaus > 547 && yMaus < 547 + 30)) {
-        AblageListe[2] = zählerListe[0]
+        if (!wantReturn) AblageListe[2] = zählerListe[0]
+        else return zählerListe[0];
       }
       zählerListe[0]++;
     }
@@ -2295,12 +2386,12 @@ function showChat() {
     while (zählerListe[0] < 4) {
       if (yMaus < 761 - 180 * zählerListe[0] && yMaus > 761 - 160 - 180 * zählerListe[0]) {
         console.log(zählerListe[0]);
-        AblageListe[3] = zählerListe[0];
+        if (!wantReturn) AblageListe[3] = zählerListe[0];
       }
       zählerListe[0]++;
     }
 
-    if (spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenIch[AblageListe[2]][0] == "A Straße") {
+    if (!wantReturn && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenIch[AblageListe[2]][0] == "A Straße") {
       if (yMaus < 740 - 180 * AblageListe[3] && yMaus > 680 - 180 * AblageListe[3]) {
         zählerListe[0] = 0;
         zählerListe[1] = -1;
