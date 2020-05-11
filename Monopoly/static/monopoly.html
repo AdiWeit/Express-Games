@@ -642,8 +642,9 @@
   }, 1000);
   function checkRundenende() {
     if (/*AblageListe[3] > -1 && */spielerIch == spielerAktuell) {
-      if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1) && AblageListe[4][0] == "beendet" && (!nixDaType || nixDaType == "beendet")) {
-        Spielerwechsel();
+      if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1 || AblageListe[4][0] == "Auswahl Karten ablegen") && (AblageListe[4][0] == "beendet" || AblageListe[4][0] == "Auswahl Karten ablegen") && (!nixDaType || nixDaType == "beendet")) {
+        if (AblageListe[4][0] == "Auswahl Karten ablegen") Spielerwechsel(true);
+        else Spielerwechsel();
       }
   }
     // else {
@@ -1805,10 +1806,10 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
 
 
   var ablageSpielerAktuell = -1;
-  function Spielerwechsel() {
+  function Spielerwechsel(noAlert) {
     if (spieler[spielerIch].kartenIch.length > 7) {
       AblageListe[4][0] = "Auswahl Karten ablegen";
-      alert("Sie dürfen maximal 7 Karten auf der Hand haben! Klicken sie Karten an, die sie los werden wollen! (Die Karten werden NICHT ausgespielt, sondern nur weggenommen!)")
+      if (!noAlert) alert("Sie dürfen maximal 7 Karten auf der Hand haben! Klicken sie Karten an, die sie los werden wollen! (Die Karten werden NICHT ausgespielt, sondern nur weggenommen!)")
       textButton = "Spielfeld";
     } else {
       console.log("Sielerwechsel call (spielerAktuell auf -1 setzen)");
