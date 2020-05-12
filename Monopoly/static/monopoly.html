@@ -1137,6 +1137,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       false) {
       spieler[spielerIch].kartenMitte[AblageListe[2]][5][spieler[spielerIch].kartenMitte[AblageListe[2]][5].length] = "GrundstücksJoker";
       AblageListe[4][0] = "beendet";
+      datenAktuallisieren(false, true);
     } else if (AblageListe[4][0] == "beendet" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false && ((spieler[spielerIch].kartenIch[
           AblageListe[2]][1] == undefined == false && (isNaN(spieler[spielerIch].kartenIch[AblageListe[2]][1]) && spieler[spielerIch].kartenIch[AblageListe[2]][1].includes("€")) || spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Nix Da") ||
         confirm("Möchten sie die karte als Geld verwenden? (Straßen werden dann ab 3 Spielern versteigert!)"))) {
@@ -1204,6 +1205,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[spielerIch].kartenIch[AblageListe[2]];
           spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][5] = [spieler[spielerIch].kartenIch[AblageListe[2]][3]];
         }
+        if (!(zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false)) datenAktuallisieren(false, true);
       } else if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "A Joker") {
         zählerListe[0] = 0;
         zählerListe[1] = [];
@@ -1223,8 +1225,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           alert("Sie haben keine Straße ausgespielt, auf die sie den Joker anwenden könnten.");
           AblageListe[3] = -1;
         }
+        if (zählerListe[1] > 0) datenAktuallisieren(false, true);
       } else {
-
         console.log("Ereignmessage.typeiskarte Ausspielen");
         if (spieler[spielerIch].kartenIch[AblageListe[2]][1] == "Geldhai") {
           if (AnzahlSpieler == 2) {
