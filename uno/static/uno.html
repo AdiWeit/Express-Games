@@ -65,7 +65,7 @@
   }
 
   register();
-  setInterval(getMessages, 3000);
+  setInterval(getMessages, 1000);
 
   function getMessages() {
     sendJson('/uno/message-queue', {
@@ -198,7 +198,9 @@
         }
         });
       }
-      autoZiehen();
+      setTimeout(function () {
+        autoZiehen();
+      }, 1333);
       Layout(0);
     }
   });
@@ -216,10 +218,10 @@
     if (AblageListe[0] == 0) {
     new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
     getCard(spieler[spielerIch].cards, 1);
-    if (spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][0] == spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][0] || spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][1] == spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][1] || spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][0] == "silver" || spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][0] == "silver") {playCard(spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1], spieler[spielerIch].cards.length - 1)
-    }
+    if (spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][0] == spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][0] || spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][1] == spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][1] || spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1][0] == "silver" || spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][0] == "silver") {playCard(spieler[spielerIch].cards[spieler[spielerIch].cards.length - 1], spieler[spielerIch].cards.length - 1)}
     else spielerwechsel();
     }
+    // else spielerwechsel();
   }
   function spielerwechsel() {
     AblageListe[0] = [];
@@ -339,19 +341,17 @@ function playCard(data, card) {
     }
     AblageListe[0] = {right: "left", left: "right"};
     if (data[1] == "Richtungswechsel") {
-      if (AnzahlSpieler == 2) spielerAktuell--;
-      else spieler.playDirection = AblageListe[0][spieler.playDirection];
-      if (spielerAktuell < 0) spielerAktuell = 1;
+      if (AnzahlSpieler > 2) spieler.playDirection = AblageListe[0][spieler.playDirection];
     };
     if (data[1] == "wunschFarbe" || data[1] == "plus4") data[0] = farbwunsch();
     spieler.kartenAbgelegt.push(data);
     spieler[spielerIch].cards.splice([card], 1);
-    if (!(AnzahlSpieler == 2 && (data[1] == "Richtungswechsel"/* || data[1] == "aussetzen"*/)))  spielerwechsel();
-    else if (data[1] == "aussetzen") spielerwechsel();
-    else {
+    //if (!(AnzahlSpieler == 2 && (data[1] == "Richtungswechsel"/* || data[1] == "aussetzen"*/)))  spielerwechsel();
+  /*else */if (/*data[1] == "aussetzen"/* || data[1] == "Richtungswechsel" ||*/ (data[1] == "Richtungswechsel" && AnzahlSpieler == 2)) spielerwechsel();
+    // else /*if ()*/ {
       Layout(0);
-      autoZiehen();
-    }
+      spielerwechsel();// autoZiehen();
+    // }
   }
   else {
     console.log("wrong card");
