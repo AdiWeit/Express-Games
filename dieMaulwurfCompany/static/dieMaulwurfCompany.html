@@ -600,7 +600,7 @@
     canvas.font = "30px Georgia";
     if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].chosenCard > -1) canvas.fillText(player[ReihenfolgeBleibt[i]].chosenCard, 18 + plusCoordinates[i].x, 37 + plusCoordinates[i].y);
     canvas.font = "50px Georgia";
-    canvas.fillText(player[ReihenfolgeBleibt[i]].name, 10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y + 150);
+    if (player[ReihenfolgeBleibt[i]]) canvas.fillText(player[ReihenfolgeBleibt[i]].name, 10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y + 150);
   }
   showChat();
   canvas.fillStyle = "white";
