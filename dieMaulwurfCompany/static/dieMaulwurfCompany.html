@@ -303,11 +303,11 @@
         }
       }
       else {
-        if (!localStorage.getItem("nameDieMaulwurfCompany")) {
+        if (!localStorage.getItem("nameOnlineGames")) {
           player[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");
-          localStorage.setItem("nameDieMaulwurfCompany", player[spielerIch].name);
+          localStorage.setItem("nameOnlineGames", player[spielerIch].name);
         }
-        else player[spielerIch].name = localStorage.getItem("nameDieMaulwurfCompany");
+        else player[spielerIch].name = localStorage.getItem("nameOnlineGames");
         setTimeout(function () {
           room.send({
             message: {
@@ -400,13 +400,12 @@
     };
     if (message.type == "nextField") {
       fieldAktuell++;
-      if (fieldAktuell == 3) {
+      if (fieldAktuell == 3 && spielerIch == ReihenfolgeBleibt[0]) {
         setTimeout(function () {
-          /*var infoM*/messages.push("Info: Wenn die Anzahl der Figuren im Loch bei mehreren Spielern gleich ist, gewinnt derjenige, der als Erster das Loch erreicht hat. ")
-          messages.push("Wenn die Rundenanzahl ausgegangen ist, aber keiner es geschafft hat, gewinnt der, der als nächstes/erstes das Loch erreicht. ");
-          if (ReihenfolgeBleibt.length == 4) /*infoM*/messages.push("Falls jeder Spieler nur 1 Figur übrig hat, gewinnt der, der das Loch zuerst erreicht. ");
           /*infoM*/messages.push("Wenn keine der eben genannten Sonderfälle auftritt, gewinnt der Spieler, der zuerst 2 Figuren zum Loch gebracht hat. ");
-
+          if (ReihenfolgeBleibt.length == 4) /*infoM*/messages.push("Falls jeder Spieler nur 1 Figur übrig hat, gewinnt der, der das Loch zuerst erreicht. ");
+          messages.push("Wenn die Rundenanzahl ausgegangen ist, aber keiner es geschafft hat, gewinnt der, der als nächstes/erstes das Loch erreicht. ");
+          /*var infoM*/messages.push("Info: Wenn die Anzahl der Figuren im Loch bei mehreren Spielern gleich ist, gewinnt derjenige, der als Erster das Loch erreicht hat. ");
             room.send({
               message: {
                 "type": "messages",
@@ -612,8 +611,8 @@
     canvas.fillText("mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
   }
   if (player[spielerIch] != undefined && fieldAktuell == 3 && ReihenfolgeBleibt.length == 3) {
-    canvas.font = "33px Georgia";  canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch", 11, 755);
-    canvas.fillText("gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
+    canvas.font = "33px Georgia";  canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren", 11, 755);
+    canvas.fillText(" im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
   }
   else if (player[spielerIch] != undefined && fieldAktuell == 3) {
     canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 100, 755);
