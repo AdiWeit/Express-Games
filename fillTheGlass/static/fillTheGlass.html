@@ -142,12 +142,14 @@
         }
         else {
           alert("The vote results in a draw! The Computer will decide, which mode will be placed!");
-          room.send({
-            message: {
-              "type": "vote",
-              data: Math.round(Math.random() *1)
-            }
-          });
+          if (player.myNumber == 0) {
+            room.send({
+              message: {
+                "type": "vote",
+                data: Math.round(Math.random() *1)
+              }
+            });
+          }
         }
       }
     }
