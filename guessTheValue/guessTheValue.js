@@ -39,10 +39,13 @@ class guessTheValue {
       this.spielerOnlineGleich0 = 1;
     } else if (!this.player2) {
       this.player2 = newPlayer;
+      this.spielerOnline = 1;
     } else if (!this.player3) {
       this.player3 = newPlayer;
+      this.spielerOnline = 2;
     } else if (!this.player4) {
       this.player4 = newPlayer;
+      this.spielerOnline = 3;
     }
     this.spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
@@ -206,21 +209,6 @@ class guessTheValue {
           AblageListe[1] = "abgebrochen";
         }, 500);
       } */
-    if (data.message.type == "kartenMitte") {
-      zählerListe[0] = 0;
-      AblageListe[0] = [];
-      AblageListe[0][data.message.sender] = 0;
-      while (zählerListe[0] < data.message.data.length) {
-        if ( /*data.message.data[zählerListe[0]]*/!(data.message.data[zählerListe[0]][5] == undefined) && data.message.data[zählerListe[0]][5].length < data.message.data[zählerListe[0]][2].length == false) {
-          AblageListe[0][data.message.sender]++;
-        }
-        zählerListe[0]++;
-      }
-      if (AblageListe[0][data.message.sender] > 0) {
-        console.log(AblageListe[0][data.message.sender] + " Straßen vollständig Spieler " + data.message.sender);
-      }
-      if (AblageListe[0][data.message.sender] > 2) {this.broadcast(data.message.sender + " hat gewonnen!!!"); this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
-    }
     if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
