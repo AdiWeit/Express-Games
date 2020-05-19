@@ -71,6 +71,12 @@ app.use('/dasVerrueckteLabyrinth/', dasVerrueckteLabyrinth);
 const Kaesekaestchen = require('./Kaesekaestchen/index.js');
 app.use('/Kaesekaestchen/', Kaesekaestchen);
 
+const fillTheGlass = require('./fillTheGlass/index.js');
+app.use('/fillTheGlass/', fillTheGlass);
+
+const guessTheValue = require('./guessTheValue/index.js');
+app.use('/guessTheValue/', guessTheValue);
+
 /* just file Test*/
 app.use('/index.html', express.static(__dirname + '/playbacks'))
 

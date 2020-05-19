@@ -1,0 +1,237 @@
+<button type="button" id="fillB" onclick="fillGlass(1);" name="button">fill glass</button>
+<button type="button" id="giveToNextPlayerB" onclick="spielerwechsel();" name="button">give to next player</button>
+<input type="range" min="0" oninput="fillGlassSlider(value);" max="100" value="0" class="slider" id="sliderFill">
+<canvas id="textur" width="1844" height="700"></canvas>
+
+<script>
+  fillB.style.display = "none";
+  giveToNextPlayerB.style.display = "none";
+  sliderFill.style.display = "none";
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/fillTheGlass/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+//  let oldId = localStorage.getItem('CLIENTIDfillTheGlass');
+  const clientId = /*oldId ? oldId : */makeid(10);
+//  localStorage.setItem('CLIENTIDfillTheGlass', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/fillTheGlass/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 100);
+
+  function getMessages() {
+    sendJson('/fillTheGlass/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/fillTheGlass/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var player = {};
+  var mode = "normal";
+  var vote = [];
+  var canvas = textur.getContext('2d'); //Dimension
+  room.setOnMessageListener(function(message) {
+    if (message.type == "Reihenfolge") {
+      player.aktuell = message.data;
+      if (message.data == player.myNumber) giveToNextPlayerB.style.display = "inline";
+      if (vote.length >= player.total && message.data == player.myNumber && mode == "normal") {fillB.style.display = "inline";}
+      else if (vote.length >= player.total && message.data == player.myNumber) {
+        sliderFill.style.display = "inline";
+
+      }
+      if (size > 0) layout();
+     }
+    if (message.type == "spielerDu") {
+      player.myNumber = message.data;
+      vote = [];
+      filled = 0;
+      giveToNextPlayerB.style.display = "none";
+      room.send({
+        message: {
+          "type": "vote",
+          "data": confirm("Do you want to play with (high) sensibility? (slider)")
+        }
+      });
+      if (message.data == 0) {
+        room.send({
+          message: {
+            "type": "size",
+            "data": Math.floor(Math.random() *50) + 50
+          }
+        });
+      }
+    }
+    if (message.type == "AnzahlSpieler") player.total = message.data;
+    if (message.type == "size") {size = message.data; layout();}
+    if (message.type == "fillGlass") {
+      filled += message.data;
+      if (player.aktuell != player.myNumber/* || mode != "normal"*/) layout();
+      if (filled > size) showResult(player.aktuell, 0);
+    }
+    if (message.type == "vote") {
+      vote.push(message.data);
+      if (vote.length >= player.total) {
+        var modeCounter = 0;
+        for (var i = 0; i < vote.length; i++) {
+          if (vote[i]) modeCounter++;
+          else modeCounter--;
+        }
+        if (modeCounter > 0) {
+          alert("high sensibility wins!");
+          mode = "highS";
+          if (message.data == player.myNumber) giveToNextPlayerB.style.display = "inline";
+          if (player.aktuell == player.myNumber && mode == "normal") fillB.style.display = "inline";
+          else if (player.aktuell == player.myNumber) sliderFill.style.display = "inline";
+        }
+        else if (modeCounter < 0) {
+          alert("low/no sensibility wins! (button press)!");
+          mode = "normal";
+          if (message.data == player.myNumber) giveToNextPlayerB.style.display = "inline";
+          if (player.aktuell == player.myNumber && mode == "normal") fillB.style.display = "inline";
+          else if (player.aktuell == player.myNumber) sliderFill.style.display = "inline";
+        }
+        else {
+          alert("The vote results in a draw! The Computer will decide, which mode will be placed!");
+          room.send({
+            message: {
+              "type": "vote",
+              data: Math.round(Math.random() *1)
+            }
+          });
+        }
+      }
+    }
+  });
+  function fillGlass(amount) {
+    if (player.aktuell == player.myNumber) {
+    room.send({
+      message: {
+        "type": "fillGlass",
+        data: amount
+      }
+    });
+  }
+  }
+  function fillGlassSlider(value) {
+    if (value > sliderBefore) fillGlass(JSON.parse(value - sliderBefore));
+    else fillGlass(1);
+    sliderBefore = value;
+  }
+  var sliderBefore = 0;
+  function spielerwechsel() {
+    sliderFill.value = "0";
+    fillB.style.display = "none";
+    giveToNextPlayerB.style.display = "none";
+    sliderFill.style.display = "none";
+    player.aktuell++;
+    if (player.aktuell == player.total) player.aktuell = 0;
+    room.send({
+      message: {
+        "type": "Reihenfolge",
+        data: player.aktuell
+      }
+    });
+  }
+  var size = 0;
+  var filled = 0;
+  function showResult(verlierer, times) {
+    if (times == 0) {
+      room.send({
+        message: {
+          "type": "endGame"
+        }
+      });
+      setTimeout(function () {
+        alert("Please relaod the page to play an other round!");
+      }, 3333);
+    }
+    if (player.myNumber != verlierer) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+          audio.currentTime = 9.0;
+          audio.play();
+      }//audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        var Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      var Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  {var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();}
+    }
+    setTimeout(function () {
+      if (times < 5) showResult(verlierer, times + 1);
+    }, 500);
+    setTimeout(function () {
+      makeAudio = false;
+    }, 3000);
+  }
+  function layout() {
+    canvas.fillStyle = "#FFBF00";
+    canvas.fillRect(0, 0, textur.width, textur.height);
+    canvas.fillStyle = "black";
+    canvas.fillRect(20, 20, 10, size);
+    canvas.fillRect(20, 20 + size, 50 + 10, 10);
+    canvas.fillRect(20 + 50, 20, 10, size);
+    canvas.fillStyle = "#0B99B6";
+    canvas.fillRect(30, (20 +size - filled), 40, filled);
+  }
+
+</script>
