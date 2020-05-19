@@ -1,5 +1,6 @@
 <div id="voting">
   <input type="text" id="amountOfGlasses" placeholder="glasses to compare at the same time" value="3">
+  <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
   <br>
   <h2>different shapes</h2>
   <input type="checkbox" id="differentShapesCheck">
@@ -118,6 +119,7 @@
         if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
       }
       readyB.style.display = "inline";
+      if (player.points[message.number] == player.requiredPoints) showResult(message.number, 0);
     }
     if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0;}
     if (message.type == "size"/* && mode == "normal"*/) {
@@ -130,10 +132,13 @@
         if (vote.length == player.total) {
           amount = 0;
           voting.style.display = "none";
+          player.requiredPoints = 0;
           for (var i = 0; i < vote.length; i++) {
             amount += vote[i].amountOfGlasses;
+            player.requiredPoints += vote[i].pointsRequired;
           }
           amount = amount/vote.length;
+          player.requiredPoints = player.requiredPoints/vote.length;
           if (player.myNumber == 0) {
             setTimeout(function () {
               createNewSize();
@@ -141,7 +146,7 @@
         }
       }
         var modeCounter = 0;
-        for (var i = 0; i < player.total; i++) {
+        for (var i = 0; i < vote.length; i++) {
           if (vote[i].mode) modeCounter++;
           else modeCounter--;
         }
@@ -155,12 +160,14 @@
         }
         else {
           if (mode == "") alert("The vote results in a draw! The Computer will decide, which mode will be placed!");
-          room.send({
-            message: {
-              "type": "vote",
-              data: Math.floor(Math.random() *1)
-            }
-          });
+          if (player.myNumber == 0) {
+            room.send({
+              message: {
+                "type": "vote",
+                data: {mode: Math.floor(Math.random() *1), amountOfGlasses: message.data.amountOfGlasses, pointsRequired: message.data.pointsRequired}
+              }
+            });
+          }
         }
       }
     }
@@ -172,7 +179,7 @@
     room.send({
       message: {
         "type": "vote",
-        "data": {mode: differentShapesCheck.checked, amountOfGlasses: JSON.parse(amountOfGlasses.value)}
+        "data": {mode: differentShapesCheck.checked, amountOfGlasses: JSON.parse(amountOfGlasses.value), pointsRequired: JSON.parse(pointsRequiredT.value)}
       }
     });
   }
@@ -275,6 +282,51 @@
       }
     });
   }
+  function showResult(gewinner, times) {
+    if (/*!makeAudio && */times == 0) {
+      inRound = true;
+      setTimeout(function () {
+        inRound = false;
+      }, 100);
+      room.send({
+        message: {
+          "type": "endGame"
+        }
+      });
+      setTimeout(function () {
+        alert("Please relaod the page to play an other round!");
+      }, 3333);
+    }
+    if (player.myNumber == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0/* && !makeAudio*/) {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+          audio.currentTime = 9.0;
+          audio.play();
+          // makeAudio = true;
+      }//audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        var Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      var Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0/* && !makeAudio*/)  {/*makeAudio = true; */var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();}
+    }
+    setTimeout(function () {
+      if (times < 5) showResult(gewinner, times + 1,);
+    }, 500);
+    // setTimeout(function () {
+    //   makeAudio = false;
+    // }, 3000);
+  }
+  // var makeAudio = false;
   function showResults(time, i1, i) {
     //canvas.fillStyle = "#0B99B6";
     var highestMult = {i: -1, number: 0}
@@ -355,8 +407,8 @@
           }
         });
       }
+      inRound = false;
     }
-    inRound = false;
   }
 
   function checkSelected() {
