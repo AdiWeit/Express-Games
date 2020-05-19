@@ -1,0 +1,848 @@
+<canvas id="textur" width="2570" height="800"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<div id="app">
+<li v-for="title in db" style="font-size: 33px" id="replaySelection">
+  {{ title }}
+</li>
+</div>
+<script>
+  if (navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i)
+  ) {
+    gerät = "Handy"
+    console.log("Handy");
+  } else {
+    gerät = "PC"
+    console.log("PC");
+  }
+  if (localStorage.getItem("playBacksHeldenDesOlymp")) {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: Object.keys(JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp")))
+    }
+  })
+}
+else {
+  var app = new Vue({
+    el: '#app',
+    data: {
+      db: []
+    }
+  })
+}
+var Koordinaten = [];
+var canvas = textur.getContext('2d'); //Dimension
+  function LayoutIch() {
+    // if (karteGezogen[0] > -1 && SpielerIdsBleibt[0] == SpielerId) {
+    //   for (var i = 0; i < temp.kartenSpieler1.length; i++) {
+    //     if (temp.kartenSpieler1[i][5] == karteGezogen[1])  karteGezogen[0] = i;
+    //   }
+    // }
+    // else if (karteGezogen[0] > -1) {
+    //   for (var i = 0; i < temp.kartenSpieler2.length; i++) {
+    //     if (temp.kartenSpieler2[i][5] == karteGezogen[1])  karteGezogen[0] = i;
+    //   }
+    // }
+    temp.kartenSpieler1.sort();
+    temp.kartenSpieler2.sort();
+    canvas.fillStyle = "white"
+    if (SpielerIdsBleibt[0] == SpielerId) {
+      canvas.fillRect(0, 470, 92000, 9800);
+    } else {
+      canvas.fillRect(0, 0, 92000, 275);
+    }
+    canvas.fillStyle = "#FF8000"; //Farbe
+    canvas.fillRect(Koordinaten[3] + 0, 190 + 88, 1585, 184)
+    canvas.fillStyle = "white"
+    canvas.font = "50px Georgia";
+    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
+    } else if (temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
+    } else {
+      canvas.fillText(temp.Siegpunkte[0], Koordinaten[3] + 17, 289 + 88);
+    }
+    if (temp.kartenZiehen < 7) {
+      if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+        canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
+      } else if (temp.Siegpunkte[0] == 0 == false) {
+        canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
+      } else {
+        canvas.fillText(temp.Siegpunkte[0], Koordinaten[3] + 17, 289 + 88);
+      }
+    }
+
+    Koordinaten[0] = 95;
+    if (SpielerIdsBleibt[0] == SpielerId) {
+      /*  if (yMaus > 261) {
+          AblageListe[0] = temp.kartenSpieler1;
+        }
+        else {
+          AblageListe[0] = temp.kartenSpieler2;
+        }
+        */
+      if (temp.kartenSpieler1.length > 0) {
+        while (zähler < temp.kartenSpieler1.length) { //console.log(012345678);
+          if (temp.kartenSpieler2[temp.kartenSpieler2.length - 1] == undefined || temp.kartenSpieler2[temp.kartenSpieler2.length - 2] == "z") {
+            temp.kartenSpieler2.pop();
+          }
+          if (temp.kartenSpieler1[temp.kartenSpieler1.length - 1] == undefined || temp.kartenSpieler1[temp.kartenSpieler1.length - 2] == "z") {
+            temp.kartenSpieler1.pop();
+          }
+          canvas.fillStyle = "#FF8000"; //Farbe
+          // if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
+          canvas.fillRect(Koordinaten[0], 390 + 88, 180, 250)
+          canvas.fillStyle = temp.kartenSpieler1[zähler][2]; //Farbe
+          canvas.fillRect(Koordinaten[0] + 20, 410 + 88, 140, 207)
+          if (temp.kartenSpieler1[zähler][2] == "silver") {
+            canvas.fillStyle = "red";
+            canvas.fillRect(Koordinaten[0] + 20, 410 + 88, 140 / 2, 207 / 2)
+            canvas.fillStyle = "yellow";
+            "yellow"
+            canvas.fillRect(Koordinaten[0] + 20 + 140 / 2, 410 + 88 + 207 / 2, 140 / 2, 207 / 2)
+            canvas.fillStyle = "blue";
+            "blue"
+            canvas.fillRect(Koordinaten[0] + 20, 410 + 88 + 207 / 2, 140 / 2, 207 / 2)
+            canvas.fillStyle = "green";
+            "green"
+            canvas.fillRect(Koordinaten[0] + 20 + 140 / 2, 410 + 88, 140 / 2, 207 / 2)
+          }
+          // Werte Karte ich (Angriff/Verteidigung/Einheit)
+          canvas.fillStyle = "white";
+          canvas.font = "37px Georgia";
+          if (temp.kartenSpieler1[zähler][2] == "yellow" || temp.kartenSpieler1[zähler][2] == "silver") {canvas.fillStyle = "black";}
+          canvas.fillText("         " + temp.kartenSpieler1[zähler][4] + "💀", 120 + 250 * zähler, 665);
+          canvas.fillText(temp.kartenSpieler1[zähler][3] + "🔫", 120 + 250 * zähler, 665);
+          canvas.font = "29px Georgia";
+          canvas.fillText(temp.kartenSpieler1[zähler][6], 120 + 250 * zähler, 695);
+          // KostenLayoutIch:
+          zählerListe[4] = 0;
+          Koordinaten[2] = 0;
+          Koordinaten[1] = 0;
+          while (zählerListe[4] < temp.kartenSpieler1[zähler][1].length) { //console.log(0123456789);
+            if (temp.kartenSpieler1[zähler][1][zählerListe[4]] == "" == false) {
+              canvas.fillStyle = "white";
+              canvas.fillRect(120 + 250 * zähler + Koordinaten[1], 590 - Koordinaten[2], 23, 39)
+              canvas.fillStyle = temp.kartenSpieler1[zähler][1][zählerListe[4]]
+              canvas.fillRect(125 + 250 * zähler + Koordinaten[1], 595 - Koordinaten[2], 13, 29)
+            }
+            zählerListe[4]++;
+            Koordinaten[2] += 44;
+            if (zählerListe[4] == 3) {
+              Koordinaten[2] = 0;
+              Koordinaten[1] = 30;
+            }
+          }
+          Koordinaten[0] += 250
+          zähler++;
+        }
+      }
+    } else if (temp.kartenSpieler2.length > 0) {
+      /*  if (yMaus > 261) {
+          AblageListe[0] = temp.kartenSpieler2;
+        }
+        else {
+          AblageListe[0] = temp.kartenSpieler1;
+        }
+        while (temp.kartenSpieler1[temp.kartenSpieler1.length - 1] == undefined) {
+          temp.kartenSpieler1.pop();
+        }
+        while (temp.kartenSpieler2[temp.kartenSpieler2.length - 1] == undefined) {
+          temp.kartenSpieler2.pop();
+        }
+        while (temp.kartenZiehen[temp.kartenZiehen - 1] == undefined) {
+          temp.kartenZiehen.pop();
+        }
+        */
+      zähler = 0;
+
+      while (zähler < temp.kartenSpieler2.length) { //console.log(01234567890);
+        canvas.fillStyle = "#FF8000"; //Farbe
+        // if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
+        canvas.fillRect(Koordinaten[0], 390 + 88 - 475, 180, 250)
+        canvas.fillStyle = temp.kartenSpieler2[zähler][2]; //Farbe
+        canvas.fillRect(Koordinaten[0] + 20, 410 + 88 - 475, 140, 207)
+        if (temp.kartenSpieler2[zähler][2] == "silver") {
+          canvas.fillStyle = "red";
+          canvas.fillRect(Koordinaten[0] + 20, 410 + 88 - 475, 140 / 2, 207 / 2)
+          canvas.fillStyle = "yellow";
+          "yellow"
+          canvas.fillRect(Koordinaten[0] + 20 + 140 / 2, 410 + 88 - 475 + 207 / 2, 140 / 2, 207 / 2)
+          canvas.fillStyle = "blue";
+          "blue"
+          canvas.fillRect(Koordinaten[0] + 20, 410 + 88 - 475 + 207 / 2, 140 / 2, 207 / 2)
+          canvas.fillStyle = "green";
+          "green"
+          canvas.fillRect(Koordinaten[0] + 20 + 140 / 2, 410 + 88 - 475, 140 / 2, 207 / 2)
+        }
+        // Werte Karte ich (Angriff/Verteidigung/Einheit)
+        canvas.fillStyle = "white";
+        canvas.font = "37px Georgia";
+        if (temp.kartenSpieler2[zähler][2] == "yellow" || temp.kartenSpieler2[zähler][2] == "silver") {canvas.fillStyle = "black";}
+        canvas.fillText("         " + temp.kartenSpieler2[zähler][4] + "💀", 120 + 250 * zähler, 665 - 475);
+        canvas.fillText(temp.kartenSpieler2[zähler][3] + "🔫", 120 + 250 * zähler, 665 - 475);
+        canvas.font = "29px Georgia";
+        canvas.fillText(temp.kartenSpieler2[zähler][6], 120 + 250 * zähler, 695 - 475);
+        // KostenLayoutIch:
+        zählerListe[4] = 0;
+        Koordinaten[2] = 0;
+        Koordinaten[1] = 0;
+        while (zählerListe[4] < temp.kartenSpieler2[zähler][1].length) { //console.log(012345678901);
+          if (temp.kartenSpieler2[zähler][1][zählerListe[4]] == "" == false) {
+            canvas.fillStyle = "white";
+            canvas.fillRect(120 + 250 * zähler + Koordinaten[1], 590 - Koordinaten[2] - 475, 23, 39)
+            canvas.fillStyle = temp.kartenSpieler2[zähler][1][zählerListe[4]]
+            canvas.fillRect(125 + 250 * zähler + Koordinaten[1], 595 - Koordinaten[2] - 475, 13, 29)
+          }
+          zählerListe[4]++;
+          Koordinaten[2] += 44;
+          if (zählerListe[4] == 3) {
+            Koordinaten[2] = 0;
+            Koordinaten[1] = 30;
+          }
+        }
+        zähler++;
+        Koordinaten[0] += 250
+      }
+    }
+    zähler = 0;
+    if (gerät == "PC") {
+      canvas.fillStyle = "white"
+      canvas.fillRect(Koordinaten[3] + 1370, 390, 200, 60);
+      canvas.fillStyle = "blue"
+      canvas.fillRect(Koordinaten[3] + 1377, 397, 185, 45);
+      canvas.fillStyle = "white"
+      canvas.font = "32px Georgia";
+    } else {
+      canvas.fillStyle = "white"
+      canvas.fillRect(1370, 390, 200 + 18, 60);
+      canvas.fillStyle = "blue"
+      canvas.fillRect(1377, 397, 185 + 18, 45);
+      canvas.fillStyle = "white"
+      canvas.font = "30px Georgia";
+    }
+    if (side == "own" || textButton == "Spielfeld") canvas.fillText(textButton, Koordinaten[3] + 1380, 430);
+    else canvas.fillText("gegn. Karten", Koordinaten[3] + 1380, 430);
+  }
+
+  function FarbSteineMitte() {
+    zählerListe[2] = 0;
+    Koordinaten[0] = 648;
+    Koordinaten[1] = 350;
+
+    while (zählerListe[2] < temp.SteineMitte.length) {
+      canvas.fillStyle = temp.SteineMitte[zählerListe[2]];
+      canvas.beginPath();
+      canvas.arc(Koordinaten[3] + Koordinaten[0] + 385, Koordinaten[1], 15, 0, Math.PI * 2, false);
+      canvas.fill();
+      zählerListe[2]++;
+      if (zählerListe[2] == 1) {
+        Koordinaten[0] += 65;
+      }
+      if (zählerListe[2] == 2) {
+        Koordinaten[0] = 648;
+        Koordinaten[1] += 65
+      } else if (zählerListe[2] == 3) {
+        Koordinaten[0] += 65;
+        Koordinaten[1] = 350 + 65;
+      }
+    }
+  }
+
+  function FarbsteineIch() {
+    zählerListe[2] = 0;
+    zählerListe[3] = [];
+    Koordinaten[0] = 648;
+    Koordinaten[1] = 350;
+    AblageListe[5] = ["red", "green", "yellow", "blue"];
+    if (SpielerId == SpielerIdBleibt[0]) {
+      for (var i = 0; i < 4; i++) {
+        if (temp.SteineIch[i] != "#FF8000") temp.kartenSpieler1[temp.SteineIch[i]] = true;
+        else temp.kartenSpieler1[temp.SteineIch[i]] = false;
+      }
+      while (zählerListe[2] < AblageListe[5].length) {
+
+        if (temp.kartenSpieler1[[AblageListe[5]][0][zählerListe[2]]] == true) {
+          zählerListe[3][zählerListe[2]] = AblageListe[5][zählerListe[2]];
+        } else {
+          zählerListe[3][zählerListe[2]] = "#FF8000"
+        }
+        zählerListe[2]++;
+      }
+    } else {
+      for (var i = 0; i < 4; i++) {
+        if (temp.SteineIch[i] != "#FF8000") temp.kartenSpieler2[temp.SteineIch[i]] = true;
+        else temp.kartenSpieler2[temp.SteineIch[i]] = false;
+      }
+      while (zählerListe[2] < AblageListe[5].length) {
+
+        if (temp.kartenSpieler2[[AblageListe[5]][0][zählerListe[2]]] == true) {
+          zählerListe[3][zählerListe[2]] = AblageListe[5][zählerListe[2]];
+        } else {
+          zählerListe[3][zählerListe[2]] = "#FF8000"
+        }
+        zählerListe[2]++;
+      }
+    }
+    zählerListe[2] = 0;
+    while (zählerListe[2] < zählerListe[3].length) {
+      canvas.fillStyle = zählerListe[3][zählerListe[2]];
+      canvas.beginPath();
+      canvas.arc(Koordinaten[3] + Koordinaten[0] + 385, Koordinaten[1], 15, 0, Math.PI * 2, false);
+      canvas.fill();
+      zählerListe[2]++;
+      if (zählerListe[2] == 1) {
+        Koordinaten[0] += 65;
+      }
+      if (zählerListe[2] == 2) {
+        Koordinaten[0] = 648;
+        Koordinaten[1] += 65
+      } else if (zählerListe[2] == 3) {
+        Koordinaten[0] += 65;
+        Koordinaten[1] = 350 + 65;
+      }
+    }
+  }
+  function TextAktuell() {
+    canvas.font = "50px Georgia";
+    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
+    } else if (temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
+    } else {
+      canvas.fillText(temp.Siegpunkte[0], Koordinaten[3] + 17, 289 + 88);
+    }
+
+    zählerListe[0] = 0;
+    zählerListe[3] = 0;
+    Koordinaten[2] = 323;
+    if (AblageListe[0][zähler] == undefined == false && AblageListe[0][zähler][0] == undefined == false && AblageListe[0][zähler][0] == "z" == false) {
+      //  console.log(AblageListe[0] == temp.kartenSpieler2);
+      fertigerText = AblageListe[0][zähler][5][0];
+
+      while (AblageListe[0][zähler][5].length - 2 > zählerListe[0]) { //console.log(0123456);
+        zählerListe[0]++;
+        zählerListe[3]++;
+        /*  AblageListe[0] = zählerListe[0] / 68
+          AblageListe[0] = "''" + AblageListe[0] + "''"
+          */
+        zählerListe[1] = zählerListe[0];
+        if (AblageListe[0][zähler][5][zählerListe[0]] == " " || AblageListe[0][zähler][5][zählerListe[0]] == " ") {
+          while (AblageListe[0][zähler][5][zählerListe[1]] == " " == false || zählerListe[1] == zählerListe[0]) { //console.log(01234567);
+            zählerListe[1]++;
+            //      console.log(AblageListe[0][zähler][5][zählerListe[1]]);
+          }
+          zählerListe[1]++;
+
+        }
+
+        //  console.log(zählerListe[0] < zählerListe[1] - zählerListe[0] - 1);
+        if (gerät == "PC" && (77 - zählerListe[3] < zählerListe[1] - zählerListe[0] || 77 - zählerListe[3] == zählerListe[1] - zählerListe[0])) {
+          Koordinaten[2] += 45;
+          fertigerText = "";
+          zählerListe[3] = 0;
+          if (AblageListe[0][zähler][5][zählerListe[0]] == " " && AblageListe[0][zähler][5][zählerListe[0] - 1] == "-" == false) {
+            zählerListe[0]++;
+          }
+        }
+        if (gerät == "Handy" && (68 - zählerListe[3] < zählerListe[1] - zählerListe[0] || 68 - zählerListe[3] == zählerListe[1] - zählerListe[0])) {
+          Koordinaten[2] += 45;
+          fertigerText = "";
+          zählerListe[3] = 0;
+          if (AblageListe[0][zähler][5][zählerListe[0]] == " " && AblageListe[0][zähler][5][zählerListe[0] - 1] == "-" == false) {
+            zählerListe[0]++;
+          }
+        }
+        if (AblageListe[0][zähler][5][zählerListe[0]] == " " && AblageListe[0][zähler][5][zählerListe[0] - 1] == "-") {
+          zählerListe[0]++;
+        }
+        if (AblageListe[0][zähler][5][zählerListe[0]] + AblageListe[0][zähler][5][zählerListe[0] + 1] == "- " == false) {
+          fertigerText += AblageListe[0][zähler][5][zählerListe[0]];
+        }
+
+        canvas.fillStyle = "white"
+        canvas.font = "50px Georgia";
+        if (AblageListe[0][zähler][5].length > zählerListe[0]) {
+          canvas.fillText(fertigerText, Koordinaten[3] + 77, Koordinaten[2]);
+        }
+      }
+      fertigerText = "";
+      Koordinaten[2] = 95
+
+    } else if (Sperren[1] == false) {
+      FarbSteineMitte();
+    } else {
+      FarbsteineIch();
+    }
+  }
+  function LayoutMitteSpieler1() {
+    //  canvas.fillStyle = "white"
+    //canvas.fillRect(0,470,2000, 800);
+    if (gerät == "PC") {
+      Koordinaten[3] = scrollX;
+    }
+    canvas.fillStyle = "#FF8000"; //Farbe
+    canvas.fillRect(Koordinaten[3] + 0, 190 + 88, 1585, 184)
+
+    canvas.fillStyle = "white"
+    canvas.font = "50px Georgia";
+    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↓", 17 + Koordinaten[3], 289 + 88);
+    } else if (temp.Siegpunkte[0] == 0 == false) {
+      canvas.fillText(temp.Siegpunkte[0] + "↑", 17 + Koordinaten[3], 289 + 88);
+    } else {
+      canvas.fillText(temp.Siegpunkte[0], 17 + Koordinaten[3], 289 + 88);
+    }
+
+    Koordinaten[0] = 95;
+    //Mitte Ich
+    zähler = 0;
+    while (zähler < 6) { //console.log(012);
+      canvas.fillStyle = "#FF8000"; //Farbe
+      canvas.fillRect(Koordinaten[3] + Koordinaten[0], 390 + 88, 180, 250)
+      //    if (SpielerIdsBleibt[0] == SpielerId) {
+
+      if (temp.MitteSpieler1[zähler][4] < 1) {
+        if (!(temp.MitteSpieler2[zähler][5] == undefined) && temp.MitteSpieler2[zähler][5].includes("Medea")) {
+          temp.kartenSpieler2.push(temp.MitteSpieler2[zähler]);
+          temp.kartenSpieler2[temp.kartenSpieler2.length - 1][3] = temp.kartenSpieler2[temp.kartenSpieler2.length - 1][8];
+          temp.kartenSpieler2[temp.kartenSpieler2.length - 1][4] = temp.kartenSpieler2[temp.kartenSpieler2.length - 1][9];
+        }
+        temp.MitteSpieler1[zähler] = ["z", "", ""];
+        checkAndromeda();
+        if (!(temp.MitteSpieler2[zähler][5] == undefined) && temp.MitteSpieler2[zähler][5].includes("Melagros") && SpielerIdsBleibt[0] == SpielerId) {
+          gegnerKarteZiehen();
+        }
+        else if (!(temp.MitteSpieler2[zähler][5] == undefined) && temp.MitteSpieler2[zähler][5].includes("Melagros")) {
+          eineKarteZiehen();
+        }
+      }
+      if (temp.MitteSpieler1[zähler][0] == "z") {
+        canvas.fillStyle = "white"; //Farbe
+      } else {
+        canvas.fillStyle = temp.MitteSpieler1[zähler][2]; //Farbe
+      }
+      /*    }
+          else if (temp.MitteSpieler2[zähler][0] == "z") {
+            canvas.fillStyle = "white";//Farbe
+          }
+          else {
+            canvas.fillStyle = temp.MitteSpieler2[zähler][2];//Farbe
+          }
+          */
+      canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 + 88, 140, 207)
+      if (temp.MitteSpieler1[zähler][2] == "silver") {
+        canvas.fillStyle = "red";
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 + 88, 140 / 2, 207 / 2)
+        canvas.fillStyle = "yellow";
+        "yellow"
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20 + 140 / 2, 410 + 88 + 207 / 2, 140 / 2, 207 / 2)
+        canvas.fillStyle = "blue";
+        "blue"
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 + 88 + 207 / 2, 140 / 2, 207 / 2)
+        canvas.fillStyle = "green";
+        "green"
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20 + 140 / 2, 410 + 88, 140 / 2, 207 / 2)
+      }
+      // Werte Karte ich (Angriff/Verteidigung/Einheit)
+      canvas.fillStyle = "white";
+      canvas.font = "37px Georgia";
+      /*    if (SpielerIdsBleibt[0] == SpielerId == false) {
+            if (temp.MitteSpieler2[zähler][0] == "z" == false) {
+
+              canvas.fillText("         " + temp.MitteSpieler2[zähler][4] + "💀", 120 + 250*zähler ,665);
+              canvas.fillText(temp.MitteSpieler2[zähler][3] + "🔫" , 120 + 250*zähler ,665);
+              canvas.font = "29px Georgia";
+              canvas.fillText(temp.MitteSpieler2[zähler][6], 120 + 250*zähler ,695);
+              // KostenLayoutIch:
+              zählerListe[4] = 0;
+              Koordinaten[2] = 0;
+              Koordinaten[1] = 0;
+              while (zählerListe[4] < temp.MitteSpieler2[zähler][1].length) {//console.log(0123);
+                if (temp.MitteSpieler2[zähler][1] == "" == false) {
+                canvas.fillStyle = "white";
+                canvas.fillRect(120 + 250*zähler + Koordinaten[1] ,590 - Koordinaten[2], 23, 39)
+                canvas.fillStyle = temp.MitteSpieler2[zähler][1][zählerListe[4]]
+                canvas.fillRect(125 + 250*zähler + Koordinaten[1] ,595 - Koordinaten[2], 13, 29)
+                zählerListe[4]++;
+                Koordinaten[2] += 44;
+                if (zählerListe[4] == 3) {
+                  Koordinaten[2] = 0;
+                  Koordinaten[1] = 30;
+                }
+              }
+              else {
+                zählerListe[4]++;
+              }
+              }
+            }
+        } */
+      if (temp.MitteSpieler1[zähler][0] == "z" == false) {
+        if (temp.MitteSpieler1[zähler][2] == "yellow" || temp.MitteSpieler1[zähler][2] == "silver") {canvas.fillStyle = "black";}
+        canvas.fillText("         " + temp.MitteSpieler1[zähler][4] + "💀", Koordinaten[3] + 120 + 250 * zähler, 665);
+        canvas.fillText(temp.MitteSpieler1[zähler][3] + "🔫", Koordinaten[3] + 120 + 250 * zähler, 665);
+        canvas.font = "29px Georgia";
+        canvas.fillText(temp.MitteSpieler1[zähler][6], Koordinaten[3] + 120 + 250 * zähler, 695);
+        // KostenLayoutIch:
+        zählerListe[4] = 0;
+        Koordinaten[2] = 0;
+        Koordinaten[1] = 0;
+        while (zählerListe[4] < temp.MitteSpieler1[zähler][1].length) { //console.log(01234);
+          if (temp.MitteSpieler1[zähler][1] == "" == false) {
+            canvas.fillStyle = "white";
+            canvas.fillRect(Koordinaten[3] + 120 + 250 * zähler + Koordinaten[1], 590 - Koordinaten[2], 23, 39)
+            canvas.fillStyle = temp.MitteSpieler1[zähler][1][zählerListe[4]]
+            canvas.fillRect(Koordinaten[3] + 125 + 250 * zähler + Koordinaten[1], 595 - Koordinaten[2], 13, 29)
+            zählerListe[4]++;
+            Koordinaten[2] += 44;
+            if (zählerListe[4] == 3) {
+              Koordinaten[2] = 0;
+              Koordinaten[1] = 30;
+            }
+          } else {
+            zählerListe[4]++;
+          }
+        }
+      }
+
+
+      zähler++;
+      Koordinaten[0] += 250
+    }
+  }
+
+  function LayoutMitteSpieler2() {
+    if (gerät == "PC") {
+      Koordinaten[3] = scrollX;
+    }
+    //Mitte Gegner
+    zähler = 0;
+    Koordinaten[0] = 95;
+    while (zähler < 6) { //console.log(012345);
+      canvas.fillStyle = "#FF8000"; //Farbe
+      canvas.fillRect(Koordinaten[3] + Koordinaten[0], 390 - 385, 180, 250)
+      //  if (SpielerIdsBleibt[0] == SpielerId == false) {
+      if (temp.MitteSpieler2[zähler][4] < 1) {
+        checkAndromeda();
+        if (!(temp.MitteSpieler1[zähler][5] == undefined) && temp.MitteSpieler1[zähler][5].includes("Medea")) {
+          temp.kartenSpieler1.push(temp.MitteSpieler2[zähler]);
+          temp.kartenSpieler1[temp.kartenSpieler1.length - 1][3] = temp.kartenSpieler1[temp.kartenSpieler1.length - 1][8];
+          temp.kartenSpieler1[temp.kartenSpieler1.length - 1][4] = temp.kartenSpieler1[temp.kartenSpieler1.length - 1][9];
+        }
+        temp.MitteSpieler2[zähler] = ["z", "", ""];
+        if (!(temp.MitteSpieler1[zähler][5] == undefined) && temp.MitteSpieler1[zähler][5].includes("Melagros") && SpielerIdsBleibt[1] == SpielerId) {
+          gegnerKarteZiehen();
+        }
+        else if (!(temp.MitteSpieler1[zähler][5] == undefined) && temp.MitteSpieler1[zähler][5].includes("Melagros")) {
+          eineKarteZiehen();
+        }
+      }
+      if (temp.MitteSpieler2[zähler][0] == "z") {
+        canvas.fillStyle = "white"; //Farbe
+      } else {
+        canvas.fillStyle = temp.MitteSpieler2[zähler][2]; //Farbe
+      }
+      //  }
+      /*  else if (temp.MitteSpieler2[zähler][0] == "z") {
+          canvas.fillStyle = "white";//Farbe
+        }
+        else {
+          canvas.fillStyle = temp.MitteSpieler2[zähler][2];//Farbe
+        }
+        */
+      canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 - 385, 140, 207)
+      if (temp.MitteSpieler2[zähler][2] == "silver") {
+        canvas.fillStyle = "red";
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 + 88 - 473, 140 / 2, 207 / 2)
+        canvas.fillStyle = "yellow";
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20 + 140 / 2, 410 + 88 + 207 / 2 - 473, 140 / 2, 207 / 2)
+        canvas.fillStyle = "blue";
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20, 410 + 88 + 207 / 2 - 473, 140 / 2, 207 / 2)
+        canvas.fillStyle = "green";
+        canvas.fillRect(Koordinaten[3] + Koordinaten[0] + 20 + 140 / 2, 410 + 88 - 473, 140 / 2, 207 / 2)
+      }
+      canvas.fillStyle = "white";
+      canvas.font = "37px Georgia";
+      // Werte Karte Gegner (Angriff/Verteidigung/Einheit)
+      //      if (SpielerIdsBleibt[0] == SpielerId == false) {
+      if (temp.MitteSpieler2[zähler][0] == "z" == false) {
+        if (temp.MitteSpieler2[zähler][2] == "yellow" || temp.MitteSpieler2[zähler][2] == "silver") {canvas.fillStyle = "black";}
+        canvas.fillText("         " + temp.MitteSpieler2[zähler][4] + "💀", Koordinaten[3] + 120 + 250 * zähler, 195);
+        canvas.fillText(temp.MitteSpieler2[zähler][3] + "🔫", Koordinaten[3] + 120 + 250 * zähler, 195);
+        canvas.font = "29px Georgia";
+        canvas.fillText(temp.MitteSpieler2[zähler][6], Koordinaten[3] + 120 + 250 * zähler, 223);
+        // KostenLayoutGegner
+        zählerListe[4] = 0;
+        Koordinaten[2] = 0;
+        Koordinaten[1] = 0;
+        while (zählerListe[4] < temp.MitteSpieler2[zähler][1].length) {
+          if (temp.MitteSpieler2[zähler][1] == "" == false) {
+            canvas.fillStyle = "white";
+            canvas.fillRect(Koordinaten[3] + 120 + 250 * zähler + Koordinaten[1], 120 - Koordinaten[2], 23, 39)
+            canvas.fillStyle = temp.MitteSpieler2[zähler][1][zählerListe[4]]
+            canvas.fillRect(Koordinaten[3] + 125 + 250 * zähler + Koordinaten[1], 125 - Koordinaten[2], 13, 29)
+            zählerListe[4]++;
+            Koordinaten[2] += 44;
+            if (zählerListe[4] == 3) {
+              Koordinaten[2] = 0;
+              Koordinaten[1] = 30;
+            }
+          } else {
+            zählerListe[4]++;
+          }
+        }
+      }
+      //  }
+      /*  else if (temp.MitteSpieler2[zähler][0] == "z" == false) {
+        canvas.fillText("         " + temp.MitteSpieler2[zähler][4] + "💀" , 120 + 250*zähler ,195);
+        canvas.fillText(temp.MitteSpieler2[zähler][3] + "🔫" , 120 + 250*zähler ,190);
+        canvas.font = "29px Georgia";
+        canvas.fillText(temp.MitteSpieler2[zähler][6], 120 + 250*zähler ,225);
+        // KostenLayoutGegner
+        zählerListe[4] = 0;
+        Koordinaten[2] = 0;
+        Koordinaten[1] = 0;
+        while (zählerListe[4] < temp.MitteSpieler2[zähler][1].length) {
+          if (temp.MitteSpieler2[zähler][1] == "" == false) {
+          canvas.fillStyle = "white";
+          canvas.fillRect(120 + 250*zähler + Koordinaten[1] ,120 - Koordinaten[2], 23, 39)
+          canvas.fillStyle = temp.MitteSpieler2[zähler][1][zählerListe[4]]
+          canvas.fillRect(125 + 250*zähler + Koordinaten[1] ,125 - Koordinaten[2], 13, 29)
+          zählerListe[4]++;
+          Koordinaten[2] += 44;
+          if (zählerListe[4] == 3) {
+            Koordinaten[2] = 0;
+            Koordinaten[1] = 30;
+          }
+        }
+  else {
+    zählerListe[4]++;
+  }
+        }
+      } */
+      Koordinaten[0] += 250
+      zähler++;
+    }
+    zähler = 0;
+    if (gerät == "PC") {
+      canvas.fillStyle = "white"
+      canvas.fillRect(Koordinaten[3] + 1370, 390, 200, 60);
+      canvas.fillStyle = "blue"
+      canvas.fillRect(Koordinaten[3] + 1377, 397, 185, 45);
+      canvas.fillStyle = "white"
+      canvas.font = "32px Georgia";
+    } else {
+      canvas.fillStyle = "white"
+      canvas.fillRect(Koordinaten[3] + 1370, 390, 200 + 18, 60);
+      canvas.fillStyle = "blue"
+      canvas.fillRect(Koordinaten[3] + 1377, 397, 185 + 18, 45);
+      canvas.fillStyle = "white"
+      canvas.font = "30px Georgia";
+    }
+    if (side == "own" || textButton == "Spielfeld") canvas.fillText(textButton, Koordinaten[3] + 1380, 430);
+    else canvas.fillText("gegn. Karten", Koordinaten[3] + 1380, 430);
+  }
+  function LayoutMitte() {
+    LayoutMitteSpieler1();
+    LayoutMitteSpieler2();
+  }
+
+  var playing = {direction: 1, speed: 1500};
+  var temp = {};
+  function play(userInteraction) {
+    if (userInteraction && playing.boolean) playing.boolean = false;
+    else if (userInteraction) {playing.boolean = true;
+    }
+   if (/*playing.boolean && */aktuell < list.kartenZiehen.length && !(playing.direction == -1 && aktuell == -1)) {
+     for (var i = 0; i < Object.keys(list).length; i++) {
+       if (list[Object.keys(list)[i]][aktuell] != "same") temp[Object.keys(list)[i]] = JSON.parse(JSON.stringify(list[Object.keys(list)[i]][aktuell]));
+     }
+     if (list.SpielerIds[aktuell][0] == SpielerId) side = "own";
+     else side = "opponent";
+     if (list.SpielerIds[aktuell + (- 1)*playing.direction] && list.SpielerIds[aktuell + (- 1)*playing.direction][0] != list.SpielerIds[aktuell][0]) {
+       var ablage = SpielerIdsBleibt[0];
+       SpielerIdsBleibt[0] = JSON.parse(JSON.stringify(SpielerIdsBleibt[1]));
+       SpielerIdsBleibt[1] = ablage;
+     }
+     aktuell += playing.direction;
+     setTimeout(function () {
+       if (playing.boolean) {
+       play();
+     }
+     }, playing.speed);
+   }
+   else {
+     playing.boolean = false
+
+   }
+  }
+
+  var items = document.querySelectorAll("#replaySelection"),
+      tab = [], liIndex;
+
+
+          for(i = 0; i < items.length; i++){
+              tab.push(items[i].innerHTML);
+          }
+
+
+          for(var i = 0; i < items.length; i++){
+
+              items[i].onclick = function(){
+
+                  liIndex = tab.indexOf(this.innerHTML);
+                  console.log(this.innerText + " INDEX = " + liIndex);
+                  list = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].list;
+                  name = this.innerText;
+                  SpielerIds = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerIds;
+                  SpielerIdsBleibt = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerIdsBleibt;
+                  SpielerIdBleibt = SpielerIdsBleibt;
+                  SpielerId = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerId;
+                  // myId = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].myId;
+              };
+
+          }
+          var list = {};
+          var aktuell = 0;
+          SpielerIds = [];
+          SpielerIdsBleibt = [];
+          SpielerIdBleibt = [];
+          SpielerId = "";
+          var textButton = "Meine Karten";
+          var zähler;
+          var Sperren = [true, false, false];
+          var AblageListe = [];
+          var zählerListe = [];
+          function readMouseMove(e) {
+            xMaus = e.clientX + scrollX;
+            yMaus = e.clientY + scrollY + 23;
+            //    console.log(xMaus + " - " + yMaus);
+          }
+          document.onmousemove = readMouseMove
+          var koordinatenCheck = setInterval(KoordinatenCheck, 700);
+          function KoordinatenCheck() {
+            Koordinaten[4] = 0;
+            canvas.fillStyle = "white";
+            canvas.fillRect(0, 0, 5000, 3735)
+            if (Sperren[2] == false) {
+              if (temp.SteineMitte.length == 0) {
+                AblageListe[4] = "beendet"
+              }
+              temp.kartenSpieler1.sort();
+              temp.kartenSpieler2.sort();
+              if (yMaus > 500) {
+                if (Sperren[1] == false) {
+                  AblageListe[0] =   temp.MitteSpieler1
+                  AblageListe[13] = "player1";
+                } else if (SpielerIdsBleibt[0] == SpielerId) {
+                  AblageListe[0] = temp.kartenSpieler1
+                } else {
+                  AblageListe[0] = temp.MitteSpieler1
+                  AblageListe[13] = "player1";
+                  Koordinaten[4] = scrollX;
+                }
+              } else if (Sperren[1] == false) {
+                AblageListe[0] = temp.MitteSpieler2
+                AblageListe[13] = "player2";
+              } else if (SpielerIdsBleibt[0] == SpielerId) {
+                AblageListe[13] = "player2";
+                AblageListe[0] = temp.MitteSpieler2
+                Koordinaten[4] = scrollX;
+              } else {
+                AblageListe[0] = temp.kartenSpieler2
+              }
+              if (Sperren[1] == false) {
+                LayoutMitte();
+              } else {
+                if (SpielerIdsBleibt[0] == SpielerId) {
+                  LayoutMitteSpieler2();
+                } else {
+                  LayoutMitteSpieler1();
+                }
+                LayoutIch();
+              }
+              Koordinaten[0] = 95;
+              AblageListe[1] = -1;
+              // (?)
+              while (zähler < 25) {
+                if (xMaus - Koordinaten[4] > Koordinaten[0] + 20 && xMaus - Koordinaten[4] < Koordinaten[0] + 160) {
+                  if (yMaus < 264 && yMaus > 15 || yMaus > 528 && yMaus < 736) {
+                    AblageListe[1] = zähler
+                    TextAktuell();
+                    zähler = "Kartegefunden";
+                  }
+                }
+                if (zähler == "Kartegefunden" == false) {
+                  zähler++;
+                  Koordinaten[0] += 250;
+                }
+              }
+              if (zähler == "Kartegefunden") {
+                //  LayoutMitte();
+              } else if (Sperren[1] == false) {
+                FarbSteineMitte();
+              } else {
+                FarbsteineIch();
+              }
+              if (AblageListe[0][AblageListe[1]] == undefined || zähler == "Kartegefunden" == false || AblageListe[0][AblageListe[1]][0] == undefined || AblageListe[0][AblageListe[1]][0] == "z") {
+                if (gerät == "PC") {
+                  Koordinaten[3] = scrollX;
+                }
+                canvas.fillStyle = "white"; //Farbe
+                canvas.fillRect(Koordinaten[3] + 500, 210 + 88, 130, 147)
+                canvas.fillStyle = "#FF8000"; //Farbe
+                canvas.fillRect(Koordinaten[3] + 515, 210 + 98, 100, 127)
+                canvas.fillStyle = "white"
+                canvas.font = "50px Georgia";
+                canvas.fillText(temp.kartenZiehen, Koordinaten[3] + 538, 290 + 98);
+                if (gerät == "Handy") {
+                  canvas.fillStyle = "white"
+                  canvas.fillRect(Koordinaten[3] + 1370 - 175, Koordinaten[3] + 292, 330, 60);
+                  canvas.fillStyle = "blue"
+                  canvas.fillRect(Koordinaten[3] + 1377 - 175, Koordinaten[3] + 299, 314, 45);
+                  canvas.font = "32px Georgia";
+                  canvas.fillStyle = "white"
+                }
+              }
+            }
+            canvas.font = "27px Georgia";
+            canvas.fillStyle = "white";
+            if (side == "own") {
+              canvas.fillText("Du bist dran!", scrollX + 1370, 383);
+            } else {
+              canvas.fillText("warten auf Gegner", scrollX + 1370, 383);
+            }
+          }
+          window.addEventListener('mousedown', function() {
+          if (xMaus - scrollX > 1380 && xMaus - scrollX < 1385 + 186 && yMaus > 427 && yMaus < 473) {
+            if (textButton == "Meine Karten") {
+              textButton = "Spielfeld"
+              Sperren[1] = true;
+              canvas.fillStyle = "white"
+              if (SpielerIdsBleibt[0] == SpielerId) {
+                canvas.fillRect(0, 470, 92000, 9800);
+              } else {
+                canvas.fillRect(0, 0, 92000, 275);
+              }
+            } else {
+              window.scrollTo(0, scrollY);
+              textButton = "Meine Karten";
+              //    window.scrollTo(0, scrollY);
+               window.scroll(0, 0);
+              Sperren[1] = false;
+              canvas.fillStyle = "white"
+              if (SpielerIdsBleibt[0] == SpielerId) {
+                canvas.fillRect(0, 470, 92000, 9800);
+              } else {
+                canvas.fillRect(0, 0, 92000, 275);
+              }
+            }
+          }
+        });
+</script>

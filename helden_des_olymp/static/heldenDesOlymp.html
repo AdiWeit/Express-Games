@@ -142,21 +142,105 @@
     }
   };
 
-function serverDatenLöschen() {
-  localStorage.clear('kartenZiehenOlymp');
-  localStorage.clear('MitteSpieler2Olymp');
-  localStorage.clear('MitteSpieler1Olymp');
-  localStorage.clear('kartenSpieler1Olymp');
-  localStorage.clear('kartenSpieler2Olymp');
-  localStorage.clear('SiegpunkteOlymp');
-  localStorage.clear('ZustandOlymp');
-  localStorage.clear('SteineIchOlymp');
-  localStorage.clear('SteineMitteOlymp');
-  localStorage.clear('SpielerIdsBleibtOlymp');
-  localStorage.clear('CLIENTIDHeldenDesOlymp');
+// function serverDatenLöschen() {
+//   localStorage.clear('kartenZiehenOlymp');
+//   localStorage.clear('MitteSpieler2Olymp');
+//   localStorage.clear('MitteSpieler1Olymp');
+//   localStorage.clear('kartenSpieler1Olymp');
+//   localStorage.clear('kartenSpieler2Olymp');
+//   localStorage.clear('SiegpunkteOlymp');
+//   localStorage.clear('ZustandOlymp');
+//   localStorage.clear('SteineIchOlymp');
+//   localStorage.clear('SteineMitteOlymp');
+//   localStorage.clear('SpielerIdsBleibtOlymp');
+//   localStorage.clear('CLIENTIDHeldenDesOlymp');
+// }
+var list = {kartenZiehen: [], kartenSpieler1: [], kartenSpieler2: [], MitteSpieler1: [], MitteSpieler2: [], Siegpunkte: [], SteineIch: [], SteineMitte: [], SpielerIds: []}
+function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
+  try {
+    console.log(list.kartenZiehen.length + " - " + list.kartenSpieler1.length + " - " + list.kartenSpieler2.length + " - " + list.MitteSpieler1.length + " - " + list.MitteSpieler2.length + " - " + Siegpunkte.length + " - " + list.SteineIch.length + " - " + list.SteineMitte.length);
+  } catch (e) {
+    console.log("noch nicht alle var definiert");
+  }
+  var kartenZiehenGespeichert = 100;
+  // for (var i = list.kartenZiehen.length; i > -1; i--) {
+  //   if (list.kartenZiehen.length > 0 && list.kartenZiehen[list.kartenZiehen.length - 1].length < kartenZiehenGespeichert && list.kartenZiehen[list.kartenZiehen.length - 1] != "same") kartenZiehenGespeichert = list.kartenZiehen[list.kartenZiehen.length - 1].length;
+  // }
+  /*if (kartenZiehenGespeichert == 100 || kartenZiehen.length < list.kartenZiehen[list.kartenZiehen.length - 1]) */list.kartenZiehen.push(JSON.parse(JSON.stringify(kartenZiehen.length)));
+  // else list.kartenZiehen.push("same");
+  console.log("kartenSpieler dabei: " + (((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId)) && !ag) + " oder " + ((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId)) && !ag);
+  list.MitteSpieler1.push(JSON.parse(JSON.stringify(MitteSpieler1)));
+  list.MitteSpieler2.push(JSON.parse(JSON.stringify(MitteSpieler2)));
+  list.kartenSpieler1.push(JSON.parse(JSON.stringify(kartenSpieler1)));
+  list.kartenSpieler2.push(JSON.parse(JSON.stringify(kartenSpieler2)));
+  list.SpielerIds.push(JSON.parse(JSON.stringify(SpielerIds)))
+  // if (spieler1CardsSend/* && !(((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId)) && !ag)*/) list.kartenSpieler1.push(JSON.parse(JSON.stringify(kartenSpieler1)));
+  // if (spieler2CardsSend/* && !(((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId)) && !ag)*/) list.kartenSpieler2.push(JSON.parse(JSON.stringify(kartenSpieler2)));
+  // if (((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId)) && !ag) {
+  //   if (!ag) {
+  //     list.MitteSpieler1.push(JSON.parse(JSON.stringify(MitteSpieler1)));
+  //     if (!spieler2CardsSend) list.MitteSpieler2.push("same");
+  //     else list.MitteSpieler2.push(JSON.parse(JSON.stringify(MitteSpieler1)));
+  //   }
+  //   if (!spieler1CardsSend) {
+  //     list.kartenSpieler1.push(JSON.parse(JSON.stringify(kartenSpieler1)));
+  //   }
+  //   if (!spieler2CardsSend) list.kartenSpieler2.push("same");
+  // }
+  // else if (((SpielerId == SpielerIds[0] && SpielerIdsBleibt[0] != SpielerId) || (SpielerId != SpielerIds[0] && SpielerIdsBleibt[0] == SpielerId)) && !ag) {
+  //   if (!ag) {
+  //     list.MitteSpieler2.push(JSON.parse(JSON.stringify(MitteSpieler2)));
+  //     if (!spieler1CardsSend) list.MitteSpieler1.push("same");
+  //     else list.MitteSpieler1.push(JSON.parse(JSON.stringify(MitteSpieler1)));
+  //    }
+  //   if (!spieler2CardsSend) {
+  //     list.kartenSpieler2.push(JSON.parse(JSON.stringify(kartenSpieler2)));
+  //   }
+  //   if (!spieler1CardsSend) list.kartenSpieler1.push("same");
+  // }
+  // else {
+  //   list.MitteSpieler1.push("same");
+  //   list.MitteSpieler2.push("same");
+  //   list.kartenSpieler1.push("same");
+  //   list.kartenSpieler2.push("same");
+  // }
+
+  // if (SpielerId != SpielerIds[0] && !ag && SpielerId == SpielerIdsBleibt[0]) {list.MitteSpieler1.push("same");}
+  // else if (SpielerId != SpielerIds[0] && !ag) {
+  //   list.kartenSpieler2.push("same");
+  // }
+  //if (ag) {list.MitteSpieler1.push(JSON.parse(JSON.stringify(MitteSpieler1))); list.MitteSpieler2.push(JSON.parse(JSON.stringify(MitteSpieler2))); list.kartenSpieler1.push("same"); list.kartenSpieler2.push("same");}
+  list.Siegpunkte.push(JSON.parse(JSON.stringify(Siegpunkte)));
+  list.SteineIch.push(JSON.parse(JSON.stringify(SteineIch)));
+  list.SteineMitte.push(JSON.parse(JSON.stringify(SteineMitte)));
+  if (list.MitteSpieler1[0] == "same" && list.MitteSpieler1[1] && list.MitteSpieler1[1] != "same") {
+    var ablage = list.MitteSpieler1[0];
+    list.MitteSpieler1[0] = JSON.parse(JSON.stringify(list.MitteSpieler1[1]));
+    list.MitteSpieler1[1] = ablage;
+  }
+  if (list.MitteSpieler2[0] == "same" && list.MitteSpieler2[1] && list.MitteSpieler2[1] != "same") {
+    var ablage = list.MitteSpieler2[0];
+    list.MitteSpieler2[0] = JSON.parse(JSON.stringify(list.MitteSpieler2[1]));
+    list.MitteSpieler2[1] = ablage;
+  }
+  if (list.kartenSpieler1[0] == "same" && list.kartenSpieler1[1] && list.kartenSpieler1[1] != "same") {
+    var ablage = list.kartenSpieler1[0];
+    list.kartenSpieler1[0] = JSON.parse(JSON.stringify(list.kartenSpieler1[1]));
+    list.kartenSpieler1[1] = ablage;
+  }
+  if (list.kartenSpieler2[0] == "same" && list.kartenSpieler2[1] && list.kartenSpieler2[1] != "same") {
+    var ablage = list.kartenSpieler2[0];
+    list.kartenSpieler2[0] = JSON.parse(JSON.stringify(list.kartenSpieler2[1]));
+    list.kartenSpieler2[1] = ablage;
+  }
 }
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
+    if (message.type == "syncData") {
+      if (SpielerId == SpielerIdsBleibt[0]) {kartenSpieler2 = message.cards.own.spieler2; MitteSpieler2 = message.cards.middle.spieler2}
+      else if (message.cards) {kartenSpieler1 = message.cards.own.spieler1; MitteSpieler1 = message.cards.middle.spieler1}
+      syncData(message.data.SpielerId, message.data.ag, message.data.SteineIch, message.data.SteineMitte, message.data.SpielerIds);
+    }
     if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
     if (message.type == "messagesText") {
       messagesText = message.data
@@ -170,6 +254,16 @@ function serverDatenLöschen() {
     };
     if (message.type == "player1" || message.type == "player2") {
       SpielerId = message.data;
+      list = {kartenZiehen: [], kartenSpieler1: [], kartenSpieler2: [], MitteSpieler1: [], MitteSpieler2: [], Siegpunkte: [], SteineIch: [], SteineMitte: [], SpielerIds: []};
+      setTimeout(function () {
+        room.send({
+          message: {
+            "type": "syncData",
+            "data": {SpielerId: SpielerId, ag: false, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+            cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+          }
+        });
+      }, 2000);
       if (message.rejoin &&JSON.parse(localStorage.getItem('kartenZiehenOlymp')) != undefined && JSON.parse(localStorage.getItem('kartenZiehenOlymp')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
         kartenZiehen = JSON.parse(localStorage.getItem('kartenZiehenOlymp'));
         MitteSpieler2 = JSON.parse(localStorage.getItem('MitteSpieler2Olymp'));
@@ -245,8 +339,8 @@ function serverDatenLöschen() {
         }, 1000);
         SpielerIdBleibt = SpielerIds
       } else {
-        ttsOut = new Audio("http://www.orangefreesounds.com/wp-content/uploads/2019/03/Elevator-ding-dong-sound-effect.mp3").play();
         if (SpielerIds[0] == SpielerId) {
+          ttsOut = new Audio("http://www.orangefreesounds.com/wp-content/uploads/2019/03/Elevator-ding-dong-sound-effect.mp3").play();
           try {
             var notification = new Notification("It's your turn again! ", {
               icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
@@ -1828,6 +1922,7 @@ function checkAndromeda() {
         }
       }
     }
+    var zustandBefore = JSON.parse(JSON.stringify(AblageListe[2]));
     if (AblageListe[2] == "Spieler2AuswahlHeldSchadenZufügen") {
       if (MitteSpieler1[AblageListe[1]][6] == "Held/-in") {
         MitteSpieler1[AblageListe[1]][4] -= AblageListe[8];
@@ -2065,7 +2160,29 @@ function checkAndromeda() {
       zählerListe[9] = 0;
       // HelenaAngegriffen
       AblageListe[9] = false;
+      // syncData();
+      // SpielerId, ag, SteineIch, SteineMitte
+      setTimeout(function () {
+        room.send({
+          message: {
+            "type": "syncData",
+            "data": {SpielerId: SpielerId, ag: true, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+            cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+          }
+        });
+      }, 3000);
       angreifen();
+    }
+    else if (AblageListe[2] == "beendet" && (zustandBefore.includes("Auswahl") || zustandBefore.includes("Spieler") || zustandBefore.includes("Wählen"))) {
+      // syncData();
+      // SpielerId, ag, SteineIch, SteineMitte
+      room.send({
+        message: {
+          "type": "syncData",
+          "data": {SpielerId: SpielerId, ag: false, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+          cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+        }
+      });
     }
     if (AblageListe[4] == "wartenFarbauswahlSpieler2") {
       FarbsteineKlickCheck();
@@ -2083,6 +2200,13 @@ function checkAndromeda() {
           Spielerwechsel();
           AblageListe[4] = "beendet"
           AblageListe[2] = "beendet"
+          room.send({
+            message: {
+              "type": "syncData",
+              "data": {SpielerId: SpielerId, ag: false, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+              cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+            }
+          });
         }
       }
     }
@@ -2102,6 +2226,13 @@ function checkAndromeda() {
           Spielerwechsel();
           AblageListe[4] = "beendet"
           AblageListe[2] = "beendet"
+          room.send({
+            message: {
+              "type": "syncData",
+              "data": {SpielerId: SpielerId, ag: false, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+              cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+            }
+          });
         }
       }
     }
@@ -3353,7 +3484,17 @@ function checkAndromeda() {
         AblageListe[2] = "eigeneKarteZumVerschiebenWählen";
       }
     }
-
+    if (AblageListe[2] == "beendet") {
+      // syncData();
+      // SpielerId, ag, SteineIch, SteineMitte
+      room.send({
+        message: {
+          "type": "syncData",
+          "data": {SpielerId: SpielerId, ag: false, SteineIch: SteineIch, SteineMitte: SteineMitte, SpielerIds: SpielerIds},
+          cards: {own: {spieler1: kartenSpieler1, spieler2: kartenSpieler2}, middle: {spieler1: MitteSpieler1, spieler2: MitteSpieler2}}
+        }
+      });
+    }
   }
 
   function Spieler1BesonderheitCheck() {
@@ -3790,5 +3931,12 @@ window.scroll(scrollX, 742);
 //   window.scroll(scrollX, 0);
 // }, 1777);
 }
-
+function saveReplay() {
+  if (confirm("Wollen sie diese Runde als Replay festhalten? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/heldenDesOlymp.html angucken.")) {
+    if (localStorage.getItem("playBacksHeldenDesOlymp")) var replays = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"));
+    else var replays = {};
+    replays[prompt("Wie wollen sie ihr Replay nennen?")] = {list: list, SpielerId: SpielerId, SpielerIds: SpielerIds, SpielerIdsBleibt: SpielerIdsBleibt};
+    localStorage.setItem("playBacksHeldenDesOlymp", JSON.stringify(replays));
+  }
+}
 </script>
