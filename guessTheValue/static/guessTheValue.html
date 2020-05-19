@@ -91,7 +91,7 @@
     //  }
     if (message.type == "wrongAnswer") {
       wrongAnswers++;
-      if (wrongAnswers == player.total) readyB.style.display = "inline";
+      if (wrongAnswers == player.total) fill();
     }
     if (message.type == "playerReady") {
       playerReadyList++;
@@ -112,13 +112,7 @@
       inRound = false;
       if (!player.points[message.number]) player.points[message.number] = 0;
       player.points[message.number]++;
-      for (var i = 0; i < amount; i++) {
-        showResults(0, 0, i);
-        canvas.fillStyle = "black";
-        canvas.font = "30px Georgia";
-        if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
-      }
-      readyB.style.display = "inline";
+      fill();
       if (player.points[message.number] == player.requiredPoints) showResult(message.number, 0);
     }
     if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0;}
@@ -175,6 +169,15 @@
   var amount = 0;
   var size = {};
   var wrongAnswers = 0;
+  function fill() {
+    for (var i = 0; i < amount; i++) {
+      showResults(0, 0, i);
+      canvas.fillStyle = "black";
+      canvas.font = "30px Georgia";
+      if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
+    }
+    readyB.style.display = "inline";
+  }
   function confirmVote() {
     room.send({
       message: {
