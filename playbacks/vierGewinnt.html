@@ -188,11 +188,11 @@ else {
     if (userInteraction && playing.boolean) playing.boolean = false;
     else if (userInteraction) {playing.boolean = true;
     }
-   if (spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[name].movementList.length && !(playing.direction == -1 && spielfeldAktuell == -1)) {
+   if (playing.boolean && spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[name].movementList.length && !(playing.direction == -1 && spielfeldAktuell == -1)) {
      placed(movementList[spielfeldAktuell]);
+     spielfeldAktuell += playing.direction;
      setTimeout(function () {
        if (playing.boolean) {
-       spielfeldAktuell += playing.direction;
        play();
      }
      }, playing.speed);
@@ -200,7 +200,7 @@ else {
    else {
      playing.boolean = false
      zähler1 = 0;
-     Markierungen();
+     if (!userInteraction || !(spielfeldAktuell < JSON.parse(localStorage.getItem("playBacksVierGewinnt"))[name].movementList.length)) Markierungen();
    }
  }
 
