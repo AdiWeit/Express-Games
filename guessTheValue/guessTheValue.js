@@ -35,17 +35,21 @@ class guessTheValue {
     if (!this.player1) {
       this.player1 = newPlayer;
       this.spielerOnline = 0;
-      console.log("create spielerOnlineGleich0");
-      this.spielerOnlineGleich0 = 1;
+      // console.log("create spielerOnlineGleich0");
+      // this.spielerOnlineGleich0 = 1;
+      console.log("1 Spieler");
     } else if (!this.player2) {
       this.player2 = newPlayer;
       this.spielerOnline = 1;
+      console.log("2 Spieler");
     } else if (!this.player3) {
       this.player3 = newPlayer;
       this.spielerOnline = 2;
+      console.log("3 Spieler");
     } else if (!this.player4) {
       this.player4 = newPlayer;
       this.spielerOnline = 3;
+      console.log("4 Spieler");
     }
     this.spielerOnline++;
     console.log("spielerOnline: " + this.spielerOnline);
@@ -161,6 +165,10 @@ class guessTheValue {
       else if (client.sessionId === this.player2.id) this.player2 = null;
       else if (client.sessionId === this.player3.id) this.player3 = null;
       else this.player4 = null;
+      // if (this.player4 && this.player4.id) this.player4 = null;
+      // else if (this.player3 && this.player3.id) this.player3 = null;
+      // else if (this.player2 && this.player2.id) this.player2 = null;
+      // else this.player1 = null;
     this.spielerOnline--;
     if (this.player2 != undefined) this.spielerOnlineGleich0--;
     //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
