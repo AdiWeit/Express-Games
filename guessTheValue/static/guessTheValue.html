@@ -171,7 +171,7 @@
   var wrongAnswers = 0;
   function fill() {
     for (var i = 0; i < amount; i++) {
-      showResults(0, 0, i);
+      showResults(0, 0, i, 0);
       canvas.fillStyle = "black";
       canvas.font = "30px Georgia";
       if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
@@ -186,18 +186,34 @@
       }
     });
   }
+function createShape(i) {
+  data.points[i] = [];
+for (var i1 = 0; i1 < 4 + Math.round(Math.random() *3); i1++) {
+  data.points[i].push({x: Math.round(Math.random() *100) + 50, y: Math.round(Math.random() *100) + 50});
+}
+}
+  var mostPix;
+  function checkSizeDifference() {
+    layout(data);
+    mostPix = {number: 0, i: -1};
+    for (var i = 0; i < amount; i++) {
+      if (valueShapes()[i] > mostPix.number) {mostPix.number = valueShapes()[i]; mostPix.i = i;}
+    }
+    for (var i = 0; i < amount; i++) {
+      if (valueShapes()[i] - mostPix.number < -(mostPix.number - 333) || valueShapes()[i] - mostPix.number > mostPix.number - 333) {createShape(i); checkSizeDifference();}
+    }
+  }
+  var data;
   function createNewSize() {
     if (mode == "differentShapes") {
-      var data = {points: []};
+      data = {points: []};
       for (var i = 0; i < amount; i++) {
-        data.points.push([]);
-      for (var i1 = 0; i1 < 4 + Math.round(Math.random() *3); i1++) {
-        data.points[i].push({x: Math.round(Math.random() *100) + 50, y: Math.round(Math.random() *100) + 50});
-      }
+        createShape(i);
     }
+    checkSizeDifference();
     }
     else {
-      var data = {width: [], height: []}
+      data = {width: [], height: []}
       var umfang = Math.round(Math.random() *166) + 210;
       for (var i = 0; i < amount; i++) {
         data.width.push(Math.round(Math.random() *122) + 50);
@@ -278,12 +294,35 @@
   }
   var playerReadyList = 0;
   function playerReady() {
+    confirmVoteB.style.display = "none";
     readyB.style.display = "none";
     room.send({
       message: {
         "type": "playerReady"
       }
     });
+  }
+  function valueShapes() {
+    var values = [];
+    for (var i = 0; i < amount; i++) {
+      // canvas.fillStyle = "red";
+      // canvas.fillRect(20 + 188*i, 20, 188, 10);
+      // canvas.fillRect(20 + 188*i, 20 + 300, 188, 10);
+      imageData = canvas.getImageData(20 + 188*i, 20, 188, 300);
+      red = [];
+      green = [];
+      blue = [];
+      for (var i1 = 0; i1 < imageData.data.length/4; i1 += 4) {
+        red.push(imageData.data[i1]);
+        green.push(imageData.data[i1 + 1]);
+        blue.push(imageData.data[i1 + 2]);
+  }
+  values[i] = 0;
+  for (var i1 = 0; i1 < red.length; i1++) {
+    if (red[i1] == 0 && blue[i1] == 0 && green[i1] == 0) values[i]++
+  }
+    }
+    return values;
   }
   function showResult(gewinner, times) {
     if (/*!makeAudio && */times == 0) {
@@ -330,11 +369,12 @@
     // }, 3000);
   }
   // var makeAudio = false;
-  function showResults(time, i1, i) {
+  function showResults(time, i1, i, highestTime) {
     //canvas.fillStyle = "#0B99B6";
+    if (mode == "normal") {
     var highestMult = {i: -1, number: 0}
     for (var i2 = 0; i2 < amount; i2++) {
-      if (mode == "normal" && highestMult.number < size.height[i2]*size.width[i2]) {highestMult.number = size.height[i2]*size.width[i2]; highestMult.i = i2;}
+      if (highestMult.number < size.height[i2]*size.width[i2]) {highestMult.number = size.height[i2]*size.width[i2]; highestMult.i = i2;}
     }
     if (i == highestMult.i) canvas.fillStyle = "#40FF00";
     else canvas.fillStyle = "red";
@@ -342,14 +382,42 @@
     time++;
     if (time == size.width[i] - 10) {i1++; time = 0;}
     if (i1 == size.height[i] + 1) console.log("finishedResult " + i);
+    else if (time == 0) {
+      setTimeout(function () {
+        if (!inRound) showResults(time, i1, i, highestTime);
+      }, highestTime);
+    }
+    else {
+      if (highestTime < time) {
+        highestTime = time;
+      }
+      if (!inRound) showResults(time, i1, i, highestTime);
+    }
+  }
+  else {
+    // canvas.fillStyle = "blue";
+    // canvas.fillRect(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    if (i == mostPix.i) canvas.fillStyle = "#40FF00";
+    else canvas.fillStyle = "red";
+    data = canvas.getImageData(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    red = data.data[0];
+    green = data.data[1];
+    blue = data.data[2];
+    alpha = data.data[3];
+    if (red == 0 && green == 0 && blue == 0) canvas.fillRect(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    time++;
+    if (time == 188)
+    {i1++; time = 0;}
+    if (20 + 188 - i1 < 20) console.log("finishedResult " + i);
     else {
       setTimeout(function () {
-        if (!inRound) showResults(time, i1, i);
+        if (!inRound) showResults(time, i1, i, highestTime);
       }, 1);
     }
   }
+  }
   var highest;
-  function layout() {
+  function layout(point) {
     canvas.fillStyle = "#FFBF00";
     canvas.fillRect(0, 0, textur.width, textur.height);
     if (mode == "normal") {
@@ -367,14 +435,15 @@
     // canvas.fillRect(30, (20 +size.height[i] - filled), 40, filled);
   }
   else {
+    if (!point) var point = size;
     canvas.fillStyle = "black";
-    for (var i = 0; i < size.points.length; i++) {
+    for (var i = 0; i < point.points.length; i++) {
     canvas.beginPath();
-    canvas.moveTo(20 + 188*i + size.points[i][0].x, size.points[i][0].y);
-    for (var i1 = 1; i1 < size.points[i].length - 1; i1++) {
-      canvas.lineTo(20 + 188*i + size.points[i][i1].x, size.points[i][i1].y);
+    canvas.moveTo(20 + 188*i + point.points[i][0].x, point.points[i][0].y);
+    for (var i1 = 1; i1 < point.points[i].length - 1; i1++) {
+      canvas.lineTo(20 + 188*i + point.points[i][i1].x, point.points[i][i1].y);
     }
-    canvas.lineTo(20 + 188*i + size.points[i][0].x, size.points[i][0].y);
+    canvas.lineTo(20 + 188*i + point.points[i][0].x, point.points[i][0].y);
     canvas.closePath();
     canvas.fill();
   }
@@ -394,29 +463,40 @@
         if (size.width[i]*size.height[i] > biggest.number) {biggest.number = size.width[i]*size.height[i]; biggest.i = i;}
       }
       if (checkSelected() == biggest.i) {
-        room.send({
-          message: {
-            "type": "onePoint",
-            number: player.myNumber
-          }
-        });
-        console.log("right answer!");
+        rightAnswer();
       }
       else {
-        console.log("wrong answer!");
-        room.send({
-          message: {
-            "type": "wrongAnswer"
-          }
-        });
+        wrongAnswer();
       }
       inRound = false;
     }
+    else if (mode != "normal" && inRound && checkSelected() != undefined) {
+      if (mostPix.i == checkSelected()) {
+        rightAnswer();
+      }
+      else wrongAnswer();
+    }
   }
-
+  function rightAnswer() {
+    room.send({
+      message: {
+        "type": "onePoint",
+        number: player.myNumber
+      }
+    });
+    console.log("right answer!");
+  }
+  function wrongAnswer() {
+    console.log("wrong answer!");
+    room.send({
+      message: {
+        "type": "wrongAnswer"
+      }
+    });
+  }
   function checkSelected() {
       for (var i = 0; i < amount; i++) {
-        if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + size.width[i]/* && yMaus > 19 && yMaus */) return i;
+        if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/ /* && yMaus > 19 && yMaus */) return i;
       }
   }
 
