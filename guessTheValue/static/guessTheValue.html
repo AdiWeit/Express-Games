@@ -116,10 +116,10 @@
       if (!player.points[message.number]) player.points[message.number] = 0;
       player.points[message.number] += player.total - tips;
       tips++;
-      if (mode == "normal" || tips + wrongAnswers == player.total) {
+      if (mode == "normal" || tips + wrongAnswers == player.total || player.points[message.number] >= player.requiredPoints) {
       inRound = false;
       fill();
-      if (player.points[message.number] == player.requiredPoints) showResult(message.number, 0);
+      if (player.points[message.number] >= player.requiredPoints) showResult(message.number, 0);
     }
     }
     if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0; tips = 0; }
@@ -288,7 +288,7 @@ newShapes++;
   //   });
   // }
   var filled = 0;
-  function showResult(verlierer, times) {
+  function showResult(gewinner, times) {
     if (times == 0) {
       room.send({
         message: {
@@ -299,7 +299,7 @@ newShapes++;
         alert("Please relaod the page to play an other round!");
       }, 3333);
     }
-    if (player.myNumber != verlierer) {
+    if (player.myNumber == gewinner) {
       console.log("Du hast gewonnen!!!");
       if (times == 0) {
           var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
@@ -321,7 +321,7 @@ newShapes++;
       if (times == 0)  {var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();}
     }
     setTimeout(function () {
-      if (times < 5) showResult(verlierer, times + 1);
+      if (times < 5) showResult(gewinner, times + 1);
     }, 500);
     setTimeout(function () {
       makeAudio = false;
