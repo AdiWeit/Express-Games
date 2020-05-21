@@ -111,15 +111,18 @@
         confirmVote();
       }, 40000);
     }
-    if (message.type == "AnzahlSpieler") {player.total = message.data; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
+    if (message.type == "AnzahlSpieler") {pointsRequiredT.value = 10 + (message.data - 2)*2; player.total = message.data; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
     if (message.type == "onePoint") {
-      inRound = false;
       if (!player.points[message.number]) player.points[message.number] = 0;
-      player.points[message.number]++;
+      player.points[message.number] += player.total - tips;
+      tips++;
+      if (mode == "normal" || tips + wrongAnswers == player.total) {
+      inRound = false;
       fill();
       if (player.points[message.number] == player.requiredPoints) showResult(message.number, 0);
     }
-    if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0;}
+    }
+    if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0; tips = 0; }
     if (message.type == "size"/* && mode == "normal"*/) {
       size = message.data;
       layout();
@@ -170,6 +173,7 @@
       }
     }
   });
+  var tips = 0;
   var amount = 0;
   var size = {};
   var wrongAnswers = 0;
