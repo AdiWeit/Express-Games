@@ -81,9 +81,9 @@
       sendMessage(msg);
     }
   };
-  if (!localStorage.getItem("siteSave")) var siteSave = confirm("Is this website save? (This information is important, because on not save websites, images can't be rendert, which would result an error!)");
-  else siteSave = JSON.parse(localStorage.getItem("siteSave"));
-  localStorage.setItem("siteSave", JSON.stringify(siteSave));
+  // if (!localStorage.getItem("siteSave")) var siteSave = confirm("Is this website save? (This information is important, because on not save websites, images can't be rendert, which would result an error!)");
+  // else siteSave = JSON.parse(localStorage.getItem("siteSave"));
+  // localStorage.setItem("siteSave", JSON.stringify(siteSave));
   var player = {points: []};
   var mode = "";
   var vote = [];
@@ -518,13 +518,13 @@ newShapes++;
   function rightAnswer(coordinate) {
     console.log("right answer!");
     if (mode == "normal") {xCoord = - 62; var yCoord = 20 + highest.number + 27;}
-    else {xCoord = 0; var yCoord = 200}
+    // else {xCoord = 0; var yCoord = 200}
     var Bild = new Image();
     Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dieSiedler/greenCheckBox.png";
     var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
-    if (siteSave) canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
+    if (mode == "normal"/*siteSave*/) canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
     setTimeout(function () {
-      if (siteSave) canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
+      if (/*sitesave*/mode == "normal") canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
     }, 100);
     setTimeout(function () {
       canvas.fillStyle = "#FFBF00";
@@ -544,9 +544,9 @@ newShapes++;
     var Bild = new Image();
     Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dieSiedler/redXBox.png";
     var audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%c3%b6%c3%b6t.mp3").play();
-    if (siteSave) canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
+    if (/*sitesave*/mode == "normal") canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
     setTimeout(function () {
-      if (siteSave) canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
+      if (/*sitesave*/mode == "normal") canvas.drawImage(Bild, 20 + 188*checkSelected() + 77 + xCoord, 0 + yCoord, 50, 50);
     }, 100);
     setTimeout(function () {
       canvas.fillStyle = "#FFBF00";
