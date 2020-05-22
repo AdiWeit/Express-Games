@@ -83,7 +83,7 @@
   var field = [];
   var canvas = textur.getContext('2d'); //Dimension
   function completedCheck(message) {
-    if (message.data.y > -1 && message.data.x > -1 && !field[message.data.x][message.data.y].completed && (!(isNaN("" + field[message.data.x][message.data.y].left)) || field[message.data.x][message.data.y].left == "border") && (!(isNaN("" + field[message.data.x][message.data.y].top)) || field[message.data.x][message.data.y].top == "border") && (field[message.data.x + 1] === undefined || !(isNaN("" + field[message.data.x + 1][message.data.y].left)) || field[message.data.x + 1][message.data.y].left == "border") && (field[message.data.x][message.data.y + 1] === undefined || !(isNaN("" + field[message.data.x][message.data.y + 1].top)) ||
+    if (message.data.y > -1 && message.data.x > -1 && field[message.data.x][message.data.y].completed === false && (!(isNaN("" + field[message.data.x][message.data.y].left)) || field[message.data.x][message.data.y].left == "border") && (!(isNaN("" + field[message.data.x][message.data.y].top)) || field[message.data.x][message.data.y].top == "border") && (field[message.data.x + 1] === undefined || !(isNaN("" + field[message.data.x + 1][message.data.y].left)) || field[message.data.x + 1][message.data.y].left == "border") && (field[message.data.x][message.data.y + 1] === undefined || !(isNaN("" + field[message.data.x][message.data.y + 1].top)) ||
     field[message.data.x][message.data.y + 1].top == "border")) {field[message.data.x][message.data.y].completed = message.player; player.gepunktet = true;}
     if (message.data.y > -1 && message.data.x > -1) console.log("completed: " + field[message.data.x][message.data.y].completed);
   }
@@ -173,10 +173,10 @@
         }
         if (isNaN(message.data.mode + "")) {
           vote.style.display = "none";
-          fieldFormat.value = result.field/player.total;
-          for (var i = 0; i < result.field/player.total; i++) {
+          fieldFormat.value = Math.round(result.field/player.total);
+          for (var i = 0; i < Math.round(result.field/player.total); i++) {
             field[i] = [];
-            for (var i1 = 0; i1 < result.field/player.total; i1++) {
+            for (var i1 = 0; i1 < Math.round(result.field/player.total); i1++) {
               field[i][i1] = {left: false/*, right: false*/, top: false/*, bottom: false*/, completed: false};
               if (i == 0) field[i][i1].left = "border";
               // if (i == 10 + 2*(message.data - 2) - 1) field[i][i1].right = "border";
@@ -247,7 +247,7 @@
       var Bild = new Image();
       Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
       canvas.drawImage(Bild, 260, 0);
-      if (times == 0 && !makeAudio)  {makeAudio = true; var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play(); reset();}
+      if (times == 0 && !makeAudio)  {makeAudio = true; var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();}
     }
     setTimeout(function () {
       if (times < 5) showResult(gewinner, times + 1,);
@@ -258,7 +258,7 @@
   }
   var makeAudio = false;
   function layout() {
-    canvas.fillStyle = "white";
+    canvas.fillStyle = "#B45F04";
     canvas.fillRect(0, 0, textur.width, textur.height);
     var freeFields = 0;
     var pointsPlayer = [];
