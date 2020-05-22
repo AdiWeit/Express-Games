@@ -3,7 +3,7 @@
   <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
   <br>
   <h2>different shapes</h2>
-  <input type="checkbox" id="differentShapesCheck">
+  <input type="checkbox" checked="true" onchange="modeSelectionChanged(checked)" id="differentShapesCheck">
   <br>
   <button type="button" id="confirmVoteB" onclick="confirmVote();" name="button">this is my vote!</button>
 </div>
@@ -168,11 +168,18 @@
                 data: {mode: Math.round(Math.random() *1), amountOfGlasses: message.data.amountOfGlasses, pointsRequired: message.data.pointsRequired}
               }
             });
+              setTimeout(function () {
+                createNewSize();
+              }, 1000);
           }
         }
       }
     }
   });
+  function modeSelectionChanged(checked) {
+    if (checked) pointsRequiredT.value = 10 + (player.total - 2)*2;
+    else pointsRequiredT.value = 5 + (player.total - 2)
+  }
   var tips = 0;
   var amount = 0;
   var size = {};
@@ -517,6 +524,7 @@ newShapes++;
       }
       else wrongAnswer(coordinate);
     }
+    if (checkSelected() != undefined) inRound = false;
   }
   var xCoord = 0;
   function rightAnswer(coordinate) {
