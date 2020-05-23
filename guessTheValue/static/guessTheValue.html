@@ -97,7 +97,7 @@
     }
     if (message.type == "wrongAnswer") {
       wrongAnswers++;
-      if (wrongAnswers == player.total) {inRound = false; fill();}
+      if (wrongAnswers + tips == player.total) {inRound = false; fill();}
     }
     if (message.type == "playerReady") {
       playerReadyList++;
