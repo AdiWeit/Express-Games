@@ -370,9 +370,10 @@ setTimeout(function () {
       cards[1][i][AnzahlSpieler*4 - 1] = "wall";
     }
     Layout((xLength + 1)*33, 0, false, 1);
-    canvas.fillStyle = "orange";
     canvas.font = "50px Georgia";
     for (var i = 0; i < Object.keys(points).length; i++) {
+      if (Object.keys(points)[i] == id) canvas.fillStyle = "blue";
+      else canvas.fillStyle = "orange";
       if (Object.keys(points)[i] != "required") canvas.fillText(points[Object.keys(points)[i]], (xLength + 2)*33 + 33/2, 99*(i) + 66 + 33/2);
     }
   }
@@ -468,7 +469,7 @@ for (var i = 0; i < Object.keys(guessObj).length; i++) {
     console.log("please debug me: " + e);
   }
 }
-if (i1 == 0) {
+if (i1 == 0 && cards.length > 1) {
   room.send({
     message: {
       type: "points",
