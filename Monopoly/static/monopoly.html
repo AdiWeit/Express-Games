@@ -1205,7 +1205,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = JSON.parse(JSON.stringify(spieler[spielerIch].kartenIch[AblageListe[2]]));
           spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][5] = JSON.parse(JSON.stringify([spieler[spielerIch].kartenIch[AblageListe[2]][3]]));
         }
-        if (!(zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false)) datenAktuallisieren(false, true);
+         if (!(zählerListe[1] > -1 && spieler[spielerIch].kartenMitte[zählerListe[1]][5].length < spieler[spielerIch].kartenMitte[zählerListe[1]][2].length == false)) datenAktuallisieren(false, true, true);
       } else if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "A Joker") {
         zählerListe[0] = 0;
         zählerListe[1] = [];
@@ -1532,7 +1532,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       }
     });
   }
-  function datenAktuallisieren(rejoin, justOwn) {
+  function datenAktuallisieren(rejoin, justOwn, noLayout) {
     zählerListe[0] = 0;
     room.send({
       message: {
@@ -1577,7 +1577,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (justOwn) zählerListe[0] = AnzahlSpieler;
       zählerListe[0]++;
     }
-    Layout();
+    if (noLayout) Layout();
   }
   function MieteAlle() {
     // if (zählerListe[2] == -1) {
@@ -2409,7 +2409,7 @@ function showChat() {
           alert("Straßensatz bereits komplett! Sie können die Seite des Jokers jedoch trotzdem noch nutzen, sowie die Staße für Geld ablegen. ")
         } else if (AblageListe[2] != "beendet" && (Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]) && textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][1]] + " einsetzen wollen?")) || (textButton == "Spielfeld" && !(Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][1])) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][1] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][1]);
-          spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][1], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][1]];
+          spieler[spielerIch].kartenIch[AblageListe[2]] = JSON.parse(JSON.stringify(["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][1], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][1]]));
         }
         else if (textButton == "Spielfeld") {
           AblageListe[3] = -1;
@@ -2428,7 +2428,7 @@ function showChat() {
           AblageListe[3] = -1;
         } else if ((Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]) && (textButton == "Spielfeld" && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + colorObj[spieler[spielerIch].kartenIch[AblageListe[2]][3][0]] + " einsetzen wollen?"))) || (textButton == "Spielfeld" && !(Object.keys(colorObj).includes(spieler[spielerIch].kartenIch[AblageListe[2]][3][0])) && confirm("Sind sie sich sicher, dass sie den Straßenjoker als " + spieler[spielerIch].kartenIch[AblageListe[2]][3][0] + " einsetzen wollen?"))) {
           console.log(spieler[spielerIch].kartenIch[AblageListe[2]][3][0]);
-          spieler[spielerIch].kartenIch[AblageListe[2]] = ["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][0], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][0]];
+          spieler[spielerIch].kartenIch[AblageListe[2]] = JSON.parse(JSON.stringify(["Straße", spieler[spielerIch].kartenIch[AblageListe[2]][1], spieler[spielerIch].kartenIch[AblageListe[2]][2][0], "Straßen Joker", spieler[spielerIch].kartenIch[AblageListe[2]][3][0]]));
         }
         else if (textButton == "Spielfeld") {
           AblageListe[3] = -1;
