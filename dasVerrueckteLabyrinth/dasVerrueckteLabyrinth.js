@@ -91,6 +91,9 @@ class dasVerrueckteLabyrinth {
       console.log("Mehr als 1 Spieler");
       var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
       this.broadcast({
+        "type": "resetPlayer"
+      });
+      this.broadcast({
         "type": "Reihenfolge",
         "data": Reihenfolge
       });

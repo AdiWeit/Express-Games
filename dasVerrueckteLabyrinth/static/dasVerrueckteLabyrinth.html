@@ -179,7 +179,10 @@
     }, 500);
   }
   room.setOnMessageListener(function(message) {
-    if (message.type == "AnzahlSpieler") player.totalPlayer = message.data;
+    if (message.type == "AnzahlSpieler") {
+      if (message.data > 2) player.movement = "waitingForOpponent";
+      player.totalPlayer = message.data;
+    }
     if (message.type == "gewonnen") showResult(message.data, 0);
     if (message.type == "fieldMoved" && message.data && message.data.direction == "u") field[message.data.stein][6][0][0].movable = false;
     if (message.type == "fieldMoved" && message.data && message.data.direction == "o") field[message.data.stein][0][0][0].movable = false;
@@ -418,7 +421,11 @@ return newField;
         itemsVerbleibend = [0, 0, 0, 0];
         for (var i4 = 0; i4 < player.totalPlayer; i4++) {
           for (var i5 = 0; i5 < Object.keys(player.items).length; i5++) {
-            if (!player.itemsEachPlayer[i4][Object.keys(player.itemsEachPlayer[i4])[i5]].collected) itemsVerbleibend[i4]++;
+            try {
+              if (!player.itemsEachPlayer[i4][Object.keys(player.itemsEachPlayer[i4])[i5]].collected) itemsVerbleibend[i4]++;
+            } catch (e) {
+              // console.log("please debug :( )");
+            }
           }
         }
         if (field[i][i1][i2][i3].player !== false) {
