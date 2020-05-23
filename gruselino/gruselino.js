@@ -7,8 +7,8 @@ class gruselino {
   }
 
   onJoin(client) {
-    AnzahlSpieler++;
-    console.log(AnzahlSpieler);
+    // AnzahlSpieler++;
+    //console.log(AnzahlSpieler);
     let newPlayer = {
       id: client.sessionId,
       client: client,
@@ -17,8 +17,14 @@ class gruselino {
   else if ((this.player2 == null)) this.player2 = newPlayer;
   else if ((this.player3 == null)) this.player3 = newPlayer;
   else if ((this.player4 == null)) this.player4 = newPlayer;
+  AnzahlSpieler = 0;
+  if (this.player1) AnzahlSpieler++;
+  if (this.player2) AnzahlSpieler++;
+  if (this.player3) AnzahlSpieler++;
+  if (this.player4) AnzahlSpieler++;
     console.log(" - " + this.player1 + " - " + this.player2 + " - " + this.player3 + " - " + this.player4 + " - ")
     if (AnzahlSpieler > 1) {
+      console.log(AnzahlSpieler + " player online!");
       console.log(this.player2.client + " - " + this.player2.id);
         this.send(this.player1.client, {type:"player", data:0});
         this.send(this.player2.client, {type:"player", data:1});
@@ -31,12 +37,17 @@ class gruselino {
   onLeave(client) {
     console.log(client);
     if (!(client == null || client == undefined)) {
-    AnzahlSpieler--;
+    // AnzahlSpieler--;
     console.log(client.sessionId + " - " + client);
-    if (client.sessionId === this.player1.id) this.player1 = null
-    else if (client.sessionId === this.player2.id) this.player2 = null
-    else if (client.sessionId === this.player3.id) this.player3 = null
-    else if (client.sessionId === this.player4.id) this.player4 = null
+    if (this.player1 && client.sessionId === this.player1.id) this.player1 = null
+    else if (this.player2 && client.sessionId === this.player2.id) this.player2 = null
+    else if (this.player3 && client.sessionId === this.player3.id) this.player3 = null
+    else if (this.player4 && client.sessionId === this.player4.id) this.player4 = null
+    AnzahlSpieler = 0;
+    if (this.player1) AnzahlSpieler++;
+    if (this.player2) AnzahlSpieler++;
+    if (this.player3) AnzahlSpieler++;
+    if (this.player4) AnzahlSpieler++;
   }
     console.log("a Player left");
     console.log(AnzahlSpieler);
@@ -44,7 +55,7 @@ class gruselino {
   }
 
   onMessage(client, data) {
-    console.log(data.message);
+    //console.log(data.message);
     this.broadcast(data.message);
   }
 
