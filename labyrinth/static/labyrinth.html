@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <div class="" id="fieldSelection">
   <h1 id="field size">field size</h1>
   <input type="text" placeholder="x" value="20" onchange="textur.width = JSON.parse(value)*33; createNewCard(value, document.getElementById('fieldSizeY').value);" id="fieldSizeX"></input>
@@ -119,7 +120,7 @@
   var id = "";
   var secs = 60;
   var timer;
-  var suggestion = {x: [], y: [], requiredPoints: []};
+  var suggestion = {x: [], y: [], requiredPoints: [], truhenDurchlässig: []};
   room.setOnMessageListener(function(message) {
     if (message.type == "points") {
       for (var i = 0; i < Object.keys(points).length; i++) {
@@ -188,7 +189,7 @@
     // xLength = Math.round((JSON.parse(document.getElementById('fieldSizeX').value) + JSON.parse(message.data.map[0]))/2);
     // yLength =  Math.round((JSON.parse(document.getElementById('fieldSizeY').value) + JSON.parse(message.data.map[1]))/2);
     textur.height = yLength*33;
-    textur.width = window.innerWidth;
+    textur.width = xLength*33 + 177;
     // points.required = Math.round((JSON.parse(document.getElementById('pointsRequiredForWin').value) + JSON.parse(message.data.points))/2);
     visible([["nextRound", "inline"]]);
   }
@@ -231,10 +232,11 @@
       if (!voted) {
         voted = true;
         var modeObj = {true: 1, false: -1};
+        document.getElementById('nextRound').innerHTML = "nextRound!";
         room.send({
           message: {
           type: "settings",
-          data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[truhenDurchlässig.checked]},
+          data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[document.getElementById('truhenDurchlässig').checked]},
           sender: id
         }
         });
@@ -323,7 +325,7 @@ setTimeout(function () {
     room.send({
       message: {
       type: "settings",
-      data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[truhenDurchlässig.checked]},
+      data: {map: [document.getElementById('fieldSizeX').value, document.getElementById('fieldSizeY').value], points:  document.getElementById('pointsRequiredForWin').value, truhenDurchlässig: modeObj[document.getElementById('truhenDurchlässig').checked]},
       sender: id
     }
     });
