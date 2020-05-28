@@ -409,9 +409,10 @@
         datenAktuallisieren(false, true);
       }, 9000);
     }
-    if (message.type == "gebotBeendet") {spieler[spielerIch].coverMoney = false;
+    if (message.type == "gebotBeendet") {
+      spieler[spielerIch].coverMoney = false;
       if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
-      else if ((AblageListe[4][1] && AblageListe[4][1] > 0)) AblageListe[4] = afterNixDa["AblageListe[4]"];
+      else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
       else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
       if (afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
       if (afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
@@ -478,6 +479,7 @@
                 spieler[spielerGegner].kartenMitte[0][5].length != spieler[spielerGegner].kartenMitte[0][2].length) {
                 karteWeggeben();
               } else {
+                AblageListe[12] = AblageListe[3];
                 AblageListe[4][0] = "karteWeggeben";
               }
             }
@@ -641,7 +643,7 @@
     else if (spieler[spielerIch].ereignisBevor.nixDaType != nixDaType) spieler[spielerIch].ereignisBevor.nixDaType = nixDaType;
   }, 1000);
   function checkRundenende() {
-    if (/*AblageListe[3] > -1 && */spielerIch == spielerAktuell) {
+    if (/*AblageListe[3] > -1 && */spielerIch == spielerAktuell || spielerAktuell == -1) {
       if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1 || AblageListe[4][0] == "Auswahl Karten ablegen") && (AblageListe[4][0] == "beendet" || AblageListe[4][0] == "Auswahl Karten ablegen") && (!nixDaType || nixDaType == "beendet")) {
         if (AblageListe[4][0] == "Auswahl Karten ablegen") Spielerwechsel(true);
         else Spielerwechsel();
@@ -1016,7 +1018,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       }
       spieler[spielerIch].kartenIch.splice([AblageListe[2]], 1);
       Layout();
-      if (spieler[spielerIch].kartenIch.length < 8) {
+      if (spieler[spielerIch].kartenIch.length < 8 && AblageListe[4][0] != "warten auf Gebot") {
         AblageListe[4] = ["beendet"];
         Spielerwechsel();
       }
@@ -1577,7 +1579,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (justOwn) zählerListe[0] = AnzahlSpieler;
       zählerListe[0]++;
     }
-    if (noLayout) Layout();
+    if (!noLayout) Layout();
   }
   function MieteAlle() {
     // if (zählerListe[2] == -1) {
@@ -1814,6 +1816,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (!noAlert) alert("Sie dürfen maximal 7 Karten auf der Hand haben! Klicken sie Karten an, die sie los werden wollen! (Die Karten werden NICHT ausgespielt, sondern nur weggenommen!)")
       textButton = "Spielfeld";
     } else {
+      if (AblageListe[4][0] == "Auswahl Karten ablegen") AblageListe[4] = ["beendet"];
       console.log("Sielerwechsel call (spielerAktuell auf -1 setzen)");
       ablageSpielerAktuell = spielerAktuell;
       spielerAktuell = -1;
@@ -1955,7 +1958,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       }
     } else if (spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length > 1) {
-      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
+      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length] = spieler[spielerIch].kartenMitte[AblageListe[2]];
       spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1][3] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0);
       spieler[spielerIch].kartenMitte[AblageListe[2]][5].pop();
     } else {
