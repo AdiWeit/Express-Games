@@ -145,6 +145,15 @@
       secs = (xLength + yLength)*2 - 20;
       if (secs < 30) secs = 30;
       if (i1 < 2 && message.data[id] == false) timer = setInterval(timerFun, 1000);
+      if (i1 == 0) {
+        room.send({
+          message: {
+            type: "points",
+            data: points,
+            rightGuess: auswertungAnzahlKisten()
+          }
+        });
+      }
     }
     if (message.type == "settings"/* && message.sender != id*/) {
       suggestion.x.push(message.data.map[0]);
@@ -186,6 +195,7 @@
     xLength /= AnzahlSpieler;
     yLength /= AnzahlSpieler;
     points.required /= AnzahlSpieler;
+    points.required = Math.round(points.required);
     // xLength = Math.round((JSON.parse(document.getElementById('fieldSizeX').value) + JSON.parse(message.data.map[0]))/2);
     // yLength =  Math.round((JSON.parse(document.getElementById('fieldSizeY').value) + JSON.parse(message.data.map[1]))/2);
     textur.height = yLength*33;
@@ -208,7 +218,7 @@
       nextRound = [];
     }, 1000);
   }
-    if (nextRound.length == AnzahlSpieler && id == message.id) {
+      if (nextRound.length == AnzahlSpieler && id == message.id) {
       newRound();
     }
   }
@@ -218,6 +228,7 @@
       points[message.data[i]] = 0;
     }
     AnzahlSpieler = message.data.length;
+    nextRound.innerHTML = "this is my vote!";
   }
   else if (message.type == "name") {
     player1 = false;
@@ -464,14 +475,14 @@ function folgenKeyDown(event, innerHTML) {
 }
 }
 var i1 = 0;
-for (var i = 0; i < Object.keys(guessObj).length; i++) {
+for (var i = 0; guessObj.guessed && i < Object.keys(guessObj.guessed).length; i++) {
   try {
     if (guessObj.guessed != undefined && guessObj.guessed[Object.keys(guessObj.guessed)[i]] == false) i1++;
   } catch (e) {
     console.log("please debug me: " + e);
   }
 }
-if (i1 == 0 && cards.length > 1) {
+if (i1 == 0 && cards.length > 1 && document.getElementById('nextRound').style.display == "none") {
   room.send({
     message: {
       type: "points",

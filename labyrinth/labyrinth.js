@@ -17,7 +17,12 @@ class labyrinth {
     else if (this.player2 == null) this.player2 = newPlayer;
     else if (this.player3 == null) this.player3 = newPlayer;
     else if (this.player4 == null) this.player4 = newPlayer;
-    this.spielerOnline++;
+    this.spielerOnline = 0;
+    if (this.player1) this.spielerOnline++;
+    if (this.player2) this.spielerOnline++;
+    if (this.player3) this.spielerOnline++;
+    if (this.player4) this.spielerOnline++;
+    // this.spielerOnline++;
     console.log(this.player1 + " - " + this.player2 + " - " + this.player3 + " - " + this.player4);
     if (this.player2 != null && this.player2 != null) {
       if (this.spielerOnline < 2) this.spielerOnline = 2;
@@ -74,55 +79,65 @@ class labyrinth {
         if (this.player3 != null && client.sessionId == this.player3.id) this.player3 = null;
         if (this.player4 != null && client.sessionId == this.player4.id) this.player4 = null;
       }
+      if (this.player1 != null && client.sessionId == this.player1.id) this.player1 = null;
+      if (this.player2 != null && client.sessionId == this.player2.id) this.player2 = null;
+      if (this.player3 != null && client.sessionId == this.player3.id) this.player3 = null;
+      if (this.player4 != null && client.sessionId == this.player4.id) this.player4 = null;
+      this.spielerOnline = 0;
+      if (this.player1) this.spielerOnline++;
+      if (this.player2) this.spielerOnline++;
+      if (this.player3) this.spielerOnline++;
+      if (this.player4) this.spielerOnline++;
+      console.log("spielerOnlineAfterLeave: " + this.spielerOnline);
       // if (this.player2 != undefined) console.log(this.player2);
       // else {
       //   console.log("nur 1 Spieler");
       //   this.player1 = null;
       //   this.spielerOnline = 1;
       // }
-      if (this.player3 != undefined) console.log(this.player3.id);
-      if (this.player4 != undefined) console.log(this.player4.id);
-      if (this.spielerOnline == 4 && this.player3 != null && client.sessionId === this.player3.id) {
-        this.player3 = this.player4;
-        console.log("spieler3 weg - aufrücken (4 Spieler)");
-        this.player4 = null;
-      }
-      if (this.spielerOnline == 4 && this.player2 != null && client.sessionId === this.player2.id) {
-        console.log("spieler2 weg - aufrücken (4 Spieler)");
-        this.player2 = this.player3;
-        this.player3 = this.player4;
-        this.player4 = null;
-      }
-      if (this.spielerOnline == 4 && this.player1 != null && client.sessionId === this.player1.id) {
-        console.log("spieler1 weg - aufrücken (4 Spieler)");
-        this.player1 = this.player2;
-        this.player2 = this.player3;
-        this.player4 = null;
-      }
-      if (this.spielerOnline == 3 && this.player2 != null && client.sessionId === this.player2.id) {
-        console.log("spieler2 weg- aufrücken (3 Spieler)");
-        this.player1 = this.player2;
-        this.player2 = this.player3;
-        //  this.player3 = null;
-      }
-      if (this.spielerOnline == 3 && this.player1 != null && client.sessionId === this.player1.id) {
-        console.log("spieler1 weg - aufrücken (3 Spieler)");
-        this.player1 = this.player2;
-        this.player2 = this.player3;
-        this.player3 = null;
-      }
-      if (this.spielerOnline == 4 && this.player4 != null && client.sessionId === this.player4.id) this.player4 = null;
-      if (this.spielerOnline == 3 && this.player3 != null && client.sessionId === this.player3.id) this.player3 = null;
-      if (this.spielerOnline == 2 && this.player2 != null && client.sessionId === this.player2.id) this.player2 = null;
-      if (this.spielerOnline == 2 && this.player2 != null && client.sessionId === this.player1.id) {
-        this.player1 = this.player2;
-        this.player2 = null;
-      }
-      /*  if (client.sessionId === this.player1.id) this.player1 = null;
-        else if (client.sessionId === this.player2.id) this.player2 = null;
-        else if (client.sessionId === this.player3.id) this.player3 = null;
-        else this.player4 = null; */
-      this.spielerOnline--;
+      // if (this.player3 != undefined) console.log(this.player3.id);
+      // if (this.player4 != undefined) console.log(this.player4.id);
+      // if (this.spielerOnline == 4 && this.player3 != null && client.sessionId === this.player3.id) {
+      //   this.player3 = this.player4;
+      //   console.log("spieler3 weg - aufrücken (4 Spieler)");
+      //   this.player4 = null;
+      // }
+      // if (this.spielerOnline == 4 && this.player2 != null && client.sessionId === this.player2.id) {
+      //   console.log("spieler2 weg - aufrücken (4 Spieler)");
+      //   this.player2 = this.player3;
+      //   this.player3 = this.player4;
+      //   this.player4 = null;
+      // }
+      // if (this.spielerOnline == 4 && this.player1 != null && client.sessionId === this.player1.id) {
+      //   console.log("spieler1 weg - aufrücken (4 Spieler)");
+      //   this.player1 = this.player2;
+      //   this.player2 = this.player3;
+      //   this.player4 = null;
+      // }
+      // if (this.spielerOnline == 3 && this.player2 != null && client.sessionId === this.player2.id) {
+      //   console.log("spieler2 weg- aufrücken (3 Spieler)");
+      //   this.player1 = this.player2;
+      //   this.player2 = this.player3;
+      //   //  this.player3 = null;
+      // }
+      // if (this.spielerOnline == 3 && this.player1 != null && client.sessionId === this.player1.id) {
+      //   console.log("spieler1 weg - aufrücken (3 Spieler)");
+      //   this.player1 = this.player2;
+      //   this.player2 = this.player3;
+      //   this.player3 = null;
+      // }
+      // if (this.spielerOnline == 4 && this.player4 != null && client.sessionId === this.player4.id) this.player4 = null;
+      // if (this.spielerOnline == 3 && this.player3 != null && client.sessionId === this.player3.id) this.player3 = null;
+      // if (this.spielerOnline == 2 && this.player2 != null && client.sessionId === this.player2.id) this.player2 = null;
+      // if (this.spielerOnline == 2 && this.player2 != null && client.sessionId === this.player1.id) {
+      //   this.player1 = this.player2;
+      //   this.player2 = null;
+      // }
+      // /*  if (client.sessionId === this.player1.id) this.player1 = null;
+      //   else if (client.sessionId === this.player2.id) this.player2 = null;
+      //   else if (client.sessionId === this.player3.id) this.player3 = null;
+      //   else this.player4 = null; */
+      // this.spielerOnline--;
       /*  if (!this.player2) {
           Reihenfolge = [];
           var j, x, i;
