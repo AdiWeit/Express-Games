@@ -1815,16 +1815,17 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       AblageListe[4][0] = "Auswahl Karten ablegen";
       if (!noAlert) alert("Sie dürfen maximal 7 Karten auf der Hand haben! Klicken sie Karten an, die sie los werden wollen! (Die Karten werden NICHT ausgespielt, sondern nur weggenommen!)")
       textButton = "Spielfeld";
-    } else {
+    } else if (spielerAktuell != -1) {
       if (AblageListe[4][0] == "Auswahl Karten ablegen") AblageListe[4] = ["beendet"];
       console.log("Sielerwechsel call (spielerAktuell auf -1 setzen)");
-      ablageSpielerAktuell = spielerAktuell;
+      ablageSpielerAktuell = JSON.parse(JSON.stringify(spielerAktuell));
       spielerAktuell = -1;
       setTimeout(function () {
-        if (AblageListe[4][0] == "beendet") {
+        if (AblageListe[4][0] == "beendet" && (spielerAktuell == spielerIch || ablageSpielerAktuell == spielerIch)) {
         console.log("Spielerwechsel ausführen...");
         datenAktuallisieren();
-        spielerAktuell = ablageSpielerAktuell;
+        spielerAktuell = JSON.parse(JSON.stringify(ablageSpielerAktuell));
+        ablageSpielerAktuell = "spelerwechselDone!";
         spielerAktuell++;
         if (spielerAktuell > AnzahlSpieler - 1) {
           spielerAktuell = 0;
