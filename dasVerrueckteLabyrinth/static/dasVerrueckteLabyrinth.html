@@ -489,7 +489,7 @@ return newField;
     if (stein > -1 && stein < 7 && player.movement == "moveField") {
       moveField(stein);
     }
-    if (player.movement == "movingPlayer") {
+    if (player.movement == "movingPlayer" && confirm("Wollen sie die Runde wirklich beenden?")) {
       if (playerAblage == undefined) {
       var itemsVerbleibend = [];
       if (field[player.movingPlayer.x][player.movingPlayer.y][player.movingPlayer.i2][player.movingPlayer.i3].item == player.searchingCard) player.items[player.searchingCard].collected = true;
