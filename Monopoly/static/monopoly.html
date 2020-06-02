@@ -361,7 +361,12 @@
       //   datenAktuallisieren();
       // }
     }
-    if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
+    if (message.type == "AnzahlSpieler") {
+      AnzahlSpieler = message.data;
+      for (var i = 0; i < spieler.length; i++) {
+        spieler[i].kartenIch = [];
+      }
+    }
     if (message.type == "kartenMitte") spieler[message.sender].kartenMitte = message.data;
     if (message.type == "einkommenSpieler") {
       spieler[message.sender].einkommen = message.data;
@@ -411,11 +416,11 @@
     }
     if (message.type == "gebotBeendet") {
       spieler[spielerIch].coverMoney = false;
-      if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
-      else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
-      else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
-      if (afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
-      if (afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
+      if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
+      else if (spielerIch == spielerAktuell && /*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
+      else if (spielerIch == spielerAktuell && /*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
+      if (spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
+      if (spielerIch == spielerAktuell && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
       // else AblageListe[4][0] = "beendet";
       //checkRundenende();
     }
