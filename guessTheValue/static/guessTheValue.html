@@ -1,3 +1,4 @@
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
 <div id="voting">
   <input type="text" id="amountOfGlasses" placeholder="glasses to compare at the same time" value="3">
   <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
@@ -9,8 +10,11 @@
 </div>
 <button type="button" id="readyB" onclick="playerReady();" name="button">ready!</button>
 <canvas id="textur" width="1844" onclick="canvasClicked();" height="700"></canvas>
-
+<canvas id="checkTextur" width="1844" height="700"></canvas>
+<canvas id="samecheckTextur" width="1844" height="700"></canvas>
 <script>
+  checkTextur.style.display = "none";
+  samecheckTextur.style.display = "none";
   readyB.style.display = "none";
   window.onbeforeunload = function(){
     console.log("Leave Website");
@@ -88,20 +92,58 @@
   var mode = "";
   var vote = [];
   var canvas = textur.getContext('2d'); //Dimension
+  var checkCanvas = checkTextur.getContext('2d'); //Dimension
+  var samecheckCanvas = samecheckTextur.getContext('2d');
+  var mostPixBleibt = {};
+  var loading = {boolean: false, restarted: false};
   room.setOnMessageListener(function(message) {
     // if (message.type == "Reihenfolge") {
     //   player.aktuell = message.data;
     //  }
+    if (message.type == "layout") {
+      setTimeout(function () {
+        if (readyB.style.display == "none" && playerReadyList == player.total) {layout(undefined, canvas); inRound = true;}
+        layout(undefined, samecheckCanvas);
+      }, 500);
+    }
     if (message.type == "mostPix") {
       mostPix = message.data;
+      if (message.first) mostPixBleibt = message.data;
+        if (tips != -1 && angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas))) {
+          room.send({
+            message: {
+              "type": "layout"
+            }
+          });
+      }
     }
     if (message.type == "wrongAnswer") {
+      playerReadyList = 0;
       wrongAnswers++;
+      if (wrongAnswers == 0) wrongAnswers++;
+      if (tips == -1) tips = 0;
       if (wrongAnswers + tips == player.total) {inRound = false; fill();}
     }
     if (message.type == "playerReady") {
       playerReadyList++;
-      if (playerReadyList == player.total && player.myNumber == 0) createNewSize();
+      if (playerReadyList == player.total) {
+        layout(undefined, checkCanvas);
+        layout(undefined, canvas);
+        loading = {boolean: false, restarted: false};
+        if (!(angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas)))) {
+          inRound = true;
+          if (tips != -1) layout(undefined, samecheckCanvas);
+        }
+        else {
+          canvas.fillText("loading...", window.innerWidth/2, window.innerHeight/2);
+          loading.boolean = true;
+          setTimeout(function () {
+            fill();
+            readyB.style.display = "none";
+          }, 111);
+        }
+        wrongAnswers = 0; tips = 0;
+      }
     }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
@@ -113,8 +155,11 @@
     }
     if (message.type == "AnzahlSpieler") {pointsRequiredT.value = 10 + (message.data - 2)*2; player.total = message.data; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
     if (message.type == "onePoint") {
+      playerReadyList = 0;
       if (!player.points[message.number]) player.points[message.number] = 0;
       player.points[message.number] += player.total - tips;
+      if (tips == -1) tips = 0;
+      if (wrongAnswers == -1) wrongAnswers = 0;
       tips++;
       if (mode == "normal" || tips + wrongAnswers == player.total || player.points[message.number] >= player.requiredPoints) {
       inRound = false;
@@ -122,15 +167,18 @@
       if (player.points[message.number] >= player.requiredPoints) showResult(message.number, 0);
     }
     }
-    if (message.type == "size") {inRound = true; playerReadyList = 0; wrongAnswers = 0; tips = 0; }
+    //if (message.type == "size") {playerReadyList = 0; wrongAnswers = 0; tips = 0; }
     if (message.type == "size"/* && mode == "normal"*/) {
+      if (tips == -1 && wrongAnswers == -1/*player.points.length == 0*/) inRound = true;
       size = message.data;
-      layout();
+      if (message.layout) {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
     }
     if (message.type == "vote") {
       vote.push(message.data);
       if (vote.length >= player.total) {
         if (vote.length == player.total) {
+          wrongAnswers = -1;
+          tips = -1;
           amount = 0;
           voting.style.display = "none";
           player.requiredPoints = 0;
@@ -142,7 +190,7 @@
           player.requiredPoints = player.requiredPoints/vote.length;
           if (player.myNumber == 0) {
             setTimeout(function () {
-              createNewSize();
+              createNewSize(true);
             }, 1000);
         }
       }
@@ -169,7 +217,7 @@
               }
             });
               setTimeout(function () {
-                createNewSize();
+                createNewSize(true);
               }, 1000);
           }
         }
@@ -180,21 +228,24 @@
     if (checked) pointsRequiredT.value = 10 + (player.total - 2)*2;
     else pointsRequiredT.value = 5 + (player.total - 2)
   }
-  var tips = 0;
+  var tips = -1;
   var amount = 0;
   var size = {};
-  var wrongAnswers = 0;
+  var wrongAnswers = -1;
   function fill() {
     shapeReached = [];
-    for (var i = 0; i < amount; i++) {
-      showResults(0, 0, i, 0);
-      canvas.fillStyle = "black";
-      canvas.font = "30px Georgia";
-      if (i == player.myNumber) canvas.fillStyle = "#0B99B6";
-      if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
-      else if (i < player.total) canvas.fillText("0", 60 + 188*i, 77);
-    }
+    setTimeout(function () {
+      for (var i = 0; i < amount; i++) {
+        showResults(0, 0, i, 0);
+        canvas.fillStyle = "black";
+        canvas.font = "30px Georgia";
+        if (i == player.myNumber) canvas.fillStyle = "#0B99B6";
+        if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
+        else if (i < player.total) canvas.fillText("0", 60 + 188*i, 77);
+      }
+    }, 700);
     readyB.style.display = "inline";
+    if (player.myNumber == 0) createNewSize();
   }
   function confirmVote() {
     confirmVoteB.style.display = "none";
@@ -216,21 +267,23 @@ newShapes++;
   var mostPix;
   var newShapes = 0;
   function checkSizeDifference() {
-    layout(data);
+    layout(data, checkCanvas);
     mostPix = {number: 0, i: -1};
     for (var i = 0; i < amount; i++) {
-      if (valueShapes()[i] > mostPix.number) {mostPix.number = valueShapes()[i]; mostPix.i = i;}
+      if (valueShapes(checkCanvas)[i] > mostPix.number) {mostPix.number = valueShapes(checkCanvas)[i]; mostPix.i = i;}
     }
     if (!((newShapes/100 + "").includes("."))) {
       console.log("too many new shapes rendert!");
       for (var i = 0; i < amount; i++) {
         createShape(i);
       }
-      layout(data);
+      layout(data, checkCanvas);
     }
     var gotIt = 0;
     for (var i = 0; i < amount; i++) {
-      if (mostPix.number - valueShapes()[i] > 333 || mostPix.number - valueShapes()[i] < - 333) {createShape(i); checkSizeDifference();}
+      if (mostPix.number - valueShapes(checkCanvas)[i] > 333 || mostPix.number - valueShapes(checkCanvas)[i] < - 333) {
+        newShapesList.push({i: i})//createShape(i); checkSizeDifference();
+      }
       else gotIt++;
     }
     if (gotIt == amount) {
@@ -239,14 +292,40 @@ newShapes++;
     room.send({
       message: {
         "type": "mostPix",
-        "data": mostPix
+        "data": mostPix,
+        first: globalFirst
       }
     });
+    newShapesFinished();
   }
   }
   var data;
-  function createNewSize() {
+  var newShapesList = [];
+  var shapeListInt = setInterval(shapeListFun, 333);
+  function shapeListFun() {
+    if (newShapesList.length > 0) {
+      createShape(newShapesList[0].i);
+      newShapesList.shift();
+      if (tips == -1 || loading.boolean) {
+        for (var i = 0; i < newShapesList.length; i++) {
+          shapeListFun();
+        }
+      }
+      if (!((newShapes/100 + "").includes("."))) {
+        console.log("too many new shapes rendert!");
+        for (var i = 0; i < amount; i++) {
+          createShape(i);
+        }
+        layout(data, checkCanvas);
+      }
+      /*else */if (newShapesList.length == 0) checkSizeDifference();
+    }
+  }
+  var globalFirst = true;
+  function createNewSize(first) {
+    globalFirst = first;
     newShapes = 0;
+    console.log("creating new size...");
     if (mode == "differentShapes") {
       data = {points: []};
       for (var i = 0; i < amount; i++) {
@@ -260,6 +339,7 @@ newShapes++;
       for (var i = 0; i < amount; i++) {
         data.width.push(Math.round(Math.random() *122) + 50);
         data.height.push(umfang - data.width[i] - Math.round(Math.random() *33) - 27)
+        newShapesFinished();
         // data.height.push(Math.round(Math.random() *88) + 50);
         // var highest = {width: {number: 0, i: -1}, height: {number: 0, i: -3}}
         // var lowest = {width: {number: 200, i: -2}, height: {number: 200, i: -4}}
@@ -277,23 +357,18 @@ newShapes++;
         // if (i > 0 && (highest.width.i == highest.height.i || lowest.width.i == lowest.height.i/* || prettyHigh.width.includes(i) ||prettyHigh.height.includes(i) || (i > 0 && (data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] > 7333 || data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] < -7333))  /*(i > 0 && ((data.width[i] - data.width[i - 1] < 10) && (data.height[i] - data.width[i-1] < 10)))*/)) {i--; data.width.pop(); data.height.pop();};
       }
     }
+  }
+  function newShapesFinished() {
+    console.log("new shape created!");
     room.send({
       message: {
         "type": "size",
-        "data": data
+        "data": data,
+        layout: globalFirst
       }
     });
+    if (globalFirst) createNewSize();
   }
-  // function spielerwechsel() {
-  //   player.aktuell++;
-  //   if (player.aktuell == player.total) player.aktuell = 0;
-  //   room.send({
-  //     message: {
-  //       "type": "Reihenfolge",
-  //       data: player.aktuell
-  //     }
-  //   });
-  // }
   var filled = 0;
   function showResult(gewinner, times) {
     if (times == 0) {
@@ -343,7 +418,7 @@ newShapes++;
       }
     });
   }
-  function valueShapes() {
+  function valueShapes(canvas) {
     var values = [];
     for (var i = 0; i < amount; i++) {
       // canvas.fillStyle = "red";
@@ -417,30 +492,38 @@ newShapes++;
     canvas.fillRect(20 + 10 + 188*i + time, 20 + (highest.number - size.height[i]) + size.height[i] - i1, 1, 1);
     time++;
     if (time == size.width[i] - 10) {i1++; time = 0;}
-    if (i1 == size.height[i] + 1) console.log("finishedResult " + i);
+    if (i1 == size.height[i] + 1) {
+      console.log("finishedResult " + i);
+      visualisationFinished++;
+      //if (visualisationFinished == amount) mostPixBleibt = JSON.parse(JSON.stringify(mostPix));
+    }
     else if (time == 0) {
       setTimeout(function () {
-        if (!inRound) showResults(time, i1, i, highestTime);
+        if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+        if (!inRound || (!loading.restarted && loading.boolean)) loading.restarted = true;
       }, highestTime);
     }
     else {
       if (highestTime < time) {
         highestTime = time;
       }
-      if (!inRound) showResults(time, i1, i, highestTime);
+      if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+      if ((!loading.restarted && loading.boolean)) loading.restarted = true;
     }
   }
   else {
+    if (i == mostPixBleibt.i) canvas.fillStyle = "#40FF00";
+    else canvas.fillStyle = "red";
+    imageData = canvas.getImageData(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    red = imageData.data[0];
+    green = imageData.data[1];
+    blue = imageData.data[2];
+    alpha = imageData.data[3];
     // canvas.fillStyle = "blue";
     // canvas.fillRect(20 + 188*i + time, 20 + 188 - i1, 1, 1);
-    if (i == mostPix.i) canvas.fillStyle = "#40FF00";
-    else canvas.fillStyle = "red";
-    data = canvas.getImageData(20 + 188*i + time, 20 + 188 - i1, 1, 1);
-    red = data.data[0];
-    green = data.data[1];
-    blue = data.data[2];
-    alpha = data.data[3];
-    if (red == 0 && green == 0 && blue == 0) canvas.fillRect(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    if (red == 0 && green == 0 && blue == 0) {
+      canvas.fillRect(20 + 188*i + time, 20 + 188 - i1, 1, 1);
+    }
     time++;
     if (time == 188)
     {i1++; time = 0;}
@@ -449,22 +532,26 @@ newShapes++;
       if (!((!((i1/10 + "").includes(".")) && time == 0)) && !shapeReached.length == amount) time--;
       if (!((!((i1/10 + "").includes(".")) && time == 0)) && !shapeReached[i]) shapeReached[i] = true;
       setTimeout(function () {
-        if (!inRound) showResults(time, i1, i, highestTime);
+        if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+        if (!inRound || (!loading.restarted && loading.boolean)) loading.restarted = true;
       }, 1);
     }
     // else if ((!((i1/10 + "").includes(".")) && time == 0)) {
     //   setTimeout(function () {
-    //     if (!inRound) showResults(time, i1, i, highestTime);
+    //     if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+    // if (!inRound || (!loading.restarted && loading.boolean)) loading.restarted = true;
     //   }, 1);
     // }
     else {
-      if (!inRound) showResults(time, i1, i, highestTime);
+      if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+      if (!inRound || (!loading.restarted && loading.boolean)) loading.restarted = true;
     }
   }
   }
   var shapeReached = [];
   var highest;
-  function layout(point) {
+  var visualisationFinished = 0;
+  function layout(point, canvas) {
     canvas.fillStyle = "#FFBF00";
     canvas.fillRect(0, 0, textur.width, textur.height);
     if (mode == "normal") {
@@ -519,6 +606,11 @@ newShapes++;
       inRound = false;
     }
     else if (mode != "normal" && inRound && checkSelected() != undefined) {
+      mostPix = {number: 0, i: -1};
+      for (var i = 0; i < amount; i++) {
+        if (valueShapes(canvas)[i] > mostPix.number) {mostPix.number = valueShapes(canvas)[i]; mostPix.i = i;}
+      }
+      mostPixBleibt = JSON.parse(JSON.stringify(mostPix));
       if (mostPix.i == checkSelected()) {
         rightAnswer(coordinate);
       }
@@ -572,7 +664,7 @@ newShapes++;
   }
   function checkSelected() {
       for (var i = 0; i < amount; i++) {
-        if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/ /* && yMaus > 19 && yMaus */) return i;
+        if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/  && yMaus < 250) return i;
       }
   }
 
