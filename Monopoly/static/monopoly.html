@@ -416,11 +416,11 @@
     }
     if (message.type == "gebotBeendet") {
       spieler[spielerIch].coverMoney = false;
-      if (AblageListe[4][1] && AblageListe[4][1] > 0 && spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
-      else if (spielerIch == spielerAktuell && /*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
-      else if (spielerIch == spielerAktuell && /*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
-      if (spielerIch == spielerAktuell && afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
-      if (spielerIch == spielerAktuell && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
+      if (AblageListe[4][1] && AblageListe[4][1] > 0 && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
+      else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
+      else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
+      if (afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"] == "warten auf Gebot") AblageListe[4][0] = "beendet";
+      if (afterNixDa["Warten Bezahlen Gegner"] && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
       // else AblageListe[4][0] = "beendet";
       //checkRundenende();
     }
@@ -441,10 +441,11 @@
       alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
   //    datenAktuallisieren();
     }
-    else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1) {
+    else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch/* + 1*/) {
       spieler[spielerIch].einkommen[0] += message.data[0][1];
       spieler[spielerIch].einkommen.push(message.data[0][1]);
     }
+      if (message.type == "gebotBeendet" && message.gleichstand == "u") alert("Da ein Spieler zu wenig Geld hatte, um an der Versteigerung teilnehmen zu können, wird die Straße an niemanden gegeben.");
       if (message.type == "gebotBeendet" && spielerIch == spielerAktuell) {
       if (ereignis == "Geburtstag")  {
         GeburtstagFunction();
@@ -742,16 +743,17 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     zählerListe[0] = 0;
     zählerListe[1] = 0;
     if (AblageListe[0] != "aus Gebot aussteigen") AblageListe[0] = "";
-
+    var niemandKriegtDieKarte = false;
     while (zählerListe[0] < AnzahlSpieler) {
       console.log(AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0]);
       if (zählerListe[0] != spielerAktuell && /*AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == 0 || (AblageListe[1][2] == spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0])*/ AblageListe[1][2] ==
         spielerIch == false && spieler[spielerIch].einkommen[0] == spieler[zählerListe[0]].einkommen[0]) {
         zählerListe[1]++;
       }
+      if (spieler[zählerListe[0]].einkommen[0] < AblageListe[1][0][1] && AblageListe[1][2] != zählerListe[0]) niemandKriegtDieKarte = true;
       zählerListe[0]++;
     }
-    if (zählerListe[1] >= AnzahlSpieler - 1 || spieler[spielerIch].einkommen[0] < AblageListe[1][0][1]) {
+    if (zählerListe[1] >= AnzahlSpieler - 1 || /*spieler[spielerIch].einkommen[0] < AblageListe[1][0][1]*/niemandKriegtDieKarte) {
       console.log("Niemand kriegt die Karte");
       AblageListe[0] = ["aus Gebot aussteigen", "niemandKriegtSie"];
     }
@@ -766,7 +768,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     if (zählerListe[1] < 2 || AblageListe[0][1] == "niemandKriegtSie") {
       //  AblageListe[1][1][spielerIch + 1] = false;
       console.log("Gebot beenden");
-      if (AblageListe[0][1] != "niemandKriegtSie") AblageListe[0] = "aus Gebot aussteigen";
+      if (AblageListe[0][1] != "niemandKriegtSie") {
+        AblageListe[0] = "aus Gebot aussteigen";
       zählerListe[0] = 1;
       while (zählerListe[0] < AblageListe[1][1].length) {
         if (AblageListe[1][1][zählerListe[0]] == true) {
@@ -774,6 +777,10 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
         zählerListe[0]++;
       }
+    }
+    else {
+      zählerListe[1] = AblageListe[1][2];
+    }
       room.send({
         message: {
           "type": "gebotBeendet",
