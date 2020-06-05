@@ -166,11 +166,12 @@ class monopolyKartenspiel {
         ["Z Ereigniskartekarte", "Übernahme", "Stehlen sie einem Gegner einen vollständigen Kartensatz.", 5],
         ["Z Ereigniskartekarte", "Übernahme", "Stehlen sie einem Gegner einen vollständigen Kartensatz.", 5],
 
-        ["Z Ereigniskarte", "Haus", "Auf vollständigen Karten- satz legen. Erhöht Miete um 3€", 3],
-        ["Z Ereigniskarte", "Haus", "Auf vollständigen Karten- satz legen. Erhöht Miete um 3€", 3],
-        ["Z Ereigniskarte", "Haus", "Auf vollständigen Karten- satz legen. Erhöht Miete um 3€", 3],
-        ["Z Ereigniskarte", "Hotel", "Auf vollständigen Karten- satz legen. Erhöht Miete um 4€", 4],
-        ["Z Ereigniskarte", "Hotel", "Auf vollständigen Karten- satz legen. Erhöht Miete um 4€", 4],
+        ["Z Ereigniskarte", "Haus", "✅ unvollständiger Karten- satz. Miete +1€ absteigend", 2],
+        ["Z Ereigniskarte", "Haus", "✅ unvollständiger Karten- satz. Miete +1€ absteigend", 2],
+        ["Z Ereigniskarte", "Haus", "✅ unvollständiger Karten- satz. Miete +1€ absteigend", 2],
+        ["Z Ereigniskarte", "Hotel", "✅ unvollständiger Karten- satz. Miete +2€ absteigend", 3],
+        ["Z Ereigniskarte", "Hotel", "✅ unvollständiger Karten- satz. Miete +2€ absteigend", 3],
+        ["Z Ereigniskarte", "Hotel", "✅ unvollständiger Karten- satz. Miete +2€ absteigend", 3],
 
         ["Straße", 3, [2, 4, 6], "Schiller Straße", "yellow"],
         ["Straße", 3, [2, 4, 6], "Lessing Straße", "yellow"],
