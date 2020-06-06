@@ -336,7 +336,6 @@
       }
     }
     if (message.type == "gewonnen") {
-      showResults(message.data, 0);
       setTimeout(function () {
         if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/dieMaulwurfCompany.html angucken.")) {
           if (localStorage.getItem("playBacksDieMaulwurfCompany")) var replays = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"));
@@ -345,6 +344,7 @@
           localStorage.setItem("playBacksDieMaulwurfCompany", JSON.stringify(replays));
         }
       }, 2222);
+      showResults(message.data, 0);
       /* removeGame(true);*/
       room.send({
         message: {
@@ -450,7 +450,7 @@
         localStorage.setItem("ReihenfolgeListDieMaulwurfCompany", JSON.stringify(ReihenfolgeList));
       }, 1500);
       if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
-        spielerKommtDran();
+        spielerKommtDran(); // debugcheck
       }
       room.send({
         message: {
@@ -647,19 +647,19 @@
     //     sound: sound
     //   }
     // });
+    if (wholesFilled == wholes && fieldAktuell != 3) {
+      room.send({ //checkdebug
+        message: {
+          "type": "nextField"
+        }
+      });
+    }
     room.send({
       message: {
         "type": "Spielerwechsel",
         data: Reihenfolge
       }
     });
-    if (wholesFilled == wholes && fieldAktuell != 3) {
-      room.send({
-        message: {
-          "type": "nextField"
-        }
-      });
-    }
   }
   function gewonnenCheck() {
     var highest = {player: -1, anzahl: 0};
