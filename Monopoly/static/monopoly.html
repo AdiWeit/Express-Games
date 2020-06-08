@@ -16,10 +16,30 @@
   <td>Row3 cell2</td>
 </tr> -->
 </table>
-<input type="text" id="message" placeholder="message">
+<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<input type="checkbox" id="anonymSchreiben"> <h3 id="anonymSchreibenT">anonym schreiben</h3>
+<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
 <meta charset="utf-8">
 <script>
+  var textBoxSelected = false
+  message.style.position = "absolute";
+  document.getElementById('submit').style.position = "absolute";
+  anonymSchreiben.style.position = "absolute";
+  document.getElementById('zeichenZuEmogis').style.position = "absolute";
+  anonymSchreibenT.style.position = "absolute";
+  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
+  message.style.top = "793";
+  document.getElementById('submit').style.top = "793";
+  document.getElementById('submit').style.left = "185";
+  anonymSchreiben.style.top = "793";
+  zeichenZuEmogis.style.top = "793";
+  anonymSchreiben.style.left = "233";
+  zeichenZuEmogis.style.left = "402";
+  anonymSchreibenT.style.top = "773";
+  zeichenZuEmogisT.style.top = "773";
+  anonymSchreibenT.style.left = "253";
+  zeichenZuEmogisT.style.left = "420";
   window.onbeforeunload = function(){
     console.log("Leave Website");
       sendJson('/monopoly/logout', {clientId});
@@ -165,7 +185,8 @@
   }
 
   function submit() {
-    messages.push(document.getElementById('message').value);
+    if (anonymSchreiben.checked) messages.push(document.getElementById('message').value);
+    else messages.push(spieler[spielerIch].name + ": " +  document.getElementById('message').value);
     room.send({
       message: {
       type: "messages",
@@ -174,7 +195,7 @@
     }
     });
     setTimeout(function () {
-        window.scroll(scrollX, 10000)
+        //window.scroll(scrollX, 10000)
         document.getElementById('message').select();
     }, 3000);
   }
@@ -928,15 +949,15 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       //   window.scroll(scrollX, 73);
       // }, 1777);
     }
-
-  if (event.keyCode == 39 && scrollX > 334) {
+    if (event.key == "Enter" && textBoxSelected) submit();
+  if (event.keyCode == 39 && scrollX > 334 && !textBoxSelected) {
     window.scroll(scrollX + 250 - 44, scrollY);
   //  335 + 250 * karten.length > x
   }
-  else if (event.keyCode == 39) {
+  else if (event.keyCode == 39 && !textBoxSelected) {
     window.scroll(335 - 40, scrollY);
   }
-  if (event.keyCode == 37 && scrollX > 334) {
+  if (event.keyCode == 37 && scrollX > 334 && !textBoxSelected) {
     window.scroll(scrollX - 250 + 44, scrollY);
   }
    if (event.keyCode == 37 && scrollX < 335 + (250 - 44) *2) {
@@ -985,6 +1006,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   // canvas.fillRect(1330, 520, 200 + 18, 60);
   window.addEventListener('DOMContentLoaded', f, false)
   window.addEventListener('mousedown', function() {
+    textBoxSelected = false;
     // canvas.fillRect(15, 520, 200 + 18, 60);
   /*  if ((spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false && textButton == "Spielfeld") || !(spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined)) {
 
@@ -1083,7 +1105,11 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         AblageListe[4][0] = "eine Schlau Geklaut Karte";
       } else {
         nixDaType = "eine Schlau Geklaut Karte";
+        afterNixDa["AblageListe[2]"] = AblageListe[2];
+        afterNixDa["AblageListe[3]"] = AblageListe[3];
         setTimeout(function () {
+          AblageListe[2] = JSON.parse(JSON.stringify(["AblageListe[2]"]));
+          AblageListe[3] = JSON.parse(JSON.stringify(["AblageListe[3]"]));
           schlauGeklaut();
           if (AblageListe[4][0] == "Schlau Geklaut") AblageListe[4][0] = "beendet";
           nixDaType = "beendet";
@@ -2004,9 +2030,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       }
     } else if (spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length > 1) {
-      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length] = spieler[spielerIch].kartenMitte[AblageListe[2]];
-      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1][3] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0);
+      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length] = JSON.parse(JSON.stringify(spieler[spielerIch].kartenMitte[AblageListe[2]]));
+      spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1][3] = JSON.parse(JSON.stringify(spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0)));
       spieler[spielerIch].kartenMitte[AblageListe[2]][5].pop();
+      while (spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1][5].length > 1) {
+        spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1][5].pop();
+      }
     } else {
       spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length] = spieler[spielerIch].kartenMitte[AblageListe[2]];
       spieler[spielerIch].kartenMitte.splice(AblageListe[2], 1);
@@ -2040,9 +2069,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       }
     } else if (spieler[AblageListe[3]].kartenMitte[AblageListe[2]] == undefined == false && spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length > 1) {
-      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
-      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][3] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0);
+      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = JSON.parse(JSON.stringify(spieler[AblageListe[3]].kartenMitte[AblageListe[2]]));
+      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][3] = JSON.parse(JSON.stringify(spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5][spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length - 1].slice(0)));
       spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].pop();
+      while (spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][5].length > 1) {
+        spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][5].pop();
+      }
     } else {
       spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
       spieler[AblageListe[3]].kartenMitte.splice(AblageListe[2], 1);
@@ -2417,11 +2449,20 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
 }
 var i;
 function showChat() {
+  canvas.fillStyle = "#DF7401";
+  canvas.fillRect(33, 800, textur.width, textur.height - 800);
   for (var i = 0; i < messages.length; i++) {
     // if (!(messages[messages.length - 1 - i] == undefined)) {
     canvas.fillStyle = "white";
     canvas.font = "33px Georgia";
-    canvas.fillText(messages[messages.length - 1 - i], 33, 822 + 44*i);
+    var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
+    var emojiObj = {":)": "😊", ":(": "😞", "xd": "😛", "XD": "😆", ":o": "😲"};
+    if (zeichenZuEmogis.checked) {
+      for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+        messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+      }
+    }
+    canvas.fillText(messagesBearbeitet, 33, 822 + 11 + 44*i);
   }
   }
   function koordinatenCheck(wantReturn) {
