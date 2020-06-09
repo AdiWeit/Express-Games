@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
 <h2 id="aktivitätstext"></h2>
 <canvas id="textur" width="2570" height="800"></canvas>
 <input type="text" id="message" placeholder="message">
@@ -1163,6 +1164,10 @@ function checkAndromeda() {
           }
           canvas.fillStyle = "#FF8000"; //Farbe
           if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
+          if (KartenAusgewählt.length > 0 ) {
+            if (farbenGebraucht[0].includes(kartenSpieler1[zähler][2]) || kartenSpieler1[zähler][2] == "silver") canvas.fillStyle = "#00FF00";
+          }
+          if (KartenAusgewählt.length > 0 && ((KartenAusgewählt[0] == zähler && angular.equals(AblageListe[3], kartenSpieler1[zähler])) || angular.equals(AblageListe[3], kartenSpieler1[zähler]))) canvas.fillStyle = "#FF0080";
           canvas.fillRect(Koordinaten[0], 390 + 88, 180, 250)
           canvas.fillStyle = kartenSpieler1[zähler][2]; //Farbe
           canvas.fillRect(Koordinaten[0] + 20, 410 + 88, 140, 207)
@@ -1231,6 +1236,10 @@ function checkAndromeda() {
       while (zähler < kartenSpieler2.length) { //console.log(01234567890);
         canvas.fillStyle = "#FF8000"; //Farbe
         if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
+        if (KartenAusgewählt.length > 0) {
+          if (farbenGebraucht [0].includes(kartenSpieler2[zähler][2]) || kartenSpieler2[zähler][2] == "silver") canvas.fillStyle = "#00FF00";
+        }
+        if (KartenAusgewählt.length > 0 && KartenAusgewählt[0] == zähler) canvas.fillStyle = "#FF0080";
         canvas.fillRect(Koordinaten[0], 390 + 88 - 475, 180, 250)
         canvas.fillStyle = kartenSpieler2[zähler][2]; //Farbe
         canvas.fillRect(Koordinaten[0] + 20, 410 + 88 - 475, 140, 207)
@@ -1366,7 +1375,11 @@ function checkAndromeda() {
       }
     }
   }
-
+  function removeColourBezahlen(colour) {
+    for (var i = 0; i < farbenGebraucht[0].length; i++) {
+      if (farbenGebraucht[0][i] == colour) {farbenGebraucht[0].splice(i, 1); i--;}
+    }
+  }
   function readMouseMove(e) {
     xMaus = e.clientX + hinzufügenXMaus;
     yMaus = e.clientY + hinzufügenYMaus + 23;
@@ -1797,36 +1810,44 @@ function checkAndromeda() {
             if (SteineIch[zählerListe[9]] == "#FF8000" == false || kartenSpieler1[AblageListe[1]][7] == undefined) {
               if (zählerListe[9] < 4 == false && (kartenSpieler1[AblageListe[1]][2] == "yellow" || AblageListe[7] == "yellow") && farbenGebraucht[4].length > 0) {
                 farbenGebraucht[4].pop();
+                if (farbenGebraucht[4].length == 0) removeColourBezahlen("yellow");
                 kartenSpieler1[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler1[AblageListe[1]][2] == "red" || AblageListe[7] == "red") && farbenGebraucht[1].length > 0) {
                 farbenGebraucht[1].pop();
+                if (farbenGebraucht[1].length == 0) removeColourBezahlen("red");
                 kartenSpieler1[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler1[AblageListe[1]][2] == "green" || AblageListe[7] == "green") && farbenGebraucht[2].length > 0) {
                 farbenGebraucht[2].pop();
+                if (farbenGebraucht[2].length == 0) removeColourBezahlen("green");
                 kartenSpieler1[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler1[AblageListe[1]][2] == "blue" || AblageListe[7] == "blue") && farbenGebraucht[3].length > 0) {
                 farbenGebraucht[3].pop();
+                if (farbenGebraucht[3].length == 0) removeColourBezahlen("blue");
                 kartenSpieler1[AblageListe[1]] = "z";
               }
               if (kartenSpieler1[SteineIch[zählerListe[9]]] == true) {
                 var passenderStein = false;
                 if ([SteineIch[zählerListe[9]]] == "red" && farbenGebraucht[1].length > 0) {
                   farbenGebraucht[1].pop();
+                  if (farbenGebraucht[1].length == 0) removeColourBezahlen("red");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "green" && farbenGebraucht[2].length > 0) {
                   farbenGebraucht[2].pop();
+                  if (farbenGebraucht[2].length == 0) removeColourBezahlen("green");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "blue" && farbenGebraucht[3].length > 0) {
                   farbenGebraucht[3].pop();
+                  if (farbenGebraucht[3].length == 0) removeColourBezahlen("blue");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "yellow" && farbenGebraucht[4].length > 0) {
                   farbenGebraucht[4].pop();
+                  if (farbenGebraucht[4].length == 0) removeColourBezahlen("yellow");
                   passenderStein = true;
                 }
                 if (zählerListe[9] < 4 && passenderStein) {
@@ -1862,36 +1883,44 @@ function checkAndromeda() {
             if (SteineIch[zählerListe[9]] == "#FF8000" == false || kartenSpieler2[AblageListe[1]][7] == undefined) {
               if (zählerListe[9] < 4 == false && (kartenSpieler2[AblageListe[1]][2] == "yellow" || AblageListe[7] == "yellow") && farbenGebraucht[4].length > 0) {
                 farbenGebraucht[4].pop();
+                if (farbenGebraucht[4].length == 0) removeColourBezahlen("yellow");
                 kartenSpieler2[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler2[AblageListe[1]][2] == "red" || AblageListe[7] == "red") && farbenGebraucht[1].length > 0) {
                 farbenGebraucht[1].pop();
+                if (farbenGebraucht[1].length == 0) removeColourBezahlen("red");
                 kartenSpieler2[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler2[AblageListe[1]][2] == "green" || AblageListe[7] == "green") && farbenGebraucht[2].length > 0) {
                 farbenGebraucht[2].pop();
+                if (farbenGebraucht[2].length == 0) removeColourBezahlen("green");
                 kartenSpieler2[AblageListe[1]] = "z";
               }
               if (zählerListe[9] < 4 == false && (kartenSpieler2[AblageListe[1]][2] == "blue" || AblageListe[7] == "blue") && farbenGebraucht[3].length > 0) {
                 farbenGebraucht[3].pop();
+                if (farbenGebraucht[3].length == 0) removeColourBezahlen("blue");
                 kartenSpieler2[AblageListe[1]] = "z";
               }
               if (kartenSpieler2[SteineIch[zählerListe[9]]] == true) {
                 var passenderStein = false;
                 if ([SteineIch[zählerListe[9]]] == "red" && farbenGebraucht[1].length > 0) {
                   farbenGebraucht[1].pop();
+                  if (farbenGebraucht[1].length == 0) removeColourBezahlen("red");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "green" && farbenGebraucht[2].length > 0) {
                   farbenGebraucht[2].pop();
+                  if (farbenGebraucht[2].length == 0) removeColourBezahlen("green");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "blue" && farbenGebraucht[3].length > 0) {
                   farbenGebraucht[3].pop();
+                  if (farbenGebraucht[3].length == 0) removeColourBezahlen("blue");
                   passenderStein = true;
                 }
                 if ([SteineIch[zählerListe[9]]] == "yellow" && farbenGebraucht[4].length > 0) {
                   farbenGebraucht[4].pop();
+                  if (farbenGebraucht[4].length == 0) removeColourBezahlen("yellow");
                   passenderStein = true;
                 }
                 if (zählerListe[9] < 4 && passenderStein) {
@@ -2087,14 +2116,14 @@ function checkAndromeda() {
       AblageListe[4] = "beendet";
     }
 
-    if (AblageListe[2] == "Spieler1eigeneEinheitNeuHinlegen" && MitteSpieler1[AblageListe[1]][0] == "z") {
+    if (AblageListe[2] == "Spieler1eigeneEinheitNeuHinlegen" && MitteSpieler1[AblageListe[1]] && MitteSpieler1[AblageListe[1]][0] == "z") {
       MitteSpieler1[AblageListe[1]] = AblageListe[11];
       AblageListe[2] = "beendet";
       AblageListe[9] = AblageListe[1];
       nachAngriffBeenden();
       //  AblageListe[4] = "beendet";
     }
-    if (AblageListe[2] == "Spieler2eigeneEinheitNeuHinlegen" && MitteSpieler2[AblageListe[1]][0] == "z") {
+    if (AblageListe[2] == "Spieler2eigeneEinheitNeuHinlegen" && MitteSpieler2[AblageListe[1]] && MitteSpieler2[AblageListe[1]][0] == "z") {
       MitteSpieler2[AblageListe[1]] = AblageListe[11];
       AblageListe[2] = "beendet";
       AblageListe[9] = AblageListe[1];
@@ -2199,7 +2228,7 @@ function checkAndromeda() {
         } else {
           Spielerwechsel();
           AblageListe[4] = "beendet"
-          AblageListe[2] = "beendet"
+          if (AblageListe[2] != "Spieler2eigeneEinheitNeuHinlegen") AblageListe[2] = "beendet"
           room.send({
             message: {
               "type": "syncData",
@@ -2225,7 +2254,7 @@ function checkAndromeda() {
         } else {
           Spielerwechsel();
           AblageListe[4] = "beendet"
-          AblageListe[2] = "beendet"
+          if (AblageListe[2] != "Spieler1eigeneEinheitNeuHinlegen") AblageListe[2] = "beendet"
           room.send({
             message: {
               "type": "syncData",
@@ -3825,6 +3854,7 @@ function checkAndromeda() {
   }
 
   function Spielerwechsel() {
+    if (AblageListe[2] != "Spieler2eigeneEinheitNeuHinlegen" && AblageListe[2] != "Spieler1eigeneEinheitNeuHinlegen") {
     zählerListe[8] = 0;
     Sperren[2] = false
     Sperren[3] = false;
@@ -3902,6 +3932,7 @@ function checkAndromeda() {
     });
     AblageListe[2] = "beendet";
     AblageListe[12] = "beendet";
+  }
   }
 
 function gegnerKarteZiehen() {
