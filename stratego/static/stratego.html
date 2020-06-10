@@ -215,7 +215,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     else if (message.type.includes("player") && message.rejoin) {
       room.send({
-        mesconfirmsage: {
+        message: {
           "type": "endGame"
         }
       });
