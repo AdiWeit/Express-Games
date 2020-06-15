@@ -147,7 +147,9 @@
       }, 3777);
     };
     if (message.type == "AnzahlSpieler") AnzahlSpieler = message.data;
-    if (message.type == "kartenAbgelegt") {spieler.kartenAbgelegt = message.data; Layout(0)}
+    if (message.type == "kartenAbgelegt") {
+      spieler.kartenAbgelegt = message.data; Layout(0)
+    }
     if (message.type == "plus" && message.empfänger == spielerIch)  getCard(spieler[spielerIch].cards, message.data);
     if (message.type == "gewonnen") showResults(message.data, 0);
     if (message.type == "spielerIch") {
@@ -168,7 +170,7 @@
         spieler[Object.keys(spieler)[i+4]] = message.data[1][i];
       }
       spielerAktuell = nextPlayer(spielerAktuell);
-      if (spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][1] == "aussetzen") spielerAktuell = nextPlayer(spielerAktuell);
+      if (spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][1] == "aussetzen" || ((spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1][1] == "Richtungswechsel" && AnzahlSpieler == 2))) spielerAktuell = nextPlayer(spielerAktuell);
       Layout(0)
       if (spielerAktuell == spielerIch) {
       new Audio("https://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3").play();
@@ -347,7 +349,7 @@ function playCard(data, card) {
     spieler.kartenAbgelegt.push(data);
     spieler[spielerIch].cards.splice([card], 1);
     //if (!(AnzahlSpieler == 2 && (data[1] == "Richtungswechsel"/* || data[1] == "aussetzen"*/)))  spielerwechsel();
-  /*else */if (/*data[1] == "aussetzen"/* || data[1] == "Richtungswechsel" ||*/ (data[1] == "Richtungswechsel" && AnzahlSpieler == 2)) spielerwechsel();
+  ///*else */if (/*data[1] == "aussetzen"/* || data[1] == "Richtungswechsel" ||*/ (data[1] == "Richtungswechsel" && AnzahlSpieler == 2)) spielerwechsel();
     // else /*if ()*/ {
       Layout(0);
       spielerwechsel();// autoZiehen();
