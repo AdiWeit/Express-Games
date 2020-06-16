@@ -138,10 +138,11 @@
       if (message.type == "playerName") player.names[message.number] = message.name;
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
-      if (localStorage.getItem("spieleOnlineKürzel") != "null" && localStorage.getItem("spieleOnlineKürzel") != "undefined") player.names[message.data] = localStorage.getItem("spieleOnlineKürzel");
+      if (localStorage.getItem("spieleOnlineKürzel") != "null" && localStorage.getItem("spieleOnlineKürzel") != null && localStorage.getItem("spieleOnlineKürzel") != "undefined") player.names[message.data] = localStorage.getItem("spieleOnlineKürzel");
       else {
         player.names[message.data] = prompt("bitte wählen sie ein 2 stelliges Kürzel! Ein Beispiel wäre Vorname + Nachname, oder umgekehrt.");
         localStorage.setItem("spieleOnlineKürzel", player.names[message.data]);
+        if (player.names[message.data] == null) player.names[message.data] = "!N";
       }
       room.send({
         message: {
