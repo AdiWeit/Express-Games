@@ -1158,7 +1158,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           nixDaType = "beendet";
         }, (Math.floor(Math.random() * 3333) + 2222));
       }
-    } else if (AblageListe[3] == spielerIch) alert("Von sich selber Geld zu verlangen ist Unsinn!");
+    } else if (AblageListe[3] == spielerIch && AblageListe[4][0] == "Geldhai" && AblageListe[3] < AnzahlSpieler) alert("Von sich selber Geld zu verlangen ist Unsinn!");
      else if (AblageListe[4][0] == "karteKlauen" && AblageListe[3] < AnzahlSpieler && AblageListe[3] == spielerIch == false) {
       if (spieler[AblageListe[3]].kartenMitte[AblageListe[2]][5].length == spieler[AblageListe[3]].kartenMitte[AblageListe[2]][2].length) {
         alert("Aus vollständigen Sätzen klauen ist leider nicht erlaubt!")
@@ -2234,7 +2234,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
             canvas.font = "28px Georgia";
             canvas.fillText(karten[zählerListe[1]][1].replace("- ", ""), koordinaten[1] + 550 + 123, 640 - koordinaten[2]);
             zählerListe[0] = 0;
-            if (!karten[zählerListe[1]][5]) AblageListe[0] = karten[zählerListe[1]][2].toString().split(' ');
+            if (!karten[zählerListe[1]][5] || karten[zählerListe[1]][5].length == 0) AblageListe[0] = karten[zählerListe[1]][2].toString().split(' ');
             else AblageListe[0] = karten[zählerListe[1]][5][0].toString().split(' ');
             koordinaten[0] = 660;
             while (AblageListe[0].length > 0) {
@@ -2253,7 +2253,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
             }
           } else {
             canvas.font = "30px Georgia";
-            if (!karten[zählerListe[1]][5]) AblageListe[0] = karten[zählerListe[1]][3].toString().split(' ');
+            if (!karten[zählerListe[1]][5] || karten[zählerListe[1]][5].length == 0) AblageListe[0] = karten[zählerListe[1]][3].toString().split(' ');
             else AblageListe[0] = karten[zählerListe[1]][5][0].toString().split(' ');
             zählerListe[0] = 0;
             koordinaten[0] = 635;
