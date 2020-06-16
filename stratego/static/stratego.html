@@ -967,7 +967,7 @@ function folgenKeyDown() {
   window.addEventListener('mousedown', function() {
     checkClickedField();
     // canvas.drawImage(Bild, 222, 300, 100, 100);
-    if (roundStatus[0] == "placePlayer" && xMaus > 222 && xMaus < 322 && yMaus > 300 && yMaus < 400) aufstellungSpeichern();
+    if (roundStatus[0] == "placePlayer" && xMaus > 222 && xMaus < 322 && yMaus > 300 && yMaus < 400 && confirm("Wollen sie die Aufstellung wirklich speichertn, obwohl sie noch nicht vollendet ist?")) aufstellungSpeichern();
     if (roundStatus[0] == "movePlayer" && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2 && roundStatus[1][0] == AblageListe[0][0] && roundStatus[1][1] == AblageListe[0][1]) FinishRound();
     if (!(roundStatus[1] == 12)) {
     if (roundStatus[0] == "placePlayer" && !(AblageListe[0] == "none") && !(roundStatus[1] == undefined) && player[roundStatus[1]].anzahl > 0 && ((myId == idsBleibt[0] && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)) && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false) {
