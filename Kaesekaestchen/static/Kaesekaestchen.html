@@ -79,7 +79,7 @@
     }
   };
 
-  var player = {colours: ["#40FF00", "#21D0D5", "red", "yellow"]};
+  var player = {colours: ["#40FF00", "#21D0D5", "red", "yellow"], names: []};
   var field = [];
   var canvas = textur.getContext('2d'); //Dimension
   function completedCheck(message) {
@@ -135,8 +135,21 @@
         localStorage.setItem("playerKaesekaestchen", JSON.stringify(player));
       }
       }
+      if (message.type == "playerName") player.names[message.number] = message.name;
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
+      if (localStorage.getItem("spieleOnlineKürzel") != "null" && localStorage.getItem("spieleOnlineKürzel") != "undefined") player.names[message.data] = localStorage.getItem("spieleOnlineKürzel");
+      else {
+        player.names[message.data] = prompt("bitte wählen sie ein 2 stelliges Kürzel! Ein Beispiel wäre Vorname + Nachname, oder umgekehrt.");
+        localStorage.setItem("spieleOnlineKürzel", player.names[message.data]);
+      }
+      room.send({
+        message: {
+          "type": "playerName",
+          number: player.myNumber,
+          name: player.names[message.data]
+        }
+      });
       if (!message.newRound && confirm("Es ist noch eine angefangene Runde gespeichert. Wollen sie die Runde fortsetzen?")) {
         field = JSON.parse(localStorage.getItem("fieldKaesekaestchen"));
         player = JSON.parse(localStorage.getItem("playerKaesekaestchen"));
@@ -315,7 +328,9 @@
       canvas.stroke();
       canvas.fillRect(10, 10 + 50*i, 10 + JSON.parse(fieldFormat.value)*50, 10);
       if (pointsPlayer[i] === undefined) pointsPlayer[i] = 0;
-      if (JSON.parse(fieldFormat.value) > 3) showPoints(i, ":" + pointsPlayer[i] + "P");
+      if (JSON.parse(fieldFormat.value) > 5) showPoints(i, ":" + pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
+      else if (JSON.parse(fieldFormat.value) > 4) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
+      else if (JSON.parse(fieldFormat.value) > 3) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0]);
       else if (JSON.parse(fieldFormat.value) > 2) showPoints(i, pointsPlayer[i] + "P");
       else showPoints(i, pointsPlayer[i] + "");
       canvas.fillStyle = "black";
@@ -338,8 +353,8 @@
   function showPoints(i1, text) {
     canvas.font = "33px Georgia";
     for (var i = 0; i < text.length; i++) {
-      if ((text[i] == "P" || !(isNaN(text[i]))) && i1 == player.aktuell) canvas.fillStyle = "red";
-      else if ((text[i] == "P" || !(isNaN(text[i]))) && i1 == player.myNumber) canvas.fillStyle = "blue";
+      if (/*(text[i] == "P" || !(isNaN(text[i]))) && */i1 == player.aktuell) canvas.fillStyle = "red";
+      else if (/*(text[i] == "P" || !(isNaN(text[i]))) && */i1 == player.myNumber) canvas.fillStyle = "blue";
       else canvas.fillStyle = "black";
       canvas.fillText(text[i], 30 + 50*(i + 1), 50 + 50*i1);
     }
