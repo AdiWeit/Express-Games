@@ -5,6 +5,11 @@
   {{ title }}
 </li>
 </div>
+<button type="button" onclick="play(true)" name="button">play/pause</button>
+<button type="button" onclick='aktuell = 0;' name="button">⟲</button>
+<h2>speed (right: slower)</h2>
+<input type="range" min="400" oninput="playing.speed = JSON.parse(value)" max="5555" value="2222" class="slider" id="sliderSpeed">
+<button type="button" id="backToNormal" onclick="playing.speed = 2222; sliderSpeed.value = 2222;" name="button">back to normal</button>
 <script>
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
@@ -61,7 +66,7 @@ var canvas = textur.getContext('2d'); //Dimension
     canvas.fillRect(Koordinaten[3] + 0, 190 + 88, 1585, 184)
     canvas.fillStyle = "white"
     canvas.font = "50px Georgia";
-    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+    if (temp.Siegpunkte[1] == SpielerIdBleibtBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
     } else if (temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
@@ -69,7 +74,7 @@ var canvas = textur.getContext('2d'); //Dimension
       canvas.fillText(temp.Siegpunkte[0], Koordinaten[3] + 17, 289 + 88);
     }
     if (temp.kartenZiehen < 7) {
-      if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+      if (temp.Siegpunkte[1] == SpielerIdBleibtBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
         canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
       } else if (temp.Siegpunkte[0] == 0 == false) {
         canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
@@ -311,7 +316,7 @@ var canvas = textur.getContext('2d'); //Dimension
   }
   function TextAktuell() {
     canvas.font = "50px Georgia";
-    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+    if (temp.Siegpunkte[1] == SpielerIdBleibtBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↓", Koordinaten[3] + 17, 289 + 88);
     } else if (temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↑", Koordinaten[3] + 17, 289 + 88);
@@ -392,7 +397,7 @@ var canvas = textur.getContext('2d'); //Dimension
 
     canvas.fillStyle = "white"
     canvas.font = "50px Georgia";
-    if (temp.Siegpunkte[1] == SpielerIdBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
+    if (temp.Siegpunkte[1] == SpielerIdBleibtBleibt[0] && temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↓", 17 + Koordinaten[3], 289 + 88);
     } else if (temp.Siegpunkte[0] == 0 == false) {
       canvas.fillText(temp.Siegpunkte[0] + "↑", 17 + Koordinaten[3], 289 + 88);
@@ -703,6 +708,7 @@ var canvas = textur.getContext('2d'); //Dimension
                   SpielerIds = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerIds;
                   SpielerIdsBleibt = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerIdsBleibt;
                   SpielerIdBleibt = SpielerIdsBleibt;
+                  SpielerIdBleibtBleibt = JSON.parse(JSON.stringify(SpielerIdsBleibt));
                   SpielerId = JSON.parse(localStorage.getItem("playBacksHeldenDesOlymp"))[this.innerText].SpielerId;
                   // myId = JSON.parse(localStorage.getItem("playBacksDieMaulwurfCompany"))[this.innerText].myId;
               };
@@ -713,6 +719,7 @@ var canvas = textur.getContext('2d'); //Dimension
           SpielerIds = [];
           SpielerIdsBleibt = [];
           SpielerIdBleibt = [];
+          var SpielerIdBleibtBleibt = [];
           SpielerId = "";
           var textButton = "Meine Karten";
           var zähler;
@@ -727,6 +734,7 @@ var canvas = textur.getContext('2d'); //Dimension
           document.onmousemove = readMouseMove
           var koordinatenCheck = setInterval(KoordinatenCheck, 700);
           function KoordinatenCheck() {
+            if (temp.SteineMitte) {
             Koordinaten[4] = 0;
             canvas.fillStyle = "white";
             canvas.fillRect(0, 0, 5000, 3735)
@@ -818,6 +826,7 @@ var canvas = textur.getContext('2d'); //Dimension
             } else {
               canvas.fillText("warten auf Gegner", scrollX + 1370, 383);
             }
+          }
           }
           window.addEventListener('mousedown', function() {
           if (xMaus - scrollX > 1380 && xMaus - scrollX < 1385 + 186 && yMaus > 427 && yMaus < 473) {
