@@ -3,8 +3,8 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
 <button type="button" onclick="play(true)" name="button">play/pause</button>
-⟲
-<select onmouseout="movementAktuell = -1; ebene = JSON.parse(value - 1);" id="restartEbene">
+<!-- ⟲ -->
+<select onmouseout="movementAktuell = 0; ebene = JSON.parse(value - 1);" id="restartEbene">
   <option value="1">1. Ebene</option>
   <option value="2">2. Ebene</option>
   <option value="3">3. Ebene</option>
@@ -190,6 +190,7 @@ else {
   function play(userInteraction) {
     if (userInteraction && playing.boolean) playing.boolean = false;
     else if (userInteraction) {playing.boolean = true;}
+    if (playing.boolean) {
     player = lists.player[ebene][movementAktuell];
     Reihenfolge = lists.reihenfolge[ebene][movementAktuell];
     if (movementAktuell == 0) {fields = JSON.parse(JSON.stringify(lists.spielfeld)); Layout();}
@@ -214,6 +215,7 @@ else {
    else {
      playing.boolean = false
    }
+ }
   }
 
   var items = document.querySelectorAll("#kathegorien"),
