@@ -363,6 +363,7 @@ setTimeout(function () {
     }
   }
   function showScores() {
+    guessObj.finished = true;
     guess.value = auswertungAnzahlKisten();
     cards[1] = [];
     cards[1][0] = [];
