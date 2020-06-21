@@ -102,14 +102,17 @@
     //  }
     if (message.type == "layout") {
       setTimeout(function () {
-        if (readyB.style.display == "none" && playerReadyList == player.total) {layout(undefined, canvas); inRound = true;}
-        layout(undefined, samecheckCanvas);
+        if (readyB.style.display == "none" && playerReadyList == player.total) {
+          layout(undefined, canvas);
+           inRound = true;
+           layout(undefined, samecheckCanvas);
+        }
       }, 500);
     }
     if (message.type == "mostPix") {
       mostPix = message.data;
       if (message.first) mostPixBleibt = message.data;
-        if (tips != -1 && angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas))) {
+        if (tips != -1 && loading.boolean == true/*angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas))*/) {
           room.send({
             message: {
               "type": "layout"
@@ -129,13 +132,14 @@
       if (playerReadyList == player.total) {
         layout(undefined, checkCanvas);
         layout(undefined, canvas);
+        if (mode == "normal") {createNewSize(); inRound = true;}
         loading = {boolean: false, restarted: false};
-        if (!(angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas)))) {
+        if (!(angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas))) && mode == "differentShapes") {
           inRound = true;
           if (tips != -1) layout(undefined, samecheckCanvas);
         }
-        else {
-          canvas.fillText("loading...", window.innerWidth/2, window.innerHeight/2);
+        else if (mode == "differentShapes") {
+          canvas.fillText("✿loading...", 222, 222);
           loading.boolean = true;
           setTimeout(function () {
             fill();
@@ -153,25 +157,34 @@
         confirmVote();
       }, 40000);
     }
-    if (message.type == "AnzahlSpieler") {pointsRequiredT.value = 10 + (message.data - 2)*2; player.total = message.data; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
+    if (message.type == "AnzahlSpieler") {winner = -1; player.total = message.data; pointsRequiredT.value = 5*player.total/*10 + (player.total - 2)*2;*/; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
     if (message.type == "onePoint") {
       playerReadyList = 0;
       if (!player.points[message.number]) player.points[message.number] = 0;
-      player.points[message.number] += player.total - tips;
       if (tips == -1) tips = 0;
+      if (mode == "differentShapes") player.points[message.number] += player.total - tips;
+      else player.points[message.number]++;
       if (wrongAnswers == -1) wrongAnswers = 0;
       tips++;
       if (mode == "normal" || tips + wrongAnswers == player.total || player.points[message.number] >= player.requiredPoints) {
       inRound = false;
       fill();
-      if (player.points[message.number] >= player.requiredPoints) showResult(message.number, 0);
+      if (player.points[message.number] >= player.requiredPoints && winner == -1) {
+        winner = message.number;
+        setTimeout(function () {
+          readyB.style.display = "none";
+        }, 11);
+        // setTimeout(function () {
+        //   showResult(winner, 0);
+        // }, 3333 + mostPix.number*17);
+      }
     }
     }
     //if (message.type == "size") {playerReadyList = 0; wrongAnswers = 0; tips = 0; }
     if (message.type == "size"/* && mode == "normal"*/) {
       if (tips == -1 && wrongAnswers == -1/*player.points.length == 0*/) inRound = true;
       size = message.data;
-      if (message.layout) {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
+      if (message.layout || mode == "normal") {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
     }
     if (message.type == "vote") {
       vote.push(message.data);
@@ -225,15 +238,17 @@
     }
   });
   function modeSelectionChanged(checked) {
-    if (checked) pointsRequiredT.value = 10 + (player.total - 2)*2;
+    if (checked) pointsRequiredT.value = 5*player.total//10 + (player.total - 2)*2;
     else pointsRequiredT.value = 5 + (player.total - 2)
   }
+  var winner = -1;
   var tips = -1;
   var amount = 0;
   var size = {};
   var wrongAnswers = -1;
   function fill() {
     shapeReached = [];
+    visualisationFinished = 0;
     setTimeout(function () {
       for (var i = 0; i < amount; i++) {
         showResults(0, 0, i, 0);
@@ -245,7 +260,7 @@
       }
     }, 700);
     readyB.style.display = "inline";
-    if (player.myNumber == 0) createNewSize();
+    if (player.myNumber == 0 && mode == "differentShapes") createNewSize();
   }
   function confirmVote() {
     confirmVoteB.style.display = "none";
@@ -262,6 +277,15 @@ for (var i1 = 0; i1 < 4 + Math.round(Math.random() *3); i1++) {
   data.points[i].push({x: Math.round(Math.random() *100) + 50, y: Math.round(Math.random() *100) + 50});
 }
 newShapes++;
+  //console.log("new shape created! (total of " + newShapes);
+  //console.log("check too many new shapes");
+  if (!((newShapes/100 + "").includes("."))) {
+    console.log("too many new shapes rendert!");
+    for (var i = 0; i < amount; i++) {
+      createShape(i);
+    }
+    layout(data, checkCanvas);
+  }
 }
 
   var mostPix;
@@ -271,13 +295,6 @@ newShapes++;
     mostPix = {number: 0, i: -1};
     for (var i = 0; i < amount; i++) {
       if (valueShapes(checkCanvas)[i] > mostPix.number) {mostPix.number = valueShapes(checkCanvas)[i]; mostPix.i = i;}
-    }
-    if (!((newShapes/100 + "").includes("."))) {
-      console.log("too many new shapes rendert!");
-      for (var i = 0; i < amount; i++) {
-        createShape(i);
-      }
-      layout(data, checkCanvas);
     }
     var gotIt = 0;
     for (var i = 0; i < amount; i++) {
@@ -306,20 +323,14 @@ newShapes++;
     if (newShapesList.length > 0) {
       createShape(newShapesList[0].i);
       newShapesList.shift();
-      if (tips == -1 || loading.boolean) {
+      if (((tips == -1 || loading.boolean) && !inRound) || winner > -1) {
         for (var i = 0; i < newShapesList.length; i++) {
           shapeListFun();
         }
       }
-      if (!((newShapes/100 + "").includes("."))) {
-        console.log("too many new shapes rendert!");
-        for (var i = 0; i < amount; i++) {
-          createShape(i);
-        }
-        layout(data, checkCanvas);
-      }
-      /*else */if (newShapesList.length == 0) checkSizeDifference();
+      /*else */if (newShapesList.length == 0 && winner == -1) checkSizeDifference();
     }
+    if (winner != -1) clearInterval(shapeListInt);
   }
   var globalFirst = true;
   function createNewSize(first) {
@@ -338,8 +349,7 @@ newShapes++;
       var umfang = Math.round(Math.random() *166) + 210;
       for (var i = 0; i < amount; i++) {
         data.width.push(Math.round(Math.random() *122) + 50);
-        data.height.push(umfang - data.width[i] - Math.round(Math.random() *33) - 27)
-        newShapesFinished();
+        data.height.push(umfang - data.width[i] - Math.round(Math.random() *5) + 5)
         // data.height.push(Math.round(Math.random() *88) + 50);
         // var highest = {width: {number: 0, i: -1}, height: {number: 0, i: -3}}
         // var lowest = {width: {number: 200, i: -2}, height: {number: 200, i: -4}}
@@ -356,6 +366,7 @@ newShapes++;
         // }
         // if (i > 0 && (highest.width.i == highest.height.i || lowest.width.i == lowest.height.i/* || prettyHigh.width.includes(i) ||prettyHigh.height.includes(i) || (i > 0 && (data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] > 7333 || data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] < -7333))  /*(i > 0 && ((data.width[i] - data.width[i - 1] < 10) && (data.height[i] - data.width[i-1] < 10)))*/)) {i--; data.width.pop(); data.height.pop();};
       }
+      newShapesFinished();
     }
   }
   function newShapesFinished() {
@@ -367,11 +378,11 @@ newShapes++;
         layout: globalFirst
       }
     });
-    if (globalFirst) createNewSize();
+    if (globalFirst && mode == "differentShapes") createNewSize();
   }
   var filled = 0;
   function showResult(gewinner, times) {
-    if (times == 0) {
+    if (show) {
       room.send({
         message: {
           "type": "endGame"
@@ -495,7 +506,7 @@ newShapes++;
     if (i1 == size.height[i] + 1) {
       console.log("finishedResult " + i);
       visualisationFinished++;
-      //if (visualisationFinished == amount) mostPixBleibt = JSON.parse(JSON.stringify(mostPix));
+      if (visualisationFinished == amount && winner != -1) showResult(winner, 0);
     }
     else if (time == 0) {
       setTimeout(function () {
@@ -527,7 +538,11 @@ newShapes++;
     time++;
     if (time == 188)
     {i1++; time = 0;}
-    if (20 + 188 - i1 < 20) console.log("finishedResult " + i);
+    if (20 + 188 - i1 < 20) {
+      console.log("finishedResult " + i);
+      visualisationFinished++;
+      if (visualisationFinished == amount && winner != -1) showResult(winner, 0);
+    }
     else if ((red == 0 && green == 0 && blue == 0) || ((!((i1/10 + "").includes(".")) && time == 0))) {
       if (!((!((i1/10 + "").includes(".")) && time == 0)) && !shapeReached.length == amount) time--;
       if (!((!((i1/10 + "").includes(".")) && time == 0)) && !shapeReached[i]) shapeReached[i] = true;
