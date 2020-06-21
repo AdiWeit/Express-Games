@@ -204,8 +204,11 @@
       }
       if (NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
         tipp = true
+        setTimeout(function () {
+          LayoutIch();
+        }, 777);
       }
-      LayoutIch();
+      else  LayoutIch();
     }
 
     if (message.type == "name") {
@@ -826,7 +829,7 @@ else {
     }
   }
   function Spielerwechsel() {
-    for (var i = 0; kartenZiehen[0][0] == "-" && (NameBleibt[0] == name && i < kartenSpieler1.length) || (NameBleibt[1] == name && i < kartenSpieler2.length); i++) {
+    for (var i = 0; kartenZiehen[0] && kartenZiehen[0][0] == "-" && (NameBleibt[0] == name && i < kartenSpieler1.length) || (NameBleibt[1] == name && i < kartenSpieler2.length); i++) {
       if ((NameBleibt[0] == name && kartenSpieler1[i][1] == karteGezogen && kartenSpieler1[i][0] == "-") || (NameBleibt[1] == name && kartenSpieler2[i][1] == karteGezogen && kartenSpieler2[i][0] == "-")) karteGezogen = i;
     }
     gewonnenCheck();
