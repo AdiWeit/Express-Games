@@ -4,6 +4,7 @@
 <canvas id="textur" width="2570" height="800"></canvas>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<canvas id="lastActionCheck" width="1840" height="700"></canvas>
 <script>
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
@@ -321,8 +322,8 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
       SpielerIds = message.data;
       if (!(SpielerIdBleibt.includes(SpielerIds[0]) && SpielerIdBleibt.includes(SpielerIds[1]))) SpielerIdBleibt = SpielerIds
       if (kartenSpieler1.length == 0 && kartenSpieler2.length == 0) {
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
         koordinatenCheck = setInterval(KoordinatenCheck, 700);
         SpielerIdsBleibt = SpielerIds;
         if (SpielerIds[0] == SpielerId) SpielerIdGegner = SpielerIds[1];
@@ -341,7 +342,7 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
         SpielerIdBleibt = SpielerIds
       } else {
         if (SpielerIds[0] == SpielerId) {
-          ttsOut = new Audio("http://www.orangefreesounds.com/wp-content/uploads/2019/03/Elevator-ding-dong-sound-effect.mp3").play();
+          ttsOut = new Audio("https://www.orangefreesounds.com/wp-content/uploads/2019/03/Elevator-ding-dong-sound-effect.mp3").play();
           try {
             var notification = new Notification("It's your turn again! ", {
               icon: 'https://proxy.duckduckgo.com/iu/?u=http%3A%2F%2Fthumbs.dreamstime.com%2Fz%2Fcheerful-man-pointing-towards-camera-young-caucasian-you-isolated-white-32991170.jpg&f=1&nofb=1',
@@ -500,7 +501,7 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
       setTimeout(function() {
         canvas.fillStyle = "green";
         canvas.fillRect(0, 0, 1847, 973)
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg"
         canvas.drawImage(Bild, 260, 0);
         setTimeout(function() {
           canvas.drawImage(Bild, 260, 0);
@@ -513,9 +514,9 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
       clearInterval(koordinatenCheck);
       canvas.fillStyle = "red";
       canvas.fillRect(0, 0, 1847, 973)
-      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
       canvas.drawImage(Bild, 260, 0);
-      audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
       setTimeout(function() {
         canvas.drawImage(Bild, 260, 0);
         Sperren[2] = true;
@@ -789,7 +790,7 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
         }
       }
       if (MitteSpieler1[zähler][0] == "z") {
-        canvas.fillStyle = "white"; //Farbe
+        canvas.fillStyle = "black"//"white"; //Farbe
       } else {
         canvas.fillStyle = MitteSpieler1[zähler][2]; //Farbe
       }
@@ -901,15 +902,15 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
           kartenSpieler1[kartenSpieler1.length - 1][4] = kartenSpieler1[kartenSpieler1.length - 1][9];
         }
         MitteSpieler2[zähler] = ["z", "", ""];
-        if (!(MitteSpieler1[zähler][5] == undefined) && MitteSpieler1[zähler][5].includes("Melagros") && SpielerIdsBleibt[1] == SpielerId) {
+        if (MitteSpieler1[zähler][5] != undefined && MitteSpieler1[zähler][5].includes("Melagros") && SpielerIdsBleibt[1] == SpielerId) {
           gegnerKarteZiehen();
         }
-        else if (!(MitteSpieler1[zähler][5] == undefined) && MitteSpieler1[zähler][5].includes("Melagros")) {
+        else if (MitteSpieler1[zähler][5] != undefined && MitteSpieler1[zähler][5].includes("Melagros")) {
           eineKarteZiehen();
         }
       }
       if (MitteSpieler2[zähler][0] == "z") {
-        canvas.fillStyle = "white"; //Farbe
+        canvas.fillStyle = "black"//"white"; //Farbe
       } else {
         canvas.fillStyle = MitteSpieler2[zähler][2]; //Farbe
       }
@@ -1118,7 +1119,7 @@ function checkAndromeda() {
     }
     kartenSpieler1.sort();
     kartenSpieler2.sort();
-    canvas.fillStyle = "white"
+    canvas.fillStyle = "black"//"white"
     if (SpielerIdsBleibt[0] == SpielerId) {
       canvas.fillRect(0, 470, 92000, 9800);
     } else {
@@ -1164,10 +1165,13 @@ function checkAndromeda() {
           }
           canvas.fillStyle = "#FF8000"; //Farbe
           if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
-          if (KartenAusgewählt.length > 0 ) {
+          if (KartenAusgewählt.length > 0 && AblageListe[2] == "AuswahlManuel") {
             if (farbenGebraucht[0].includes(kartenSpieler1[zähler][2]) || kartenSpieler1[zähler][2] == "silver") canvas.fillStyle = "#00FF00";
           }
-          if (KartenAusgewählt.length > 0 && ((KartenAusgewählt[0] == zähler && angular.equals(AblageListe[3], kartenSpieler1[zähler])) || angular.equals(AblageListe[3], kartenSpieler1[zähler]))) canvas.fillStyle = "#FF0080";
+          if (KartenAusgewählt.length > 0 && ((KartenAusgewählt[0] == zähler && angular.equals(AblageListe[3], kartenSpieler1[zähler])) || angular.equals(AblageListe[3], kartenSpieler1[zähler]))) {
+            if (AblageListe[2] == "AuswahlManuel") canvas.fillStyle = "#FF0080";
+            else canvas.fillStyle = "#B40404";
+          }
           canvas.fillRect(Koordinaten[0], 390 + 88, 180, 250)
           canvas.fillStyle = kartenSpieler1[zähler][2]; //Farbe
           canvas.fillRect(Koordinaten[0] + 20, 410 + 88, 140, 207)
@@ -1235,11 +1239,14 @@ function checkAndromeda() {
 
       while (zähler < kartenSpieler2.length) { //console.log(01234567890);
         canvas.fillStyle = "#FF8000"; //Farbe
-        if (zähler == karteGezogen[0]) canvas.fillStyle = "#0080FF";
-        if (KartenAusgewählt.length > 0) {
+        if (zähler == karteGezogen[0] && AblageListe[2] == "AuswahlManuel") canvas.fillStyle = "#0080FF";
+        if (KartenAusgewählt.length > 0 && AblageListe[2] == "AuswahlManuel") {
           if (farbenGebraucht [0].includes(kartenSpieler2[zähler][2]) || kartenSpieler2[zähler][2] == "silver") canvas.fillStyle = "#00FF00";
         }
-        if (KartenAusgewählt.length > 0 && KartenAusgewählt[0] == zähler) canvas.fillStyle = "#FF0080";
+        if (KartenAusgewählt.length > 0 && ((KartenAusgewählt[0] == zähler && angular.equals(AblageListe[3], kartenSpieler2[zähler])) || angular.equals(AblageListe[3], kartenSpieler2[zähler]))) {
+          if (AblageListe[2] == "AuswahlManuel") canvas.fillStyle = "#FF0080";
+          else canvas.fillStyle = "#B40404"
+        }
         canvas.fillRect(Koordinaten[0], 390 + 88 - 475, 180, 250)
         canvas.fillStyle = kartenSpieler2[zähler][2]; //Farbe
         canvas.fillRect(Koordinaten[0] + 20, 410 + 88 - 475, 140, 207)
@@ -1398,9 +1405,29 @@ function checkAndromeda() {
   };
   window.addEventListener('DOMContentLoaded', f, false)
   // 1377,397,185,45
+  var dataURL;
+  function documentMovementBefore(time) {
+    if (!time) {
+      time = 0;
+    dataURL = textur.toDataURL();
+  }
+    var Bild = new Image();
+    Bild.src = dataURL;
+    lastActionCanvas.drawImage(Bild, 0, 0);
+    if (time < 5) {
+      setTimeout(function () {
+        documentMovementBefore(time + 1);
+      }, 111);
+  }
+}
+  var lastActionCanvas = lastActionCheck.getContext('2d');
+  lastActionCheck.style.display = "none";
   window.addEventListener('mousedown', function() {
     console.log(xMaus + " - " + yMaus);
     KoordinatenCheck();
+    if (AblageListe[2] != "beendet" && AblageListe[2] != "AuswahlManuel") {
+      documentMovementBefore();
+    }
     if (AblageListe[2] == "AuswahlKarteAbgeben" && textButton == "Spielfeld" && ((SpielerIdBleibt[0] == SpielerId &&
     !(kartenSpieler1[AblageListe[1]] == undefined)) || (SpielerIdBleibt[1] == SpielerId &&
     !(kartenSpieler2[AblageListe[1]] == undefined)))) {
@@ -1418,7 +1445,7 @@ function checkAndromeda() {
       if (textButton == "Meine Karten") {
         textButton = "Spielfeld"
         Sperren[1] = true;
-        canvas.fillStyle = "white"
+        canvas.fillStyle = "black"//"white"
         if (SpielerIdsBleibt[0] == SpielerId) {
           canvas.fillRect(0, 470, 92000, 9800);
         } else {
@@ -1430,7 +1457,7 @@ function checkAndromeda() {
         //    window.scrollTo(0, scrollY);
          window.scroll(0, 0);
         Sperren[1] = false;
-        canvas.fillStyle = "white"
+        canvas.fillStyle = "black"//"white"
         if (SpielerIdsBleibt[0] == SpielerId) {
           canvas.fillRect(0, 470, 92000, 9800);
         } else {
@@ -1474,6 +1501,7 @@ function checkAndromeda() {
           zählerListe[2]++;
         }
         if (zählerListe[2] == KartenAusgewählt.length + 2 == false) {
+          documentMovementBefore();
           KartenAusgewählt[KartenAusgewählt.length] = AblageListe[1];
           farbenGebraucht = [];
           if (SpielerIdsBleibt[0] == SpielerId) {
@@ -1618,16 +1646,20 @@ function checkAndromeda() {
             // farbenGebraucht[2] = [];
             // farbenGebraucht[3] = [];
             // farbenGebraucht[4] = [];
-            for (var i = 0; i < (farbenGebraucht[1].length - farbenVorhanden[1].length); i++) {
+            var gebrauchtLength = farbenGebraucht[1].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[1].length); i++) {
               farbenGebraucht[1].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[2].length - farbenVorhanden[2].length); i++) {
+            var gebrauchtLength = farbenGebraucht[2].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[2].length); i++) {
               farbenGebraucht[2].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[3].length - farbenVorhanden[3].length); i++) {
+            var gebrauchtLength = farbenGebraucht[3].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[3].length); i++) {
               farbenGebraucht[3].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[4].length - farbenVorhanden[4].length); i++) {
+            var gebrauchtLength = farbenGebraucht[4].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[4].length); i++) {
               farbenGebraucht[4].shift();
             }
             while (farbenVorhanden[5].length > 0) {
@@ -1638,7 +1670,7 @@ function checkAndromeda() {
           kartenSpieler1.sort();
           while (kartenSpieler1[kartenSpieler1.length - 1][0] == "z") {
             kartenSpieler1.pop();
-            canvas.fillStyle = "white"
+            canvas.fillStyle = "black"//"white"
             canvas.fillRect(0, 470, 92000, 9800);
           }
         } else {
@@ -1653,16 +1685,20 @@ function checkAndromeda() {
             // farbenGebraucht[2] = [];
             // farbenGebraucht[3] = [];
             // farbenGebraucht[4] = [];
-            for (var i = 0; i < (farbenGebraucht[1].length - farbenVorhanden[1].length); i++) {
+            var gebrauchtLength = farbenGebraucht[1].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[1].length); i++) {
               farbenGebraucht[1].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[2].length - farbenVorhanden[2].length); i++) {
+            var gebrauchtLength = farbenGebraucht[2].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[2].length); i++) {
               farbenGebraucht[2].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[3].length - farbenVorhanden[3].length); i++) {
+            var gebrauchtLength = farbenGebraucht[3].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[3].length); i++) {
               farbenGebraucht[3].shift();
             }
-            for (var i = 0; i < (farbenGebraucht[4].length - farbenVorhanden[4].length); i++) {
+            var gebrauchtLength = farbenGebraucht[4].length;
+            for (var i = 0; i < (gebrauchtLength - farbenVorhanden[4].length); i++) {
               farbenGebraucht[4].shift();
             }
             while (farbenVorhanden[5].length > 0) {
@@ -1673,7 +1709,7 @@ function checkAndromeda() {
           kartenSpieler2.sort();
           while (kartenSpieler2[kartenSpieler2.length - 1][0] == "z") {
             kartenSpieler2.pop();
-            canvas.fillStyle = "white"
+            canvas.fillStyle = "black"//"white"
             canvas.fillRect(0, 470, 92000, 9800);
           }
         }
@@ -1728,7 +1764,7 @@ function checkAndromeda() {
             kartenSpieler1.sort();
             while (kartenSpieler1[kartenSpieler1.length - 1][0] == "z") {
               kartenSpieler1.pop();
-              canvas.fillStyle = "white"
+              canvas.fillStyle = "black"//"white"
               canvas.fillRect(0, 470, 92000, 9800);
             }
           } else {
@@ -1780,7 +1816,7 @@ function checkAndromeda() {
             kartenSpieler2.sort();
             while (kartenSpieler2[kartenSpieler2.length - 1][0] == "z") {
               kartenSpieler2.pop();
-              canvas.fillStyle = "white"
+              canvas.fillStyle = "black"//"white"
               canvas.fillRect(0, 470, 92000, 9800);
             }
           }
@@ -1936,7 +1972,7 @@ function checkAndromeda() {
               while (kartenSpieler2[kartenSpieler2.length - 1][0] == "z") {
                 kartenSpieler2.pop();
               }
-              canvas.fillStyle = "white"
+              canvas.fillStyle = "black"//"white"
               canvas.fillRect(0, 470, 92000, 9800);
               if (farbenGebraucht[1].length == 0 && farbenGebraucht[2].length == 0 && farbenGebraucht[3].length == 0 && farbenGebraucht[4].length == 0) {
                 Sperren[1] = false;
@@ -2200,7 +2236,13 @@ function checkAndromeda() {
           }
         });
       }, 3000);
-      angreifen();
+      var audio = new Audio("https://soundbible.com/mp3/rage_of_blades-Blaga_Saun-1763516257.mp3");
+      audio.volume = 0.5;
+      audio.play();
+      setTimeout(function () {
+        audio.pause();
+      }, 1033);
+        angreifen();
     }
     else if (AblageListe[2] == "beendet" && (zustandBefore.includes("Auswahl") || zustandBefore.includes("Spieler") || zustandBefore.includes("Wählen"))) {
       // syncData();
@@ -3458,7 +3500,8 @@ function checkAndromeda() {
         }
         if (zählerListe[5].length > 1) {
           setTimeout(function() {
-            AblageListe[2] = "Spieler2Auswahl2LebenPlus";
+            AblageListe[8] = 2;
+            AblageListe[2] = "Spieler2AuswahlLebenPlus";
           }, 500);
         }
       }
@@ -3658,7 +3701,7 @@ function checkAndromeda() {
 
   function KoordinatenCheck() {
     Koordinaten[4] = 0;
-    canvas.fillStyle = "white";
+    canvas.fillStyle = "black"//"white";
     canvas.fillRect(0, 0, 5000, 3735)
     if (Sperren[2] == false) {
       if (SteineMitte.length == 0) {
