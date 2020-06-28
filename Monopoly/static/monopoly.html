@@ -475,6 +475,7 @@
     else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch/* + 1*/) {
       spieler[spielerIch].einkommen[0] += message.data[0][1];
       spieler[spielerIch].einkommen.push(message.data[0][1]);
+      datenAktuallisieren(false, true);
     }
     else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u") {
       room.send({
@@ -764,17 +765,30 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
   var finished = false;
   function zweiKartenZiehen() {
+    // console.log("Karten bevor gezogen: ");
+    // console.log(kartenZiehen);
+    // console.log("Karten Spieler: ");
+    // console.log(spieler[spielerIch].kartenIch);
     if (kartenZiehen.length == 0)  {punkteAuszählen(); finished = true}
     else {
-    spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
+    spieler[spielerIch].kartenIch.push(/*[spieler[spielerIch].kartenIch.length] = */JSON.parse(JSON.stringify(kartenZiehen[0])));
     kartenZiehen.shift();
   }
+  // console.log("Karten nachdem 1 gezogen: ");
+  // console.log(kartenZiehen);
+  // console.log("Karten Spieler: ");
+  // console.log(spieler[spielerIch].kartenIch);
     if (kartenZiehen.length == 0 && !finished) punkteAuszählen();
     else if (!finished) {
-    spieler[spielerIch].kartenIch[spieler[spielerIch].kartenIch.length] = kartenZiehen[0];
+    spieler[spielerIch].kartenIch.push(/*[spieler[spielerIch].kartenIch.length] = */JSON.parse(JSON.stringify(kartenZiehen[0])));
     kartenZiehen.shift();
   }
-    console.log("2 Karten gezogen");
+  // console.log("Karten nachdem 2 gezogen: ");
+  // console.log(kartenZiehen);
+  // console.log("Karten Spieler: ");
+  // console.log(spieler[spielerIch].kartenIch);
+  // console.log("2 Karten gezogen");
+  console.log("2 Karten gezogen!");
   }
   var points = [];
   function punkteAuszählen() {
@@ -1214,7 +1228,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (AblageListe[4][0] == "Hotel") AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "GrundstücksJoker" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][2].length == spieler[spielerIch].kartenMitte[AblageListe[2]][5].length ==
       false) {
-      spieler[spielerIch].kartenMitte[AblageListe[2]][5][spieler[spielerIch].kartenMitte[AblageListe[2]][5].length] = "GrundstücksJoker";
+      spieler[spielerIch].kartenMitte[AblageListe[2]][5][spieler[spielerIch].kartenMitte[AblageListe[2]][5].length] = "Grundstück Joker";
       AblageListe[4][0] = "beendet";
       datenAktuallisieren(false, true);
     } else if (AblageListe[4][0] == "beendet" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false && ((spieler[spielerIch].kartenIch[
@@ -1295,7 +1309,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           zählerListe[0]++;
         }
         if (zählerListe[1].length == 1) {
-          spieler[spielerIch].kartenMitte[zählerListe[1][0]][5][spieler[spielerIch].kartenMitte[zählerListe[1][0]][5].length] = "GrundstücksJoker";
+          spieler[spielerIch].kartenMitte[zählerListe[1][0]][5][spieler[spielerIch].kartenMitte[zählerListe[1][0]][5].length] = "Grundstück Joker";
         } else if (zählerListe[1].length > 1) {
           AblageListe[4][0] = "GrundstücksJoker";
           textButton = "Meine Karten"
@@ -1728,16 +1742,18 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     console.log(AblageListe[0]);
     if (AblageListe[0] > 0) {
       AblageListe[7] = AblageListe[0];
-      console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
-      bezahlen();
-      if (AblageListe[7] < 6) {
-        spieler[spielerIch].einkommen[0] += AblageListe[7];
-        spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[7];
-      } else {
-        while (AblageListe[5].length > 0) {
-          spieler[spielerIch].einkommen[0] += AblageListe[5][0];
-          spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[5][0];
-          AblageListe[5].shift();
+      if (AblageListe[3] < AnzahlSpieler) {
+        console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
+        bezahlen();
+        if (AblageListe[7] < 6) {
+          spieler[spielerIch].einkommen[0] += AblageListe[7];
+          spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[7];
+        } else {
+          while (AblageListe[5].length > 0) {
+            spieler[spielerIch].einkommen[0] += AblageListe[5][0];
+            spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[5][0];
+            AblageListe[5].shift();
+          }
         }
       }
     }
@@ -1979,10 +1995,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         } else {
           AblageListe[0] = 2;
           AblageListe[3] = zählerListe[2];
+          if (AblageListe[3] < AnzahlSpieler) {
           console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
           bezahlen();
           spieler[spielerIch].einkommen[0] += 2;
           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = 2;
+        }
         }
         if (AblageListe[8] == "NixDaVollendet") {
           AblageListe[8] = "beendet";
@@ -2170,7 +2188,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         zählerListe[0] = 0;
         AblageListe[0] = [];
         while (zählerListe[0] < karten.length) {
-          if (karten[zählerListe[0]][3] == "GrundstücksJoker") spieler[i].kartenMitte[zählerListe[0]][3] = "Straßen Joker"
+          //if (karten[zählerListe[0]][3] == "GrundstücksJoker") spieler[i].kartenMitte[zählerListe[0]][3] = "Straßen Joker"
           AblageListe[0][AblageListe[0].length] = JSON.parse(JSON.stringify(karten[zählerListe[0]]));
           AblageListe[0][AblageListe[0].length - 1][6] = AblageListe[0][AblageListe[0].length - 1][0]
           AblageListe[0][AblageListe[0].length - 1][0] = AblageListe[0][AblageListe[0].length - 1][4];
