@@ -283,6 +283,7 @@
         spielerGegner = 0;
       }
       AblageListe[4][0] = "beendet";
+      afterNixDa["AblageListe[4]"] = ["beendet"];
       spielerAktuell = message.data;
       setTimeout(function() {
         if (spielerAktuell == spielerIch /* && spieler[spielerIch].kartenIch.length == 5 */ ) {
@@ -1209,7 +1210,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       AblageListe[4][0] = "beendet";
     }
     else {
-      alert("Sie können keine Straße aus einem vollständigen Satz weggeben. Und ich glaube, das ist auch gut so :)");
+      alert("Sie können keine Straße aus einem vollständigen Satz weggeben. Und ich glaube, das ist auch gut so :). Ein anderes Problem könnte sein, dass sie ihrem Gegner keine Straße aufdrücken können, dessen Straßensatz er bereeits vollständig hat.");
     }
     } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler) {
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da")) && AblageListe[3] == spielerIch == false) {
