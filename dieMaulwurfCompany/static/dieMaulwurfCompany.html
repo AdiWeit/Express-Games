@@ -610,7 +610,7 @@
     canvas.fillText("Verbleibende Runden, bis der Spieler mit", 211, 755);
     canvas.fillText("mehr Figuren im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
   }
-  if (player[spielerIch] != undefined && fieldAktuell == 3 && ReihenfolgeBleibt.length == 3) {
+  else if (player[spielerIch] != undefined && fieldAktuell == 3 && ReihenfolgeBleibt.length == 3) {
     canvas.font = "33px Georgia";  canvas.fillText("Verbleibende Runden, bis der Spieler mit mehr Figuren", 11, 755);
     canvas.fillText(" im Loch gewinnt: " + player[spielerIch].roundsLeft, 1177, 755);
   }
