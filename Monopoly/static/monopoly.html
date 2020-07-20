@@ -444,9 +444,9 @@
         datenAktuallisieren(false, true);
       // }, 3000);
     }
-    if (message.type == "gebotBeendet") {
+    if (message.type == "gebotBeendet" && !message.finish) var color = message.data[0][4];
+    if (message.type == "gebotBeendet" && (message.finish || ((message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1])) || message.gleichstand != "u"))) {
       spieler[spielerIch].coverMoney = false;
-      var color = message.data[0][4];
       if (Object.keys(colorObj).includes(color)) color = colorObj[color];
       if (AblageListe[4][1] && AblageListe[4][1] > 0 && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
       else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
@@ -470,13 +470,25 @@
       AblageListe[0] = JSON.parse(message.data[1][0]);
       //    spieler[spielerIch.einkommen][0] -=
       bezahlen();
+      datenAktuallisieren(false, true);
       alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
   //    datenAktuallisieren();
+  endGebot(message);
     }
     else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch/* + 1*/) {
       spieler[spielerIch].einkommen[0] += message.data[0][1];
       spieler[spielerIch].einkommen.push(message.data[0][1]);
       datenAktuallisieren(false, true);
+      if (!(message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1]))) {
+        setTimeout(function () {
+          room.send({
+            message: {
+              "type": "gebotBeendet",
+              finish: true
+            }
+          });
+        }, 3333);
+      }
     }
     else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u") {
       room.send({
@@ -486,8 +498,9 @@
           empfänger: spieler.gebotEröffnet
         }
       });
+      endGebot(message);
     }
-      if (message.type == "gebotBeendet" && message.gleichstand != "u") alert("Da ein Spieler zu wenig Geld hatte, um an der Versteigerung teilnehmen zu können, wird die Straße an niemanden gegeben. Ein anderer Grund könnte sein, dass alle in Frage kommende Gegner gleich viel Geld haben.");
+      if (message.type == "gebotBeendet" && message.gleichstand != "u" && !message.finish) alert("Da ein Spieler zu wenig Geld hatte, um an der Versteigerung teilnehmen zu können, wird die Straße an niemanden gegeben. Ein anderer Grund könnte sein, dass alle in Frage kommende Gegner gleich viel Geld haben.");
       if (message.type == "gebotBeendet" && spielerIch == spielerAktuell) {
       if (ereignis == "Geburtstag")  {
         GeburtstagFunction();
@@ -695,6 +708,18 @@
     if (!nixDaType || nixDaType == "beendet" || !spieler[spielerIch].ereignisBevor.AblageListe) spieler[spielerIch].ereignisBevor.AblageListe = AblageListe[4];
     else if (spieler[spielerIch].ereignisBevor.nixDaType != nixDaType) spieler[spielerIch].ereignisBevor.nixDaType = nixDaType;
   }, 1000);
+  function endGebot(message) {
+    if (!((message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1])))) {
+      setTimeout(function () {
+      room.send({
+        message: {
+          "type": "gebotBeendet",
+          finish: true
+        }
+      });
+    }, 3333);
+    }
+  }
   function checkRundenende() {
     if (/*AblageListe[3] > -1 && */spielerIch == spielerAktuell || spielerAktuell == -1) {
       if ((restlicheZüge < 1 || spieler[spielerIch].kartenIch.length < 1 || AblageListe[4][0] == "Auswahl Karten ablegen") && (AblageListe[4][0] == "beendet" || AblageListe[4][0] == "Auswahl Karten ablegen") && (!nixDaType || nixDaType == "beendet")) {
