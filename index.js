@@ -60,8 +60,8 @@ app.use('/stayOnTheStage/', stayOnTheStage);
 const galgenmaennchen = require('./galgenmaennchen/index.js');
 app.use('/galgenmaennchen/', galgenmaennchen);
 
-// const turnbasedClashRoyale = require('./turnbasedClashRoyale/index.js');
-// app.use('/turnbasedClashRoyale/', turnbasedClashRoyale);
+const turnbasedClashRoyale = require('./turnbasedClashRoyale/index.js');
+app.use('/turnbasedClashRoyale/', turnbasedClashRoyale);
 // const tabu = require('./tabu/index.js');
 // app.use('/tabu/', tabu);
 
@@ -76,6 +76,12 @@ app.use('/fillTheGlass/', fillTheGlass);
 
 const guessTheValue = require('./guessTheValue/index.js');
 app.use('/guessTheValue/', guessTheValue);
+
+// const replica = require('./replica/index.js');
+// app.use('/replica/', replica);
+
+const theMind = require('./theMind/index.js');
+app.use('/theMind/', theMind);
 
 /* just file Test*/
 app.use('/index.html', express.static(__dirname + '/playbacks'))

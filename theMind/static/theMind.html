@@ -1,0 +1,262 @@
+<canvas id="textur" onclick="canvasClicked();" width="1847" height="700"></canvas>
+<script>
+  var canvas = textur.getContext('2d');
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/theMind/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDtheMind');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDtheMind', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/theMind/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/theMind/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/theMind/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var player = {0: {}, 1: {}, 2: {}, 3: {}, livesLeft: 3};
+  var level = 1;
+  function kartenVerteieln() {
+    if (player.myNumber == 0) {
+    var cards = [];
+    //player.livesLeft = 3;
+    for (var i = 1; i < 100; i++) {
+      cards.push(i);
+    }
+    for (var i = 0; i < player.total; i++) {
+      player[i].cards = [];
+      for (var i1 = 0; i1 < level; i1++) {
+        var number = Math.round(Math.random() *(cards.length - 1))
+        player[i].cards.push(cards[number]);
+        cards.splice(number, 1);
+        player[i].cards = sort(player[i].cards);
+      }
+      room.send({
+        message: {
+          "type": "playerCards",
+          "data": player[i].cards,
+          empfänger: i
+        }
+      });
+    }
+  }
+  }
+  function sort(array) {
+    for (var i = 0; i < array.length; i++) {
+      if ((array[i] + "").length == 1) array[i] = "0" + array[i];
+    }
+    array.sort();
+    for (var i = 0; i < array.length; i++) {
+      if (array[i][0] == "0") array[i] = JSON.parse(array[i][1]);
+    }
+    return array;
+  }
+  room.setOnMessageListener(function(message) {
+    if (message.type == "spielerDu") {
+      player.myNumber = message.data;
+      kartenVerteieln();
+    }
+    if (message.type == "AnzahlSpieler") {
+      player.total = message.data;
+      for (var i = 0; i < player.total; i++) {
+        finished[i] = false;
+      }
+    }
+    if (message.type == "playerCards") {player[message.empfänger].cards = message.data; if (message.empfänger == player.total - 1) layout();}
+    if (message.type == "finished") {
+      finished[message.player] = true;
+      if (!(finished.includes(false))) {
+        alert("Level bestanden! Auf zum nächsten Level!");
+        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/fastClearSound.mp3").play();
+        level++;
+        mitte = [];
+        kartenVerteieln();
+        for (var i = 0; i < player.total; i++) {
+          finished[i] = false;
+        }
+        setTimeout(function () {
+          for (var i = 0; i < player.total; i++) {
+            finished[i] = false;
+          }
+        }, 1000);
+      }
+    }
+    if (message.type == "wrongCard") {
+      if (!error) {
+        player.livesLeft--;
+        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/shortGentleFailSound.mp3").play();
+        if (player.livesLeft == 0) {
+          setTimeout(function () {
+            var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+            level = 1;
+            player.livesLeft = 3;
+            kartenVerteieln();
+          }, 2000);
+        }
+      }
+      layout();
+      error = true;
+      setTimeout(function () {
+        error = false;
+      }, 1000);
+    }
+    if (message.type == "karteAusspielen") {
+      mitte.push(message.data);
+        for (var i1 = 0; i1 < player[player.myNumber].cards.length; i1++) {
+          if (player[player.myNumber].cards[i1] < message.data) {
+            player[player.myNumber].cards.splice(i1, 1);
+            i1--;
+              room.send({
+                message: {
+                  "type": "wrongCard"
+                }
+              });
+          }
+        }
+        if (player[player.myNumber].cards.length == 0) {
+          room.send({
+            message: {
+              "type": "finished",
+              player: player.myNumber
+            }
+          });
+        }
+      layout();
+    }
+  });
+  var finished = [];
+  var error = false;
+  var mitte = [];
+  function layout(time) {
+    if (!time) time = 0;
+    canvas.fillStyle = "black";
+    canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    for (var i = 0; i < player[player.myNumber].cards.length; i++) {
+      if (player[player.myNumber].cards.length > 6) drawCard(100 + 77*i, 177, player[player.myNumber].cards[i]);
+      else drawCard(100 + 77*i, 111, player[player.myNumber].cards[i]);
+    }
+    if (mitte.length > 0) drawCard(133, 288, mitte[mitte.length - 1]);
+      for (var i = 0; i < player.livesLeft; i++) {
+        var Bild = new Image();
+        Bild.src = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpublicdomainvectors.org%2Fphotos%2Fheartsymbol.png&f=1&nofb=1";
+        canvas.drawImage(Bild, window.innerWidth - 133 - 33*i, 55, 100, 100);
+      }
+    // var Bild = new Image();
+    // Bild.src = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpublicdomainvectors.org%2Fphotos%2Fheartsymbol.png&f=1&nofb=1";
+    // canvas.drawImage(Bild, window.innerWidth - 100, 55 + 11, 100, 100);
+    // canvas.fillText(player.livesLeft, window.innerWidth - 100 - 55, 100 + 55);
+    if (time < 5) {
+      setTimeout(function () {
+        layout(time + 1);
+      }, 33);
+    }
+  }
+  function drawCard(x, y, text) {
+    canvas.fillStyle = "white";
+    canvas.fillRect(x, y, 66, 99);
+    canvas.fillStyle = "blue";
+    canvas.fillRect(x + 5, y + 5, 66 - 10, 99 - 10);
+    canvas.font = "55px Georgia";
+    canvas.fillStyle = "white";
+    if ((text + "").length == 1) canvas.fillText(text, x + 5 + 16, y + 5 + 60);
+    else canvas.fillText(text, x + 5, y + 5 + 60);
+  }
+  var xMaus;
+  var yMaus;
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY;
+    //    console.log(xMaus + " - " + yMaus);
+  }
+  document.onmousemove = readMouseMove
+  function canvasClicked() {
+    // 100 + 77*i, 111
+    for (var i = 0; i < player[player.myNumber].cards.length; i++) {
+      var y = 111;
+      if (player[player.myNumber].cards.length > 6) y = 177;
+      if (xMaus > 100 + 77*i && xMaus < 100 + 77*i + 66 && yMaus > y && yMaus < y + 99 && confirm("Sind sie sich sicher, dass sie ihre " + (player[player.myNumber].cards[i]) + " ausspielen wollen?")) {
+        console.log((i + 1) + ". Karte angeklickt!");
+        var isLowest = player[player.myNumber].cards[i];
+        for (var i1 = 0; i1 < player[player.myNumber].cards.length; i1++) {
+          if (player[player.myNumber].cards[i1] < player[player.myNumber].cards[i]) isLowest = false;
+        }
+        // mitte.push(player[player.myNumber].cards[i]);
+        /*var lowestCard = {number: mitte[mitte.length - 1], error: false};
+        for (var i = 0; i < player.total; i++) {
+          for (var i1 = 0; i1 < player[i].cards.length; i1++) {
+            if (player[i].cards[i1] < lowestCard.number) {player[i].cards.splice(i1); i1--; lowestCard.error = true;}
+          }
+        }
+        layout();*/
+        if (isLowest) {
+        room.send({
+          message: {
+            "type": "karteAusspielen",
+            "data": player[player.myNumber].cards[i]
+          }
+        });
+        player[player.myNumber].cards.splice(i, 1);
+      }
+      else alert("You have to always play your lowest card!");
+      }
+    }
+  }
+
+
+</script>
