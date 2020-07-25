@@ -137,7 +137,11 @@
         finished[i] = false;
       }
     }
-    if (message.type == "playerCards") {player[message.empfänger].cards = message.data; if (message.empfänger == player.total - 1) layout();}
+    if (message.type == "playerCards") {
+      player[message.empfänger].cards = message.data;
+      showCardVote = {booleans: [], votes: 0, cards: []};
+      if (message.empfänger == player.total - 1) layout();
+     }
     if (message.type == "askShowCard") {
       if (showCardVote.cards.length == 0) showCardVote = {booleans: [], votes: 0, cards: []};
       if (message.beginningPoint != undefined && player.myNumber != message.beginningPoint) {
@@ -330,7 +334,7 @@
     for (var i = 0; i < player[player.myNumber].cards.length; i++) {
       var y = 111;
       if (player[player.myNumber].cards.length > 6) y = 177 + 133;
-      if (xMaus > 100 + 77*i && xMaus < 100 + 77*i + 66 && yMaus > y && yMaus < y + 99 && confirm("Sind sie sich sicher, dass sie ihre " + (player[player.myNumber].cards[i]) + " ausspielen wollen?")) {
+      if (xMaus > 100 + 77*i && xMaus < 100 + 77*i + 66 && yMaus > y && yMaus < y + 99/* && confirm("Sind sie sich sicher, dass sie ihre " + (player[player.myNumber].cards[i]) + " ausspielen wollen?")*/) {
         console.log((i + 1) + ". Karte angeklickt!");
         var isLowest = player[player.myNumber].cards[i];
         for (var i1 = 0; i1 < player[player.myNumber].cards.length; i1++) {
@@ -358,7 +362,7 @@
       }
     }
     // canvas.drawImage(Bild, window.innerWidth - 133 - 33*i, 188, 100, 100);
-    if (xMaus > window.innerWidth - 133 - 33*player.bummerangs && xMaus < window.innerWidth - 133 + 100 && yMaus > 188 && yMaus < 288 && showCardVote.cards.length == 0 && player.bummerangs > 0 && confirm("Wollen sie wirklich anfragen, dass jeder seine höchste Karte auslegt? Jeder spieler muss zustimmen, damit die Karte ausgespielt wird!")) {
+    if (xMaus > window.innerWidth - 133 - 33*player.bummerangs && xMaus < window.innerWidth - 133 + 100 && yMaus > 188 && yMaus < 288 && showCardVote.cards.length == 0 && player.bummerangs > 0 && confirm("Wollen sie wirklich anfragen, dass jeder seine niedrigste Karte auslegt? Jeder spieler muss zustimmen, damit die Karte ausgespielt wird!")) {
       room.send({
         message: {
           "type": "askShowCard",
