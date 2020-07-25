@@ -126,10 +126,6 @@ class theMind {
         newRound: true
       });
       var Reihenfolge = Math.floor(Math.random() * this.spielerOnline);
-      this.broadcast({
-        "type": "Reihenfolge",
-        "data": Reihenfolge
-      });
       /*      while (kartenSpieler[1].length < 5) {
               kartenSpieler[1][kartenSpieler[1].length] = kartenZiehen[0];
               kartenZiehen.shift();
@@ -242,7 +238,7 @@ class theMind {
       }
     }*/
 
-    if (!(this.player1 && this.player2)) return this.broadcast("Es fehlt noch ein Spieler!");
+    //if (!(this.player1 && this.player2)) return this.broadcast("Es fehlt noch ein Spieler!");
     /*  if (data.message.type == "stayActive") {
         AblageListe[1] = "stayActive";
         setTimeout(function () {

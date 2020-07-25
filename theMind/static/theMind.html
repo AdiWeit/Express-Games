@@ -70,7 +70,7 @@
       sendMessage(msg);
     }
   };
-  var player = {0: {}, 1: {}, 2: {}, 3: {}, livesLeft: 3};
+  var player = {0: {}, 1: {}, 2: {}, 3: {}, livesLeft: 3, bummerangs: 1};
   var level = 1;
   function kartenVerteieln() {
     if (player.myNumber == 0) {
@@ -107,11 +107,30 @@
     }
     return array;
   }
+  var showCardVote = {booleans: [], votes: 0, cards: []};
   room.setOnMessageListener(function(message) {
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
-      kartenVerteieln();
+      if (message.newRound) kartenVerteieln();
+      else if (localStorage.getItem("mitteTheMind") != null && localStorage.getItem("itemsTheMid") != null && confirm("Wollen sie die angefangene Runde weiterspielen?")) {
+        mitte = JSON.parse(localStorage.getItem("mitteTheMind"));
+        player[player.myNumber].cards = JSON.parse(localStorage.getItem("cardsTheMind"));
+        player.livesLeft = JSON.parse(localStorage.getItem("itemsTheMid")).livesLeft;
+        player.bummerangs = JSON.parse(localStorage.getItem("itemsTheMid")).bummerangs;
+        level = JSON.parse(localStorage.getItem("levelTheMind"));
+        letzteBelohnung = localStorage.getItem("letzteBelohnungTheMind");
+        showCardVote = JSON.parse(localStorage.getItem("showCardVoteTheMind"));
+        layout();
+      }
+      else {
+        room.send({
+          message: {
+            "type": "endGame"
+          }
+        });
+      }
     }
+    if (message.type == "endGame") alert("Da ein Gegner das Spiel nicht weiter spielen wollte, wurde die Runde beendet.");
     if (message.type == "AnzahlSpieler") {
       player.total = message.data;
       for (var i = 0; i < player.total; i++) {
@@ -119,13 +138,71 @@
       }
     }
     if (message.type == "playerCards") {player[message.empfänger].cards = message.data; if (message.empfänger == player.total - 1) layout();}
+    if (message.type == "askShowCard") {
+      if (showCardVote.cards.length == 0) showCardVote = {booleans: [], votes: 0, cards: []};
+      if (message.beginningPoint != undefined && player.myNumber != message.beginningPoint) {
+        room.send({
+          message: {
+            "type": "showCardVoteResult",
+            "data": confirm("Ein Spieler will, dass alle Spieler ihre höchste Karte ausspielen. Dabei würde eine der rechts angezeighten Karten mit dem Auge verloren gehen. Da die Karte nur ausgespielt wird, wenn alle zustimmen treffen sie bitte ihre Wahl: Wollen sie auch, dass alle ihre höchste Karte aufdecken?"),
+            player: player.myNumber
+          }
+        });
+      }
+      else if (message.beginningPoint != undefined) {
+        room.send({
+          message: {
+            "type": "showCardVoteResult",
+            "data": true,
+            player: player.myNumber
+          }
+        });
+      }
+    }
+    if (message.type == "showCardVoteResult") {
+      showCardVote.booleans[message.player] = message.data;
+      showCardVote.votes++;
+      if (showCardVote.votes == player.total && !(showCardVote.booleans.includes(false)) && player.myNumber == 0) {
+        room.send({
+          message: {
+            "type": "getHighest"
+          }
+        });
+      }
+    }
+    if (message.type == "getHighest") {
+      room.send({
+        message: {
+          "type": "showHighest",
+          data: player[player.myNumber].cards[player[player.myNumber].cards.length - 1],
+          player: player.myNumber
+        }
+      });
+      player[player.myNumber].cards.pop();
+    }
+    if (message.type == "showHighest" && player.myNumber != message.player) {
+      showCardVote.cards.push(message.data);
+      localStorage.setItem("showCardVoteTheMind", JSON.stringify(showCardVote));
+      localStorage.setItem("cardsTheMind", JSON.stringify(player[player.myNumber].cards));
+    }
+    else if (message.type == "showHighest") player.bummerangs--;
+    if (message.type == "showHighest") layout();
     if (message.type == "finished") {
       finished[message.player] = true;
       if (!(finished.includes(false))) {
         alert("Level bestanden! Auf zum nächsten Level!");
         var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/fastClearSound.mp3").play();
+        showCardVote = {booleans: [], votes: 0, cards: []};
         level++;
+        localStorage.setItem("levelTheMind", level);
+        if (level == 11) alert("Ihr habt gewonnen, könnt aber gerne noch so lange weiterspielen, wie ihr durchhaltet!");
+        if ((!((level/2 + "").includes(".")) || level == 3) && level != 2) {
+          if (letzteBelohnung == "bummerang") {player.livesLeft++; letzteBelohnung = "livesLeft"}
+          else {player.bummerangs++; letzteBelohnung = "bummerang"}
+        }
+        localStorage.setItem("letzteBelohnungTheMind", letzteBelohnung);
         mitte = [];
+        localStorage.setItem("mitteTheMind", "[]");
         kartenVerteieln();
         for (var i = 0; i < player.total; i++) {
           finished[i] = false;
@@ -135,6 +212,7 @@
             finished[i] = false;
           }
         }, 1000);
+        localStorage.setItem("itemsTheMid", JSON.stringify({livesLeft: player.livesLeft, bummerangs: player.bummerangs}));
       }
     }
     if (message.type == "wrongCard") {
@@ -149,6 +227,7 @@
             kartenVerteieln();
           }, 2000);
         }
+        localStorage.setItem("itemsTheMid", {livesLeft: player.livesLeft, bummerangs: player.bummerangs});
       }
       layout();
       error = true;
@@ -158,6 +237,7 @@
     }
     if (message.type == "karteAusspielen") {
       mitte.push(message.data);
+      localStorage.setItem("mitteTheMind", mitte[0]);
         for (var i1 = 0; i1 < player[player.myNumber].cards.length; i1++) {
           if (player[player.myNumber].cards[i1] < message.data) {
             player[player.myNumber].cards.splice(i1, 1);
@@ -180,6 +260,7 @@
       layout();
     }
   });
+  var letzteBelohnung = "bummerang";
   var finished = [];
   var error = false;
   var mitte = [];
@@ -188,15 +269,34 @@
     canvas.fillStyle = "black";
     canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
     for (var i = 0; i < player[player.myNumber].cards.length; i++) {
-      if (player[player.myNumber].cards.length > 6) drawCard(100 + 77*i, 177, player[player.myNumber].cards[i]);
+      if (player[player.myNumber].cards.length > 6) drawCard(100 + 77*i, 177 + 133, player[player.myNumber].cards[i]);
       else drawCard(100 + 77*i, 111, player[player.myNumber].cards[i]);
     }
-    if (mitte.length > 0) drawCard(133, 288, mitte[mitte.length - 1]);
+    for (var i = 0; i < showCardVote.cards.length; i++) {
+      var Bild = new Image();
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/bummerangTheMind.png";
+      if (player[player.myNumber].cards.length > 6) {
+        drawCard(100 + 77*i + 100 + 11, 177 + 133*2, showCardVote.cards[i]);
+        canvas.drawImage(Bild, 100, 177 + 133*2, 100, 100);
+      }
+      else {
+        drawCard(100 + 77*i + 100 + 11, 111 + 133, showCardVote.cards[i]);
+        canvas.drawImage(Bild, 100, 133 + 111, 100, 100);
+      }
+    }
+    if (mitte.length > 0 && player[player.myNumber].cards.length <= 6) drawCard(133, 355, mitte[mitte.length - 1]);
+    else if (mitte.length > 0) drawCard(477, 444, mitte[mitte.length - 1]);
       for (var i = 0; i < player.livesLeft; i++) {
         var Bild = new Image();
         Bild.src = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpublicdomainvectors.org%2Fphotos%2Fheartsymbol.png&f=1&nofb=1";
         canvas.drawImage(Bild, window.innerWidth - 133 - 33*i, 55, 100, 100);
       }
+      for (var i = 0; i < player.bummerangs; i++) {
+        var Bild = new Image();
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/bummerangTheMind.png";
+        canvas.drawImage(Bild, window.innerWidth - 133 - 33*i, 188, 100, 100);
+      }
+
     // var Bild = new Image();
     // Bild.src = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpublicdomainvectors.org%2Fphotos%2Fheartsymbol.png&f=1&nofb=1";
     // canvas.drawImage(Bild, window.innerWidth - 100, 55 + 11, 100, 100);
@@ -229,7 +329,7 @@
     // 100 + 77*i, 111
     for (var i = 0; i < player[player.myNumber].cards.length; i++) {
       var y = 111;
-      if (player[player.myNumber].cards.length > 6) y = 177;
+      if (player[player.myNumber].cards.length > 6) y = 177 + 133;
       if (xMaus > 100 + 77*i && xMaus < 100 + 77*i + 66 && yMaus > y && yMaus < y + 99 && confirm("Sind sie sich sicher, dass sie ihre " + (player[player.myNumber].cards[i]) + " ausspielen wollen?")) {
         console.log((i + 1) + ". Karte angeklickt!");
         var isLowest = player[player.myNumber].cards[i];
@@ -252,9 +352,19 @@
           }
         });
         player[player.myNumber].cards.splice(i, 1);
+        localStorage.setItem("cardsTheMind", JSON.stringify(player[player.myNumber].cards));
       }
       else alert("You have to always play your lowest card!");
       }
+    }
+    // canvas.drawImage(Bild, window.innerWidth - 133 - 33*i, 188, 100, 100);
+    if (xMaus > window.innerWidth - 133 - 33*player.bummerangs && xMaus < window.innerWidth - 133 + 100 && yMaus > 188 && yMaus < 288 && showCardVote.cards.length == 0 && player.bummerangs > 0 && confirm("Wollen sie wirklich anfragen, dass jeder seine höchste Karte auslegt? Jeder spieler muss zustimmen, damit die Karte ausgespielt wird!")) {
+      room.send({
+        message: {
+          "type": "askShowCard",
+          beginningPoint: player.myNumber
+        }
+      });
     }
   }
 
