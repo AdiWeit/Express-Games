@@ -3,11 +3,13 @@
 <canvas id="textur" width="1566" height="744"></canvas>
 <input type="text" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
-<h1 id="aufstellungsText">gespeicherte Aufstellungen</h1>
-<div id="app">
-<li v-for="title in db" id="kathegorien">
-  {{ title }}
-</li>
+<div id="aufstellungDiv">
+  <h1 id="aufstellungsText">gespeicherte Aufstellungen</h1>
+  <div id="app">
+  <li v-for="title in db" id="kathegorien">
+    {{ title }}
+  </li>
+  </div>
 </div>
 <script>
 
@@ -412,7 +414,7 @@ function Layout(sync, time) {
     syncData();
   }
     Bild = new Image();
-    if (roundStatus[0] != "placePlayer") Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/whiteFlag.png";
+    if (roundStatus[0] != "placePlayer") {Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/whiteFlag.png"; aufstellungDiv.style.display = "none";}
     else Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/saveField.png";
     canvas.drawImage(Bild, 222, 300, 100, 100);
   showChat();
