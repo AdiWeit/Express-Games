@@ -60,8 +60,8 @@ app.use('/stayOnTheStage/', stayOnTheStage);
 const galgenmaennchen = require('./galgenmaennchen/index.js');
 app.use('/galgenmaennchen/', galgenmaennchen);
 
-const turnbasedClashRoyale = require('./turnbasedClashRoyale/index.js');
-app.use('/turnbasedClashRoyale/', turnbasedClashRoyale);
+// const turnbasedClashRoyale = require('./turnbasedClashRoyale/index.js');
+// app.use('/turnbasedClashRoyale/', turnbasedClashRoyale);
 // const tabu = require('./tabu/index.js');
 // app.use('/tabu/', tabu);
 
