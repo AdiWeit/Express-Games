@@ -329,10 +329,13 @@
       canvas.stroke();
       canvas.fillRect(10, 10 + 50*i, 10 + JSON.parse(fieldFormat.value)*50, 10);
       if (pointsPlayer[i] === undefined) pointsPlayer[i] = 0;
-      if (JSON.parse(fieldFormat.value) > 5) showPoints(i, ":" + pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
-      else if (JSON.parse(fieldFormat.value) > 4) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
-      else if (JSON.parse(fieldFormat.value) > 3) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0]);
-      else if (JSON.parse(fieldFormat.value) > 2) showPoints(i, pointsPlayer[i] + "P");
+      var verfügbar = JSON.parse(fieldFormat.value);
+      //if ((pointsPlayer[i] + "").length > 1)
+      verfügbar -= (pointsPlayer[i] + "").length - 1;
+      if (verfügbar > 5) showPoints(i, ":" + pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
+      else if (verfügbar > 4) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0] + player.names[i][1]);
+      else if (verfügbar > 3) showPoints(i, pointsPlayer[i] + "P" + player.names[i][0]);
+      else if (verfügbar > 2) showPoints(i, pointsPlayer[i] + "P");
       else showPoints(i, pointsPlayer[i] + "");
       canvas.fillStyle = "black";
     }
