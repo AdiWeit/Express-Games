@@ -209,10 +209,15 @@
     if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
     if (message.type == "gebotEröffnet") spieler.gebotEröffnet = message.data;
     if (message.type == "countingPoints") {
+      textButton = "Meine Karten";
+      Layout(true);
       for (var i = 0; i < AnzahlSpieler; i++) {
         points[i] = {karten: 0, geld: 0, insgesamt: 0};
         for (var i1 = 0; i1 < spieler[i].kartenMitte.length; i1++) {
-          points[i].karten += 10 + 15*(spieler[i].kartenMitte[i1][5].length - 1);
+          points[i].karten += 4;
+          for (var i2 = 1; i2 < spieler[i].kartenMitte[i1][5].length; i2++) {
+            points[i].karten += 4 + (i2-1)*2 + 2;
+          }
         }
         points[i].geld += spieler[i].einkommen[0];
         points[i].insgesamt = points[i].karten + points[i].geld;
@@ -222,6 +227,15 @@
            if (points[i].insgesamt > highest.insgesamt) {highest.insgesamt = points[i].insgesamt; highest.spieler = i;}
            if (points[i].geld > highest.geld) {highest.geld = points[i].geld}
            if (points[i].karten > highest.karten) {highest.karten = points[i].karten}
+           for (var i1 = 0; i1 < spieler[i].kartenMitte.length; i1++) {
+             canvas.fillStyle = "#00FF40";
+             canvas.font = "23px Georgia";
+             canvas.fillText("+" + spieler[i].einkommen[0], 217, 755 - 180*i - 80);
+             if (spieler[i].kartenMitte[i1][4] == "#00FF40") canvas.fillStyle = "green";
+             for (var i2 = 0; i2 < spieler[i].kartenMitte[i1][5].length; i2++) {
+               canvas.fillText("+" + (4 + 2*i2), 460 + 250*i1, 715 - 180*i - 80 + 24*i2);
+             }
+           }
          }
          alert("Da keine Karten übrig sind, wurden Punkte gezählt und ein Gewinner wurde ermittelt.");
          showPoints(highest);
@@ -2489,8 +2503,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   spieler[2] = new classSpieler();
   spieler[3] = new classSpieler();
 
-  function Layout() {
-    if (!(Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" || Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg") && spielerAktuell != -1) {
+  function Layout(last) {
+    if ((kartenZiehen.length > 0 || last) && !(Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg" || Bild.src == "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg") && spielerAktuell != -1) {
     canvas.fillStyle = "#DF7401"
     canvas.fillRect(0, 0, textur.width, textur.height);
     canvas.fillStyle = "white";
