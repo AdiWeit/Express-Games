@@ -447,6 +447,8 @@
     if (message.type == "gebotBeendet" && !message.finish) var color = message.data[0][4];
     if (message.type == "gebotBeendet" && (message.finish || ((message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1])) || message.gleichstand != "u"))) {
       spieler[spielerIch].coverMoney = false;
+      console.log(afterNixDa);
+      console.log(AblageListe[4]);
       if (Object.keys(colorObj).includes(color)) color = colorObj[color];
       if (AblageListe[4][1] && AblageListe[4][1] > 0 && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
       else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
@@ -472,6 +474,9 @@
       bezahlen();
       datenAktuallisieren(false, true);
       alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
+      setTimeout(function () {
+        datenAktuallisieren();
+      }, 1111);
   //    datenAktuallisieren();
   endGebot(message);
     }
@@ -501,7 +506,7 @@
       endGebot(message);
     }
       if (message.type == "gebotBeendet" && message.gleichstand != "u" && !message.finish) alert("Da ein Spieler zu wenig Geld hatte, um an der Versteigerung teilnehmen zu können, wird die Straße an niemanden gegeben. Ein anderer Grund könnte sein, dass alle in Frage kommende Gegner gleich viel Geld haben.");
-      if (message.type == "gebotBeendet" && spielerIch == spielerAktuell) {
+      if (message.type == "gebotBeendet" && spielerIch == spielerAktuell && message.finish && AblageListe[4][0] == "beendet") {
       if (ereignis == "Geburtstag")  {
         GeburtstagFunction();
       }
@@ -951,7 +956,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }
       }
       gebote[spielerIch + 1] = false;
-      afterNixDa["AblageListe[4]"] = JSON.parse(JSON.stringify(AblageListe[4]));
+      console.log("Vorbereitung Gebot");
+      if (AblageListe[4][0] != "warten auf Gebot") afterNixDa["AblageListe[4]"] = JSON.parse(JSON.stringify(AblageListe[4]));
       AblageListe[4][0] = "warten auf Gebot";
   }
   else {
@@ -1129,13 +1135,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     if (AblageListe[4][0] == "bezahlen Gegner" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false) {
       AblageListe[4][1] -= spieler[spielerIch].kartenMitte[AblageListe[2]][1];
       afterNixDa["card"] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
-      afterNixDa["AblageListe[4]"] = JSON.parse(JSON.stringify(AblageListe[4]));
-      AblageListe[4][0] = "warten auf Gebot";
-      setTimeout(function () {
+      // afterNixDa["AblageListe[4]"] = JSON.parse(JSON.stringify(AblageListe[4]));
+      // AblageListe[4][0] = "warten auf Gebot";
+      // setTimeout(function () {
         if (vorbereitungGebot()) {
           gebotAnServer(gebote, bieter, afterNixDa["card"], spielerIch);
         }
-      }, /*5000*(AnzahlSpieler - 1)*/3333);
+      // }, /*5000*(AnzahlSpieler - 1)*/3333);
       if (spieler[spielerIch].kartenMitte[AblageListe[2]][5].length < 2) {
         spieler[spielerIch].kartenMitte.splice([AblageListe[2]], 1);
       } else {
@@ -1921,7 +1927,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         zählerListe[0]++;
       }
 
-      if (AblageListe[1] + zählerListe[1] <= AblageListe[0] || spieler[AblageListe[3]].kartenMitte.length == 1 && AblageListe[0] > 0) {
+      if (AblageListe[1] + zählerListe[1] <= AblageListe[0]/* || spieler[AblageListe[3]].kartenMitte.length == 1 && AblageListe[0] > 0*/) {
         while (spieler[AblageListe[3]].kartenMitte.length > 0) {
           spieler[AblageListe[3]].kartenMitte.pop()
         }
