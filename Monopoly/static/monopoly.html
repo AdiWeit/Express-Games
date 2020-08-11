@@ -197,6 +197,7 @@
       sender: spielerIch
     }
     });
+    document.getElementById('message'). value = "";
     setTimeout(function () {
         //window.scroll(scrollX, 10000)
         document.getElementById('message').select();
@@ -204,11 +205,15 @@
   }
   room.setOnMessageListener(function(message) {
     if (message.type == "endGame") {alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
-    if (message.type == "spielerAktuell" && message.empfänger == spielerIch) spielerAktuell = message.data;
+    if (message.type == "spielerAktuell" && message.empfänger == spielerIch) {
+      spielerAktuell = message.data;
+      restlicheZüge = 3;
+    }
     if (message.type == "setAblageListe[4]AfterRejoin") AblageListe[4][0] = ["beendet"];
     if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
     if (message.type == "gebotEröffnet") spieler.gebotEröffnet = message.data;
     if (message.type == "countingPoints") {
+      while (kartenZiehen.length > 0) kartenZiehen.pop();
       textButton = "Meine Karten";
       Layout(true);
       for (var i = 0; i < AnzahlSpieler; i++) {
@@ -1255,9 +1260,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       AblageListe[4][0] = "beendet";
     }
     else {
-      alert("Sie können keine Straße aus einem vollständigen Satz weggeben. Und ich glaube, das ist auch gut so :). Ein anderes Problem könnte sein, dass sie ihrem Gegner keine Straße aufdrücken können, dessen Straßensatz er bereeits vollständig hat.");
+      alert("Sie können keine Straße aus einem vollständigen Satz weggeben. Und ich glaube, das ist auch gut so :). Ein anderes Problem könnte sein, dass sie ihrem Gegner keine Straße aufdrücken können, dessen Straßensatz er bereits vollständig hat.");
     }
-    } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler) {
+  } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler && AblageListe[3] != spielerIch) {
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da")) && AblageListe[3] == spielerIch == false) {
         AblageListe[4][0] = "Miete gegen sie";
       } else {
@@ -1269,7 +1274,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         }, (Math.floor(Math.random() * 3333) + 2222));
       }
 
-    } else if (AblageListe[4][0] == "Hotel" && spieler[spielerIch].kartenMitte[AblageListe[2]] != undefined && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length != spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
+    } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler) alert("Ich denke nicht, dass sie Miete gegen sich selber ausspielen wollen. Bitte versuchen sie es erneut, den Spieler anzuklicken, von dem sie Miete verlangen wollen!");
+     else if (AblageListe[4][0] == "Hotel" && spieler[spielerIch].kartenMitte[AblageListe[2]] != undefined && spieler[spielerIch].kartenMitte[AblageListe[2]][5].length != spieler[spielerIch].kartenMitte[AblageListe[2]][2].length) {
       hausOderHotel(2);//Hotel();
       if (AblageListe[4][0] == "Hotel") AblageListe[4][0] = "beendet";
     } else if (AblageListe[4][0] == "GrundstücksJoker" && spieler[spielerIch].kartenMitte[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenMitte[AblageListe[2]][2].length == spieler[spielerIch].kartenMitte[AblageListe[2]][5].length ==
@@ -2576,7 +2582,7 @@ function showChat() {
     canvas.fillStyle = "white";
     canvas.font = "33px Georgia";
     var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
-    var emojiObj = {":)": "😊", ":(": "😞", "xp": "😛", "XD": "😆", ":o": "😲"};
+    var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
     if (zeichenZuEmogis.checked) {
       for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
         messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
