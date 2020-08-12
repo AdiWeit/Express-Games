@@ -212,6 +212,11 @@
     if (message.type == "setAblageListe[4]AfterRejoin") AblageListe[4][0] = ["beendet"];
     if (message.type == "sendDataToRejoinedPlayer") datenAktuallisieren(true);
     if (message.type == "gebotEröffnet") spieler.gebotEröffnet = message.data;
+    if (message.type == "showSpielfeld" && message.player == spielerIch) {
+      textButton = "Meine Karten";
+      Layout();
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/swoosh-3-sound-effect-download-youtubemp3free.org.mp3").play();
+    }
     if (message.type == "countingPoints") {
       while (kartenZiehen.length > 0) kartenZiehen.pop();
       textButton = "Meine Karten";
@@ -461,6 +466,7 @@
         spieler[spielerIch].einkommen.push(1);
       }
         datenAktuallisieren(false, true);
+        audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money.mp3").play();
       // }, 3000);
     }
     if (message.type == "gebotBeendet" && !message.finish) var color = message.data[0][4];
@@ -474,7 +480,7 @@
       else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
       if (afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "warten auf Gebot") AblageListe[4][0] = "beendet";
       if (afterNixDa["Warten Bezahlen Gegner"] && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
-      // else AblageListe[4][0] = "beendet";
+      else if (ereignis == "") AblageListe[4][0] = "beendet";
       //checkRundenende();
     }
     if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1] || confirm("Wollen sie die " + message.data[0][3] + " (" + color + ") für " + message.data[1][0] + "€ kaufen? Es hat eine Versteigerung stattgefunden, bei der sie bisher noch nicht teilnehmen konnten, aber alle anderen haben entweder zu wenig Geld, oder von sich aus abgelehnt."))) {
@@ -502,6 +508,7 @@
     else if (message.type == "gebotBeendet" && message.Empfänger == spielerIch/* + 1*/) {
       spieler[spielerIch].einkommen[0] += message.data[0][1];
       spieler[spielerIch].einkommen.push(message.data[0][1]);
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money.mp3").play();
       datenAktuallisieren(false, true);
       if (!(message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1]))) {
         setTimeout(function () {
@@ -1186,7 +1193,6 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         afterNixDa["AblageListe[2]"] = AblageListe[2];
         afterNixDa["AblageListe[3]"] = AblageListe[3];
         setTimeout(function () {
-
           AblageListe[2] = JSON.parse(JSON.stringify(afterNixDa["AblageListe[2]"]));
           AblageListe[3] = JSON.parse(JSON.stringify(afterNixDa["AblageListe[3]"]));
           schlauGeklaut();
@@ -1293,6 +1299,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         if (!vorbereitungGebot()) {
           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][1];
           spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][1];
+          audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money.mp3").play();
         }
         setTimeout(function() {
             if (vorbereitungGebot()) {
@@ -1329,7 +1336,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = spieler[spielerIch].kartenIch[AblageListe[2]][2];
         spieler[spielerIch].einkommen[0] += spieler[spielerIch].kartenIch[AblageListe[2]][2];
       }
+      //spieler[spielerIch].kartenIch[AblageListe[2]][3] == undefined == false
       checkZugZuEnde();
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money.mp3").play();
     } else if (AblageListe[4][0] == "beendet" && AblageListe[3] > -1 && spielerIch == spielerAktuell && textButton == "Spielfeld" && spieler[AblageListe[3]].kartenIch[AblageListe[2]] == undefined == false) {
       if (spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false && spieler[spielerIch].kartenIch[AblageListe[2]][0] == "Straße") {
         console.log("Straße Ausspielen");
@@ -1983,7 +1992,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     setTimeout(function () {
       datenAktuallisieren();
     }, 500);
-    var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money-ka-ching-sound-effect-no-copyright-youtubemp3free.org.mp3").play();
+    audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money-ka-ching-sound-effect-no-copyright-youtubemp3free.org.mp3").play();
   }
 
 
@@ -2107,8 +2116,9 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           spieler[spielerIch].kartenMitte[AblageListe[2]][2][i] += zahl// - i;
         }
       if (spieler[spielerIch].kartenMitte[AblageListe[2]][2][spieler[spielerIch].kartenMitte[AblageListe[2]][2].length - 1] <= spieler[spielerIch].kartenMitte[AblageListe[2]][2][spieler[spielerIch].kartenMitte[AblageListe[2]][2].length - 2]) spieler[spielerIch].kartenMitte[AblageListe[2]][2][spieler[spielerIch].kartenMitte[AblageListe[2]][2].length - 1] = spieler[spielerIch].kartenMitte[AblageListe[2]][2][spieler[spielerIch].kartenMitte[AblageListe[2]][2].length - 2] + 1;
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/houseYay.mp3").play();
   }
-
+  var audio;
   function geldhai() {
     AblageListe[0] = 5;
     //    console.log(spieler[spielerIch].einkommen[0]);
@@ -2164,6 +2174,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       spieler[spielerIch].kartenMitte.splice(AblageListe[2], 1);
     }
     datenAktuallisieren();
+    commitShowSpielfeld(AblageListe[3]);
   }
 
   function schlauGeklaut() {
@@ -2203,8 +2214,8 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
       spieler[AblageListe[3]].kartenMitte.splice(AblageListe[2], 1);
     }
-
     datenAktuallisieren();
+    commitShowSpielfeld(AblageListe[3]);
   }
 
   function uebernahme() {
@@ -2224,6 +2235,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     // }
     spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
     spieler[AblageListe[3]].kartenMitte.splice([AblageListe[2]], 1);
+    commitShowSpielfeld(AblageListe[3]);
   }
 
 
@@ -2590,6 +2602,14 @@ function showChat() {
     }
     canvas.fillText(messagesBearbeitet, 33, 822 + 11 + 44*i);
   }
+  }
+  function commitShowSpielfeld(player) {
+    room.send({
+      message: {
+      type: "showSpielfeld",
+      player: player
+    }
+    });
   }
   function koordinatenCheck(wantReturn) {
     zählerListe[0] = 0;
