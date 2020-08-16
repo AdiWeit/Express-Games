@@ -207,6 +207,14 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
+    if (message.type == "positionBefore") {
+      setTimeout(function () {
+        canvas.fillStyle = colors[1];
+        canvas.globalAlpha = 0.5;
+        canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
+        canvas.globalAlpha = 1;
+      }, 3333);
+    }
     if (message.type.includes("player") && message.rejoin && JSON.parse(localStorage.getItem('spielfeldStratego')) != undefined && JSON.parse(localStorage.getItem('spielfeldStratego')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
       spielfeld = JSON.parse(localStorage.getItem("spielfeldStratego"));
       player = JSON.parse(localStorage.getItem("playerStratego"));
@@ -226,7 +234,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       localStorage.setItem("roundStatusStratego", JSON.stringify(roundStatus/*message.data*/));
     }
     if (message.type == "onLeave") idsBleibt = [];
-    if (message.type == "playerMoved" && myId == ids[1]) {
+    if (message.type == "playerMoved" && myId == ids[0]) {
       playerMoved = [true, message.data[0], message.data[1]];
       canvas.fillStyle = colors[1];
       canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
@@ -714,7 +722,16 @@ document.onkeydown = function(event) {
   if (event.key == "Enter" && !(AblageListe[1] == "beendet")) window.scroll(scrollX, 742);
     folgenKeyDown();
 }
-
+function showPlayerMovement() {
+  if (roundStatus[0] == "movePlayer" && AblageListe[3][1].includes("Arrow")) {
+    room.send({
+      message: {
+        "type": "positionBefore",
+        "data": roundStatus[1]
+      }
+    });
+  }
+}
 function folgenKeyDown() {
 //  swipeCoordinates = [];
   typed += AblageListe[3][1]
@@ -763,19 +780,22 @@ function folgenKeyDown() {
             "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
           }
         });
-        room.send({
-          message: {
-            type: "showNumber",
-          data: {
-            oldSpot: roundStatus[3],
-            newSpot: roundStatus[1],
-            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
-            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+        setTimeout(function () {
+          room.send({
+            message: {
+              type: "showNumber",
+            data: {
+              oldSpot: roundStatus[3],
+              newSpot: roundStatus[1],
+              numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+              numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+            }
           }
-        }
-        });
+          });
+        }, 1111);
       }
       else {
+        showPlayerMovement();
         spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
         roundStatus[0] = "finished";
         roundStatus[3] = JSON.parse(JSON.stringify(roundStatus[1]));
@@ -799,19 +819,22 @@ function folgenKeyDown() {
             "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
           }
         });
-        room.send({
-          message: {
-            type: "showNumber",
-          data: {
-            oldSpot: roundStatus[3],
-            newSpot: roundStatus[1],
-            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
-            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+        setTimeout(function () {
+          room.send({
+            message: {
+              type: "showNumber",
+            data: {
+              oldSpot: roundStatus[3],
+              newSpot: roundStatus[1],
+              numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+              numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+            }
           }
-        }
-        });
+          });
+        }, 1111);
       }
       else {
+        showPlayerMovement();
         console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1]);
         spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
         console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1]);
@@ -843,20 +866,23 @@ function folgenKeyDown() {
             "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
           }
         });
-        room.send({
-          message: {
-            type: "showNumber",
-          data: {
-            oldSpot: roundStatus[3],
-            newSpot: roundStatus[1],
-            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
-            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+        setTimeout(function () {
+          room.send({
+            message: {
+              type: "showNumber",
+            data: {
+              oldSpot: roundStatus[3],
+              newSpot: roundStatus[1],
+              numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+              numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+            }
           }
-        }
-        });
+          });
+        }, 1111);
         Layout(true, 0);
       }
       else {
+        showPlayerMovement();
         console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
         spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
         console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
@@ -886,20 +912,23 @@ function folgenKeyDown() {
             "data": [roundStatus[0], roundStatus[1], roundStatus[2], roundStatus[3], [myId, opponentId]]
           }
         });
-        room.send({
-          message: {
-            type: "showNumber",
-          data: {
-            oldSpot: roundStatus[3],
-            newSpot: roundStatus[1],
-            numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
-            numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+        setTimeout(function () {
+          room.send({
+            message: {
+              type: "showNumber",
+            data: {
+              oldSpot: roundStatus[3],
+              newSpot: roundStatus[1],
+              numberOldSpot: spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number,
+              numberNewSpot: spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number
+            }
           }
-        }
-        });
+          });
+        }, 1111);
         Layout(true, 0);
       }
       else {
+        showPlayerMovement();
         console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
         spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1] = JSON.parse(JSON.stringify(spielfeld[roundStatus[1][0]][roundStatus[1][1]]));
         console.log(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1]);
@@ -953,12 +982,14 @@ function folgenKeyDown() {
   function FinishRound() {
     if (roundStatus[0] == "finished") spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false;
     Layout(true, 0)/*;syncData()*/;roundStatus[0] = "ingame";
-    room.send({
-      message: {
-      type: "playerMoved",
-      data: roundStatus[3]
-    }
-    });
+    setTimeout(function () {
+      room.send({
+        message: {
+        type: "playerMoved",
+        data: roundStatus[3]
+      }
+      });
+    }, 777);
     localStorage.setItem('spielfeldStratego', JSON.stringify(spielfeld));
     localStorage.setItem('playerStratego', JSON.stringify(player));
   room.send({
@@ -1139,21 +1170,21 @@ function handleTouchMove(evt) {
   if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
       if ( xDiff > 0 ) {
           /* left swipe */
-          AblageListe[3] = [37, "none"];
+          AblageListe[3] = [37, "Arrow"];
       } else {
           /* right swipe */
-          AblageListe[3] = [39, "none"];
+          AblageListe[3] = [39, "Arrow"];
       }
   } else {
       if ( yDiff > 0 ) {
           /* up swipe */
-          AblageListe[3] = [38, "none"];
+          AblageListe[3] = [38, "Arrow"];
       } else {
           /* down swipe */
-          AblageListe[3] = [40, "none"];
+          AblageListe[3] = [40, "Arrow"];
       }
   }
-  if (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && !((Math.round(swipeCoordinates[0])/10 + "").includes(".")) || !((Math.round(swipeCoordinates[1])/10 + "").includes("."))) {
+  if (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && (!((Math.round(swipeCoordinates[0])/10 + "").includes(".")) || !((Math.round(swipeCoordinates[1])/10 + "").includes(".")))) {
     folgenKeyDown();
   }
  if (gerät == "Handy" && !(roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2)) {
