@@ -480,7 +480,7 @@
       else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
       if (afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "warten auf Gebot") AblageListe[4][0] = "beendet";
       if (afterNixDa["Warten Bezahlen Gegner"] && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
-      else if (ereignis == "") AblageListe[4][0] = "beendet";
+      else if (ereignis == "" && afterNixDa["AblageListe[4]"][0] != "bezahlen Gegner") AblageListe[4][0] = "beendet";
       //checkRundenende();
     }
     if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1] || confirm("Wollen sie die " + message.data[0][3] + " (" + color + ") für " + message.data[1][0] + "€ kaufen? Es hat eine Versteigerung stattgefunden, bei der sie bisher noch nicht teilnehmen konnten, aber alle anderen haben entweder zu wenig Geld, oder von sich aus abgelehnt."))) {
@@ -905,7 +905,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
           gleichstand: AblageListe[0][1]
         }
       });
-    } else if (AblageListe[0][1] != "aus Gebot aussteigen" && spieler[spielerIch].einkommen[0] <= JSON.parse(AblageListe[1][1][0])) {
+    } else if (AblageListe[0][1] != "aus Gebot aussteigen" && AblageListe[0] != "aus Gebot aussteigen" && spieler[spielerIch].einkommen[0] <= JSON.parse(AblageListe[1][1][0])) {
       console.log("aus Gebot aussteigen");
       alert("Sie haben nicht genug Geld, um bei der Versteigerung mithalten zu können!")
       if (AblageListe[0][1] != "niemandKriegtSie") AblageListe[0] = "aus Gebot aussteigen";
@@ -1147,6 +1147,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     AblageListe[2] = -1;
     koordinatenCheck(false);
     if (!(AblageListe[4][0].includes("ein") || AblageListe[4][0].includes("für") || AblageListe[4][0].includes("gegen") || nixDaType.includes("ein") || nixDaType.includes("für") || nixDaType.includes("gegen")) && (AblageListe[3] == spielerIch || AblageListe[4][0] != "beendet")) {
+      ereignis = "";
     if (AblageListe[4][0] == "Auswahl Karten ablegen" && textButton == "Spielfeld" && AblageListe[3] == spielerIch && spieler[spielerIch].kartenIch[AblageListe[2]] == undefined == false) {
       if (spieler[spielerIch].kartenIch[AblageListe[2]][0] == "Straße" && vorbereitungGebot()) {
           gebotAnServer(gebote, bieter, spieler[spielerIch].kartenIch[AblageListe[2]], spielerIch);
@@ -1269,11 +1270,13 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       alert("Sie können keine Straße aus einem vollständigen Satz weggeben. Und ich glaube, das ist auch gut so :). Ein anderes Problem könnte sein, dass sie ihrem Gegner keine Straße aufdrücken können, dessen Straßensatz er bereits vollständig hat.");
     }
   } else if (AblageListe[4][0] == "Spieler Miete" && AblageListe[3] < AnzahlSpieler && AblageListe[3] != spielerIch) {
+    afterNixDa["AblageListe[3]"] = AblageListe[3];
       if (spieler[AblageListe[3]].kartenIch.some(x => x.includes("Nix Da")) && AblageListe[3] == spielerIch == false) {
         AblageListe[4][0] = "Miete gegen sie";
       } else {
         nixDaType = "Miete gegen sie";
         setTimeout(function () {
+          AblageListe[3] = JSON.parse(JSON.stringify(afterNixDa["AblageListe[3]"]));
           Miete();
           if (AblageListe[4][0] == "Spieler Miete") AblageListe[4][0] = "beendet";
           nixDaType = "beendet";
