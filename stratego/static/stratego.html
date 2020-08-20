@@ -205,22 +205,13 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       }
       else showResults(message.data, 0, message.siegDurch);
     }
-    if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
-    if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
-    if (message.type == "positionBefore") {
-      setTimeout(function () {
-        canvas.fillStyle = colors[1];
-        canvas.globalAlpha = 0.5;
-        canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
-        canvas.globalAlpha = 1;
-      }, 3333);
-    }
     if (message.type.includes("player") && message.rejoin && JSON.parse(localStorage.getItem('spielfeldStratego')) != undefined && JSON.parse(localStorage.getItem('spielfeldStratego')) != "undefined" &&  confirm("wollen sie die vorherige Runde weiterspielen?")) {
       spielfeld = JSON.parse(localStorage.getItem("spielfeldStratego"));
       player = JSON.parse(localStorage.getItem("playerStratego"));
       ids = JSON.parse(localStorage.getItem("idsStratego"));
       roundStatus = JSON.parse(localStorage.getItem("roundStatusStratego"));
       spielfeldList = JSON.parse(localStorage.getItem("spielfeldListStratego"));
+      idsBleibt = JSON.parse(localStorage.getItem('idsBelibtStratego'));
       Layout();
     }
     else if (message.type.includes("player") && message.rejoin) {
@@ -233,7 +224,23 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     else if (message.type.includes("player")) {
       localStorage.setItem("roundStatusStratego", JSON.stringify(roundStatus/*message.data*/));
     }
+    if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
+    if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
+    if (message.type == "positionBefore") {
+      setTimeout(function () {
+        if (spielfeldList[spielfeldList.length - 1].after && !spielfeldList[spielfeldList.length - 1].before) spielfeldList[spielfeldList.length - 1].before = message.data;
+        else spielfeldList.push(JSON.parse(JSON.stringify({before: message.data})));
+        localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
+        canvas.fillStyle = colors[1];
+        canvas.globalAlpha = 0.5;
+        canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
+        canvas.globalAlpha = 1;
+      }, 3333);
+    }
     if (message.type == "onLeave") idsBleibt = [];
+    if (message.type == "playerMoved" && spielfeldList.length == 0) spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
+    if (message.type == "playerMoved" && (!spielfeldList[spielfeldList.length - 1] || spielfeldList[spielfeldList.length - 1].after)) spielfeldList.push(JSON.parse(JSON.stringify({after: message.data})));
+    else if (message.type == "playerMoved") spielfeldList[spielfeldList.length - 1].after = message.data;
     if (message.type == "playerMoved" && myId == ids[0]) {
       playerMoved = [true, message.data[0], message.data[1]];
       canvas.fillStyle = colors[1];
@@ -246,11 +253,16 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       }, 333);
     }
     if (message.type == "spielerIds")  {
-      spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
-      localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
+      setTimeout(function () {
+        console.log(spielfeldList[spielfeldList.length - 1]);
+      }, 3333);
        ids = message.data;
        localStorage.setItem("idsStratego", JSON.stringify(ids));
-      if (idsBleibt.length == 0)  idsBleibt = JSON.parse(JSON.stringify(ids));
+       positionShowed = false;
+      if (idsBleibt.length == 0)  {
+        idsBleibt = JSON.parse(JSON.stringify(ids));
+        localStorage.setItem('idsBelibtStratego', JSON.stringify(idsBleibt));
+      }
   //    if (playerMe == 1) myId = idsBleibt[0]
   //    if (playerMe == 2) myId = idsBleibt[1]
     }
@@ -606,8 +618,6 @@ player.pop();
 }
 
 function attack() {
-  spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
-  localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
   spielfeld[roundStatus[3][0]][roundStatus[3][1]].player = false; playerMoved[0] = false;//roundStatus[0] = "ingame";
   canvas.fillStyle = colors[0];
   canvas.fillRect(477 + 70*roundStatus[3][0], 17 + 70*roundStatus[3][1], 60, 60);
@@ -707,6 +717,8 @@ function attack() {
     });
     ids = "inProgress";
   }
+  spielfeldList.push(JSON.parse(JSON.stringify({positions: [roundStatus[1], roundStatus[3]], datas: [spielfeld[roundStatus[1][0]][roundStatus[1][1]], spielfeld[roundStatus[3][0]][roundStatus[3][1]]]})));
+  localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
 }
 window.addEventListener("dblclick", dbClick)
 
@@ -722,8 +734,10 @@ document.onkeydown = function(event) {
   if (event.key == "Enter" && !(AblageListe[1] == "beendet")) window.scroll(scrollX, 742);
     folgenKeyDown();
 }
+var positionShowed = false;
 function showPlayerMovement() {
-  if (roundStatus[0] == "movePlayer" && AblageListe[3][1].includes("Arrow")) {
+  if (roundStatus[0] == "movePlayer" && AblageListe[3][1].includes("Arrow") && !positionShowed) {
+    positionShowed = true;
     room.send({
       message: {
         "type": "positionBefore",
@@ -1156,18 +1170,19 @@ return evt.touches ||             // browser API
 }
 
 function handleTouchStart(evt) {
+  swiped = false;
   const firstTouch = getTouches(evt)[0];
   xDown = firstTouch.clientX;
   yDown = firstTouch.clientY;
 };
-
+var swiped = false;
 function handleTouchMove(evt) {
   var xUp = evt.touches[0].clientX;
   var yUp = evt.touches[0].clientY;
   var xDiff = xDown - xUp;
   var yDiff = yDown - yUp;
    swipeCoordinates = [evt.touches[0].clientX, evt.touches[0].clientY];
-  if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+  if ( Math.abs( xDiff ) > Math.abs( yDiff ) && !swiped) {/*most significant*/
       if ( xDiff > 0 ) {
           /* left swipe */
           AblageListe[3] = [37, "Arrow"];
@@ -1175,7 +1190,7 @@ function handleTouchMove(evt) {
           /* right swipe */
           AblageListe[3] = [39, "Arrow"];
       }
-  } else {
+  } else if (!swiped) {
       if ( yDiff > 0 ) {
           /* up swipe */
           AblageListe[3] = [38, "Arrow"];
@@ -1184,6 +1199,7 @@ function handleTouchMove(evt) {
           AblageListe[3] = [40, "Arrow"];
       }
   }
+  swiped = true;
   if (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && (!((Math.round(swipeCoordinates[0])/10 + "").includes(".")) || !((Math.round(swipeCoordinates[1])/10 + "").includes(".")))) {
     folgenKeyDown();
   }
