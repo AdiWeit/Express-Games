@@ -8,7 +8,7 @@
 <button type="button" onclick="playing.direction = -1;" name="button">⏪</button>
 <h2>speed (right: slower)</h2>
 <input type="range" min="50" oninput="playing.speed = JSON.parse(value)" max="2000" value="1500" class="slider" id="sliderSpeed">
-<button type="button" id="backToNormal" onclick="playing.speed = 1500;" name="button">back to normal</button>
+<button type="button" id="backToNormal" onclick="playing.speed = 1500; sliderSpeed.value = 1500" name="button">back to normal</button>
 <div id="app">
 <li v-for="title in db" id="kathegorien">
   {{ title }}
@@ -45,7 +45,7 @@ else {
   if (!(JSON.parse(localStorage.getItem("colors")) == null))  colors = JSON.parse(localStorage.getItem("colors"));
   else
   var player = [{number: 0, anzahl: 1}, {number: 1, anzahl: 1},{number: 2, anzahl: 8},{number: 3, anzahl: 5},{number: 4, anzahl: 4},{number: 5, anzahl: 4},{number: 6, anzahl: 4},{number: 7, anzahl: 3},{number: 8, anzahl: 2},{number: 9, anzahl: 1}, {number: 10, anzahl: 1}, {number: 11, anzahl: 6}];
-  function Layout() {
+  function Layout(pShowIcon) {
     console.log(spielfeldAktuell);
     canvas.fillStyle = "#FA9B0D";
     // background colour: #FA9B0D
@@ -83,15 +83,19 @@ else {
             //   Layout(true, 0)true);
             // }
             // }, 100);
-            if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
+            /* if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][AblageListe[1][0][0]][AblageListe[1][0][1]], spielfeldList[spielfeldAktuell - (1*playing.direction)][AblageListe[1][0][0]][AblageListe[1][0][1]])))) */showIcon(AblageListe[1][0], spielfeld[AblageListe[1][0][0]][AblageListe[1][0][1]].player.number);
           AblageListe[1].shift();
       }
       }, 10);
     }
       else if (!(spielfeld[i][i1].player == false))  canvas.fillStyle = "#FC2600";
       try {
-        if (spielfeld[i][i1].player != false && spielfeldAktuell > 1 && !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - 1][i][i1]))) canvas.fillStyle = colors[1];
-        if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+        // if (spielfeld[i][i1].player != false && spielfeldAktuell > 1 && !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - 1][i][i1]))) canvas.fillStyle = colors[1];
+        /*if ((spielfeldAktuell < 1 || spielfeldAktuell == anzahlMovements - 1) || !(angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])) || (spielfeldAktuell > 1 && angular.equals(spielfeld[i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1]) && !(angular.equals(spielfeldList[spielfeldAktuell - 2][i][i1], spielfeldList[spielfeldAktuell - (1*playing.direction)][i][i1])))) */
+        if (angular.equals([i, i1], spielfeldList[spielfeldAktuell].before) || angular.equals([i, i1], spielfeldList[spielfeldAktuell].after) || (spielfeldList[spielfeldAktuell].positions && angular.equals([i, i1], spielfeldList[spielfeldAktuell].positions[0])) || (spielfeldList[spielfeldAktuell].positions && angular.equals([i, i1], spielfeldList[spielfeldAktuell].positions[1])) || spielfeldAktuell == 0) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+        spielfeldAktuell -= 1*playing.direction;
+        if (spielfeldAktuell != anzahlMovements && spielfeldAktuell > 0 && (angular.equals([i, i1], spielfeldList[spielfeldAktuell].before) || angular.equals([i, i1], spielfeldList[spielfeldAktuell].after) || (spielfeldList[spielfeldAktuell].positions && angular.equals([i, i1], spielfeldList[spielfeldAktuell].positions[0])) || (spielfeldList[spielfeldAktuell].positions && angular.equals([i, i1], spielfeldList[spielfeldAktuell].positions[1])))) canvas.fillRect(477 + 70*i, 17 + 70*i1, 60, 60);
+        spielfeldAktuell += 1*playing.direction;
       } catch (e) {
         console.log("please debug!");
       }
@@ -113,6 +117,19 @@ else {
     koordinaten[2] = 1290;
     player = AblageListe[3][1];
     showStats();
+    if (pShowIcon) {
+      if (spielfeldList[spielfeldAktuell].after) {
+          canvas.fillStyle = colors[1];
+          canvas.fillRect(477 + 70*spielfeldList[spielfeldAktuell].after[0], 17 + 70*spielfeldList[spielfeldAktuell].after[1], 60, 60);
+          showIcon([spielfeldList[spielfeldAktuell].after[0], spielfeldList[spielfeldAktuell].after[1]], spielfeld[spielfeldList[spielfeldAktuell].after[0]][spielfeldList[spielfeldAktuell].after[1]].player.number);
+      }
+      if (spielfeldList[spielfeldAktuell + 1] && spielfeldList[spielfeldAktuell + 1].positions) {
+        setTimeout(function () {
+          if (!angular.equals(spielfeldList[spielfeldAktuell + 1].after, spielfeldList[spielfeldAktuell + 1].positions[0])) showIcon(spielfeldList[spielfeldAktuell + 1].positions[0], spielfeld[spielfeldList[spielfeldAktuell + 1].positions[0][0]][spielfeldList[spielfeldAktuell + 1].positions[0][1]].player.number, colors[1]);
+          else showIcon(spielfeldList[spielfeldAktuell + 1].positions[1], spielfeld[spielfeldList[spielfeldAktuell + 1].positions[1][0]][spielfeldList[spielfeldAktuell + 1].positions[1][1]].player.number, colors[1]);
+        }, 10);
+      }
+    }
   }
   function showStats() {
     koordinaten[1] = 37;
@@ -171,16 +188,55 @@ else {
   }
   player.pop();
   }
+  var fullSpielfeldList = [];
   var spielfeldAktuell = 0;
    function play(userInteraction) {
      if (userInteraction && playing.boolean) playing.boolean = false;
      else if (userInteraction) {playing.boolean = true;
        if (!(spielfeldAktuell == anzahlMovements && playing.direction == -1) && spielfeldAktuell > -1) Layout();
      }
-     if (spielfeldAktuell == anzahlMovements && playing.direction == -1) spielfeldAktuell--;
-    if (spielfeldAktuell < anzahlMovements && !(playing.direction == -1 && spielfeldAktuell == -1)) {
-      spielfeld = JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld[spielfeldAktuell];
-      if (spielfeldAktuell > -1) Layout();
+    if (spielfeldAktuell <= anzahlMovements && !(playing.direction == -1 && spielfeldAktuell == -1)) {
+      if (spielfeldAktuell == anzahlMovements && playing.direction == -1) spielfeldAktuell--;
+      if (!fullSpielfeldList[spielfeldAktuell] || spielfeldAktuell == 0) {
+      if (playing.direction == 1 && spielfeldAktuell == -1) spielfeldAktuell++;
+      if (spielfeldAktuell == 0) spielfeld = JSON.parse(localStorage.getItem("playBacksStratego"))[name].spielfeld[spielfeldAktuell];
+      else if (spielfeldList[spielfeldAktuell].positions) {
+        spielfeld[spielfeldList[spielfeldAktuell].positions[0][0]][spielfeldList[spielfeldAktuell].positions[0][1]] = spielfeldList[spielfeldAktuell].datas[0];
+        spielfeld[spielfeldList[spielfeldAktuell].positions[1][0]][spielfeldList[spielfeldAktuell].positions[1][1]] = spielfeldList[spielfeldAktuell].datas[1];
+      }
+      if (spielfeldList[spielfeldAktuell].after) {
+        spielfeld[spielfeldList[spielfeldAktuell].after[0]][spielfeldList[spielfeldAktuell].after[1]] = JSON.parse(JSON.stringify(spielfeld[spielfeldList[spielfeldAktuell].before[0]][spielfeldList[spielfeldAktuell].before[1]]));
+        spielfeld[spielfeldList[spielfeldAktuell].before[0]][spielfeldList[spielfeldAktuell].before[1]].player = false;
+      }
+      else if (spielfeldList[spielfeldAktuell].before && spielfeldList[spielfeldAktuell + 1].datas) {
+        if (spielfeldList[spielfeldAktuell + 1].datas[0].player == false) {
+          spielfeld[spielfeldList[spielfeldAktuell + 1].positions[0][0]][spielfeldList[spielfeldAktuell + 1].positions[0][1]] = JSON.parse(JSON.stringify(spielfeld[spielfeldList[spielfeldAktuell].before[0]][spielfeldList[spielfeldAktuell].before[1]]));
+          spielfeldList[spielfeldAktuell].after = [spielfeldList[spielfeldAktuell + 1].positions[0][0], spielfeldList[spielfeldAktuell + 1].positions[0][1]];
+        }
+        if (spielfeldList[spielfeldAktuell + 1].datas[1].player == false) {
+          spielfeld[spielfeldList[spielfeldAktuell + 1].positions[1][0]][spielfeldList[spielfeldAktuell + 1].positions[1][1]] = JSON.parse(JSON.stringify(spielfeld[spielfeldList[spielfeldAktuell].before[0]][spielfeldList[spielfeldAktuell].before[1]]));
+          spielfeldList[spielfeldAktuell].after = [spielfeldList[spielfeldAktuell + 1].positions[1][0], spielfeldList[spielfeldAktuell + 1].positions[1][1]];
+        }
+        spielfeld[spielfeldList[spielfeldAktuell].before[0]][spielfeldList[spielfeldAktuell].before[1]].player = false;
+      }
+    }
+    else {
+      spielfeld = fullSpielfeldList[spielfeldAktuell];
+    }
+      // if (spielfeldList[spielfeldAktuell].after && spielfeldList[spielfeldAktuell].datas) {
+      //   var newField = [];
+      //   newField[spielfeldAktuell + 1] = {after: spielfeldList[spielfeldAktuell].after, before: spielfeldList[spielfeldAktuell].before};
+      //   newField[spielfeldAktuell] = {datas: spielfeldList[spielfeldAktuell].datas, positions: sampielfeldList[spielfeldAktuell].positions};
+      //   for (var i = 0; i < spielfeldList.length + 1; i++) {
+      //     if (!newField[i] && spielfeldList[i]) newField[i] = spielfeldList[i];
+      //   }
+      //   spielfeldList = newField;
+      // }
+      if (spielfeldAktuell > -1 && spielfeldAktuell != undefined) Layout(true);
+      if (!fullSpielfeldList[spielfeldAktuell]) {
+        fullSpielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
+        console.log(spielfeldAktuell + " saved!");
+      }
       setTimeout(function () {
         if (playing.boolean) {
         spielfeldAktuell += playing.direction;
@@ -196,7 +252,8 @@ else {
     }
   }
   var name = "";
-  function showIcon(coordinates, number) {
+  function showIcon(coordinates, number, textColour) {
+    if (!textColour) textColour = "white";
     Bild = new Image();
     if (number == 0) {
     if (spielfeld[coordinates[0]][coordinates[1]].player.id == myId)  Bild.src = links.pictures["blueFlag"];
@@ -208,7 +265,7 @@ else {
       canvas.drawImage(Bild, 477 + 70*coordinates[0], 17 + 70*coordinates[1], 60, 60)
     }
     else {
-      canvas.fillStyle = "white";
+      canvas.fillStyle = textColour;
       canvas.font = "37px Georgia";
       canvas.fillText(number, 477 + 70*coordinates[0] + 22, 17 + 70*coordinates[1] + 40);
     }
