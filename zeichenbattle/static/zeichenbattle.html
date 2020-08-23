@@ -1,0 +1,338 @@
+<script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script>
+<canvas id="textur" width="1800" height="700" style="opacity:1"></canvas>
+<input type="color" name="color" id="colorPicker">
+<button type="button" name="button" id="speichern">speichern</button>
+<input type="range" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/zeichenbattle/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDzeichenbattle');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDzeichenbattle', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/zeichenbattle/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/zeichenbattle/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/zeichenbattle/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var player = {};
+  room.setOnMessageListener(function(message) {
+    if (message.type == "Reihenfolge") player.aktuell = message.data;
+    if (message.type == "spielerDu") player.myNumber = message.data;
+  });
+  var unlocked = ["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
+  if ((unlocked.includes("colours"))) colorPicker.style.display = "none";
+  for (var i = 0; unlocked[3] && i < unlocked[3].sizes.length; i++) {
+    var text = document.createElement("H4");
+    text.innerHTML = "|"//unlocked[3].sizes[i];
+    text.style.position = "absolute";
+    text.style.left = 90/*133*/ + unlocked[3].sizes[i]*0.6;
+    // text.style.top = "500";
+    document.body.appendChild(text);
+  }
+  function sliderChanged(value) {
+    for (var i = 0; unlocked[3] && unlocked[3].sizes[i] <= JSON.parse(value); i++) {}
+    console.log("i: " + i + ", size: " + unlocked[3].sizes[i - 1] + ", value: " + value);
+    if (i > 0) sliderRadius.value = unlocked[3].sizes[i - 1];
+    else sliderRadius.value = unlocked[3].sizes[0]
+  }
+// imported
+var textur = document.getElementById('textur');
+var canvas = textur.getContext('2d'); //Dimension
+  var dataURL = textur.toDataURL();
+  var bild = new Image();
+var xMaus = 0;
+var yMaus = 0;
+  var hinzufügenX = 0;
+  var hinzufügenY = 0;
+  var zustände = ["up", "none"];
+var imgData = canvas.getImageData(xMaus,yMaus, 1, 1).data;
+  var zählerListe = [0];
+
+  function laden() {
+    bild = new Image();
+    bild.src = dataURL;
+    canvas.globalAlpha = 1;
+  /*  canvas.fillStyle = "white";
+    canvas.fillRect(0,0,2000,1000) */
+    canvas.drawImage(bild, 0, 0);
+  }
+  var w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0],
+    x = w.innerWidth || e.clientWidth || g.clientWidth,
+    y = w.innerHeight || e.clientHeight || g.clientHeight;
+  console.log(x + ' × ' + y);
+  // "button layout
+  if (unlocked.includes("pinsel")) {
+  canvas.fillStyle = "blue";
+  canvas.fillRect(x - 75, 17, 50, 50);
+  canvas.fillStyle = "gray";
+  canvas.fillRect(x - 70, 22, 40, 40);
+}
+if (unlocked.includes("kreis")) {
+  canvas.fillStyle = "blue";
+  canvas.fillRect(x - 75, 17 + 70, 50, 50);
+  canvas.fillStyle = "gray";
+  canvas.fillRect(x - 70, 22 + 70, 40, 40);
+}
+if (unlocked.includes("fill")) {
+  canvas.fillStyle = "blue";
+  canvas.fillRect(x - 75, 17 + 70 + 70, 50, 50);
+  canvas.fillStyle = "gray";
+  canvas.fillRect(x - 70, 22 + 70 + 70, 40, 40);
+}
+
+  window.addEventListener('DOMContentLoaded', f, false)
+  document.onmousemove = readMouseMove
+  var f = function() {
+    var eventHandler = function(event) {
+          console.log(window.scrollX + " - " + window.scrollY);
+      hinzufügenX = window.scrollX;
+      hinzufügenY = window.scrollY;
+    };
+    window.addEventListener('scroll', eventHandler, false)
+  };
+  function readMouseMove(e) {
+    if (zustände[1] == "kreis"/* && xMaus < x - 120 && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
+      canvas.globalAlpha = 1;
+      canvas.fillStyle = "white";
+      canvas.beginPath();
+      canvas.arc(xMaus - 3,yMaus - 3,JSON.parse(document.getElementById('sliderRadius').value) + 8,0,Math.PI*2, false);
+      canvas.fill();
+    }
+    xMaus = e.clientX + hinzufügenX;
+    yMaus = e.clientY + hinzufügenY;
+    if (zustände[1] == "kreis" && xMaus < x - 120 /* && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
+      laden();
+      canvas.fillStyle = document.getElementById('colorPicker').value;//"black"
+      canvas.globalAlpha = 0.3;
+      canvas.beginPath();
+      canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
+      canvas.fill();
+    }
+    if (zustände[0] == "down" && zustände[1] == "pinsel") {
+      console.log("zeichnen");
+      canvas.fillStyle = document.getElementById('colorPicker').value;
+      canvas.fillRect(xMaus - 5, yMaus - 5, sliderRadius.value, sliderRadius.value);
+    }
+    if ((zustände[0][0] == "placed" && xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)) {
+      zustände[0] = "none";
+    }
+  }
+  var searchedColores = [];
+  window.addEventListener('mousedown', function() {
+    // button click
+    if (unlocked.includes("pinsel") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
+      zustände[1] = "pinsel";
+      canvas.globalAlpha = 1;
+      console.log("pinsel ausgewählt");
+    }
+    else if (unlocked.includes("kreis") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 && yMaus < 17 + 70 + 50) {
+      zustände[1] = "kreis";
+      console.log(zustände[1] + " ausgewählt");
+      dataURL = textur.toDataURL();
+    }
+    else if (unlocked.includes("fill") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 + 70 && yMaus < 17 + 70 + 70 + 50) {
+      zustände[1] = "fill";
+      console.log(zustände[1] + " ausgewählt");
+    }
+    // füllen
+    else if (zustände[1] == "fill") {
+      canvas.fillStyle = document.getElementById('colorPicker').value;
+      zählerListe[2] = 0;
+    //  canvas.fillRect(xMaus, yMaus, 1, 1);
+      zählerListe[0] = 0;
+      getImgDataX();
+      searchedColores = [red, green, blue, alpha];
+      while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && xMaus + zählerListe[0] - 2 < x  && zustände[0] == "beendet" == false) {
+        if (xMaus + zählerListe[0] > x) {
+          alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+          zustände[0] = "beendet";
+          setTimeout(function () {
+            zustände[0] = "up"
+          }, 2000);
+        }
+        getImgDataX();
+        canvas.fillRect(xMaus + zählerListe[0], yMaus, 1, 1);
+        zählerListe[0]++;
+      }
+      zählerListe[0] = -1;
+      getImgDataX();
+      while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        getImgDataX();
+        canvas.fillRect(xMaus + zählerListe[0], yMaus, 1, 1);
+        zählerListe[0]--;
+      }
+      zählerListe[1] = 0;
+      zählerListe[0] = 1;
+      getImgDataY();
+      while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      zählerListe[0] = 1;
+      getImgDataY();
+      while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        getImgDataY();
+        canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+        zählerListe[0]++;
+      }
+      zählerListe[0] = -1;
+      getImgDataY();
+      while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        getImgDataY();
+        canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+        zählerListe[0]--;
+      }
+        zählerListe[1]++;
+        zählerListe[0] = 1;
+        getImgDataY();
+      /*  canvas.fillStyle = "red";
+        canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 10, 10); */
+
+        /*
+        zählerListe[0] = 1;
+        getImgDataY();
+        while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3]) {
+          getImgDataY();
+          canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+          zählerListe[0]++;
+        }
+        zählerListe[0] = -1;
+        getImgDataY();
+        while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3]) {
+          getImgDataY();
+          canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+          zählerListe[0]--;
+        }
+          zählerListe[1]++;
+          zählerListe[0] = 1;
+          getImgDataY();
+        */
+    }
+    zählerListe[1] = -1;
+    getImgDataY();
+    while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+    zählerListe[0] = 1;
+    getImgDataY();
+    while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      getImgDataY();
+      canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+      zählerListe[0]++;
+    }
+    zählerListe[0] = -1;
+    getImgDataY();
+    while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      getImgDataY();
+      canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
+      zählerListe[0]--;
+    }
+      zählerListe[1]--;
+      zählerListe[0] = 1;
+      getImgDataY();
+    /*  canvas.fillStyle = "red";
+      canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 10, 10); */
+  }
+  console.log(zählerListe[2]);
+  }
+  // Kreis zeichneXn
+    else if (zustände[1] == "kreis" && xMaus < x - 120 && xMaus < x - 120 && (zustände[0][0] == "placed" && xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66) == false) {
+      zustände[0] = ["placed", xMaus, yMaus];
+      canvas.fillStyle = document.getElementById('colorPicker').value;
+      canvas.globalAlpha = 1;
+      canvas.beginPath();
+      canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
+      canvas.fill();
+      console.log("kreisPlaziert");
+      dataURL = textur.toDataURL();
+    }
+    else if (zustände[0] == "up") {
+      zustände[0] = "down";
+      console.log(zustände[1] + " gesenkt");
+    }
+    else {
+      zustände[0] = "up";
+      console.log(zustände[1] + " angehoben");
+    }
+  });
+dataURL = textur.toDataURL();
+function getImgDataX() {
+  var imgData = canvas.getImageData(xMaus + zählerListe[0],yMaus, 1, 1).data;
+    imgData.crossOrigin = "Anonymous";
+    red = imgData[0];
+    green = imgData[1];
+    blue = imgData[2];
+    alpha = imgData[3];
+  //  console.log("red: " + red + " green: " + green + " blue: " + blue + " alpha: " + alpha);
+    zählerListe[2]++;
+}
+function getImgDataY() {
+  var imgData = canvas.getImageData(xMaus + zählerListe[1],yMaus + zählerListe[0], 1, 1).data;
+    imgData.crossOrigin = "Anonymous";
+    red = imgData[0];
+    green = imgData[1];
+    blue = imgData[2];
+    alpha = imgData[3];
+  //  console.log("red: " + red + " green: " + green + " blue: " + blue + " alpha: " + alpha);
+    zählerListe[2]++;
+}
+
+
+</script>

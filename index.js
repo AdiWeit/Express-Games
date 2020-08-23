@@ -77,6 +77,9 @@ app.use('/fillTheGlass/', fillTheGlass);
 const guessTheValue = require('./guessTheValue/index.js');
 app.use('/guessTheValue/', guessTheValue);
 
+const zeichenbattle = require('./zeichenbattle/index.js');
+app.use('/zeichenbattle/', zeichenbattle);
+
 // const replica = require('./replica/index.js');
 // app.use('/replica/', replica);
 
