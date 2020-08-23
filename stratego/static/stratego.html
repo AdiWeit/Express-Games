@@ -1,8 +1,9 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <meta charset="utf-8">
 <canvas id="textur" width="1566" height="744"></canvas>
-<input type="text" id="message" placeholder="message">
+<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
 <div id="aufstellungDiv">
   <h1 id="aufstellungsText">gespeicherte Aufstellungen</h1>
   <div id="app">
@@ -20,7 +21,24 @@
     });
     return 'Are you sure you want to leave?';
   };
-
+  document.getElementById('submit').style.position = "absolute";
+  // anonymSchreiben.style.position = "absolute";
+  document.getElementById('zeichenZuEmogis').style.position = "absolute";
+  // anonymSchreibenT.style.position = "absolute";
+  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
+  message.style.position = "absolute";
+  message.style.top = "810";
+  message.style.left = "10";
+  document.getElementById('submit').style.top = "810";
+  document.getElementById('submit').style.left = "185";
+  // anonymSchreiben.style.top = "793";
+  zeichenZuEmogis.style.top = "810";
+  // anonymSchreiben.style.left = "233";
+  zeichenZuEmogis.style.left = "233";
+  // anonymSchreibenT.style.top = "773";
+  zeichenZuEmogisT.style.top = "790";
+  // anonymSchreibenT.style.left = "253";
+  zeichenZuEmogisT.style.left = "257";
 var links = {pictures: {bomb: "https://adi.nicolaiweitkemper.de/Bilder/bomb.png", redFlag: "https://adi.nicolaiweitkemper.de/Bilder/redFlag.png", blueFlag: "https://adi.nicolaiweitkemper.de/Bilder/blueFlag.png"}, sounds: {march: "https://adi.nicolaiweitkemper.de/Sounds/GERMAN%20TROOPS%20MARCH%20INTO%20RHINELAND%20-%20SOUND.mp3", swardFight: "https://soundbible.com/mp3/rage_of_blades-Blaga_Saun-1763516257.mp3", badLaugh: "https://soundbible.com/mp3/Jolly%20Laugh-SoundBible.com-874430997.mp3", crying: "https://soundbible.com/mp3/woman-crying-daniel_simon.mp3"}}
 var Bild = new Image();
 var canvas = document.getElementById('textur').getContext('2d'); //Dimension
@@ -31,7 +49,7 @@ var opponentId;
 var idsBleibt = [];
 var typed = "";
 var audio;
-var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "yellow"]}
+var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "#DF0174"]}
 var colors = colorsModes.normal
 var playerMoved = [false];
 var xMaus = 0;
@@ -171,7 +189,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     if (message.type == "messages") {
       messages = message.data
 
-      textur.height = 777 + messages.length*44;
+      textur.height = 844 + messages.length*44;
       Layout(false, 0);
       if (!(myId == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
       AblageListe[1] = "warten Message angucken";
@@ -226,8 +244,9 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
-    if (message.type == "positionBefore") {
+    if (message.type == "positionBefore" && myId != ids[0]) {
       setTimeout(function () {
+        if (spielfeldList.length == 0) spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
         if (spielfeldList[spielfeldList.length - 1].after && !spielfeldList[spielfeldList.length - 1].before) spielfeldList[spielfeldList.length - 1].before = message.data;
         else spielfeldList.push(JSON.parse(JSON.stringify({before: message.data})));
         localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
@@ -340,6 +359,9 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
       if (confirm("Wollen sie diese Runde als Replay festhalten? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/stratego.html angucken.")) {
         if (localStorage.getItem("playBacksStratego")) var replays = JSON.parse(localStorage.getItem("playBacksStratego"));
         else var replays = {};
+        for (var i = 0; i < spielfeldList.length; i++) {
+          if (spielfeldList[i].before && !spielfeldList.after) spielfeldList.splice(i,1);
+        }
         replays[prompt("Wie wollen sie ihr Replay nennen?")] = {spielfeld: spielfeldList, idsBleibt: idsBleibt, myId: myId, opponentId: opponentId};
         localStorage.setItem("playBacksStratego", JSON.stringify(replays));
       }
@@ -356,10 +378,11 @@ function submit() {
     sender: myId
   }
   });
-  setTimeout(function () {
-      window.scroll(scrollX, 10000)
-      document.getElementById('message').select();
-  }, 3000);
+  message.value = "";
+  // setTimeout(function () {
+  //     window.scroll(scrollX, 10000)
+  //     document.getElementById('message').select();
+  // }, 3000);
 }
 function removeGame(sendEnd, alert) {
   if (sendEnd) {
@@ -445,12 +468,27 @@ function Layout(sync, time) {
   // }
 }
 function showChat() {
+  // for (var i = 0; i < messages.length; i++) {
+  //   // if (!(messages[messages.length - 1 - i] == undefined)) {
+  //   canvas.fillStyle = "white";
+  //   canvas.font = "33px Georgia";
+  //   canvas.fillText(messages[messages.length - 1 - i], 33, 788 + 44*i);
+  // }
+  canvas.fillStyle = "#BC750A";
+  canvas.fillRect(0, 822, 10000, 10000);
   for (var i = 0; i < messages.length; i++) {
-    // if (!(messages[messages.length - 1 - i] == undefined)) {
-    canvas.fillStyle = "white";
-    canvas.font = "33px Georgia";
-    canvas.fillText(messages[messages.length - 1 - i], 33, 788 + 44*i);
+  // if (!(messages[messages.length - 1 - i] == undefined)) {
+  canvas.fillStyle = "white";
+  canvas.font = "33px Georgia";
+  var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
+  var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
+  if (zeichenZuEmogis.checked) {
+    for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+      messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+    }
   }
+  canvas.fillText(messagesBearbeitet, 33, 844 + 11 + 44*i);
+}
   }
 function showIcon(coordinates, number) {
   Bild = new Image();
@@ -503,14 +541,22 @@ function aufstellungSpeichern() {
   fieldSave.player = player;
   var aufstellungen = {};
   if (JSON.parse(localStorage.getItem("aufstellungenStratego")) != undefined) aufstellungen = JSON.parse(localStorage.getItem("aufstellungenStratego"));
-  aufstellungen[/*prompt("Wie wollen sie die Aufstellung nennen?")*/selectNameFieldSave(0)] = fieldSave;
+  var name = selectNameFieldSave(0);
+  if (name != "do not save") {
+  aufstellungen[name/*prompt("Wie wollen sie die Aufstellung nennen?")*/] = fieldSave;
   localStorage.setItem('aufstellungenStratego', JSON.stringify(aufstellungen));
+}
   return fieldSave;
 }
 var name;
 function selectNameFieldSave(i) {
   name = prompt("Wie wollen sie die Aufstellung nennen?");
-  if (app._data.db.includes(name)) {alert("Sie haben eine Aufstellung bereits so genannt! bitte suchen sie einen anderen Namen!"); selectNameFieldSave(i + 1);}
+  if (app._data.db.includes(name)) {
+    if (!confirm("Sie haben eine Aufstellung bereits so genannt! Sind sie sich sicher, dass sie die andere Aufstellung mit dieser überschrieben wollen? Dann klicken sie bitte auf OK. Falls nicht, klicken sie bitte auf abbrechen/cancel!")) {
+      if (confirm("Wollen sie die Aufstellung dennoch unter einem anderen Namen speichern?")) selectNameFieldSave(i + 1);
+      else return "do not save";
+    }
+  }
   if (i == 0) return name;
 }
 function aufstellungLaden(aufstellung) {
@@ -717,6 +763,7 @@ function attack() {
     });
     ids = "inProgress";
   }
+  if (spielfeldList.length == 0) spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
   spielfeldList.push(JSON.parse(JSON.stringify({positions: [roundStatus[1], roundStatus[3]], datas: [spielfeld[roundStatus[1][0]][roundStatus[1][1]], spielfeld[roundStatus[3][0]][roundStatus[3][1]]]})));
   localStorage.setItem("spielfeldListStratego", JSON.stringify(spielfeldList));
 }
@@ -726,7 +773,9 @@ function dbClick() {
   if (viewingMessages == false) {window.scroll(scrollX, 742); viewingMessages = true;}
   else {window.scroll(scrollX, 0); viewingMessages = false;}
 }
+var textBoxSelected = false;
 document.onkeydown = function(event) {
+  if (event.key == "Enter" && textBoxSelected) submit();
   AblageListe[3] = [event.keyCode, event.key];
   // ev.touches[0]["pageX"] + mausxScroll) + " - " + (ev.touches[0]["pageY"] + mausyScroll
 //  if (gerät == "PC" || (gerät == "Handy" && roundStatus[0] == "movePlayer" && spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number == 2 && (swipeCoordinates.includes(swipeCoordinates[0] -300) || swipeCoordinates.includes(swipeCoordinates[0] +300) || swipeCoordinates.includes(swipeCoordinates[1] -300) || swipeCoordinates.includes(swipeCoordinates[1] +300))))    folgenKeyDown();
@@ -773,7 +822,8 @@ function folgenKeyDown() {
     if (roundStatus[0] == "placePlayer" && AblageListe[3][0] == 70 && player[0].anzahl > 0) {
       roundStatus[1] = 0;
     }
-    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 37 && roundStatus[1][0] - 1 > -1 && spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId))) {  // left
+    if ((direction == "finished" || spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number != 2 || direction == "left") && roundStatus[0] == "movePlayer" && AblageListe[3][0] == 37 && roundStatus[1][0] - 1 > -1 && spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId))) {  // left
+      direction = "left";
       // attack
       if (!(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player == false)) {
         roundStatus[2] = JSON.parse(JSON.stringify([spielfeld[roundStatus[1][0] - 1][roundStatus[1][1]].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number]));
@@ -816,7 +866,8 @@ function folgenKeyDown() {
         roundStatus[3][0]--;
       }
     }
-    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 38 && roundStatus[1][1] - 1 > -1 && spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId))) {  // up
+    if ((direction == "finished" || spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number != 2 || direction == "up") && roundStatus[0] == "movePlayer" && AblageListe[3][0] == 38 && roundStatus[1][1] - 1 > -1 && spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId))) {  // up
+      direction = "up";
       // attack
       if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player == false)) {
         roundStatus[2] = [spielfeld[roundStatus[1][0]][roundStatus[1][1] - 1].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number];
@@ -857,7 +908,8 @@ function folgenKeyDown() {
         roundStatus[3][1]--;
       }
     }
-    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 39 && roundStatus[1][0] - 1 < spielfeld.length && spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId))) {  // right
+    if ((direction == "finished" || spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number != 2 || direction == "right") && roundStatus[0] == "movePlayer" && AblageListe[3][0] == 39 && roundStatus[1][0] - 1 < spielfeld.length && spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].type == "land" && (spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false || !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId))) {  // right
+      direction = "right";
       // attack
       if ( !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player.id == myId) && !(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]].player == false)) {
         console.log(spielfeld[roundStatus[1][0] + 1][roundStatus[1][1]]);
@@ -905,7 +957,8 @@ function folgenKeyDown() {
         roundStatus[3][0]++;
       }
     }
-    if (roundStatus[0] == "movePlayer" && AblageListe[3][0] == 40 && roundStatus[1][1] + 1 < spielfeld.length && spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId))) {  // down
+    if ((direction == "finished" ||spielfeld[roundStatus[3][0]][roundStatus[3][1]].player.number != 2 || direction == "down") && roundStatus[0] == "movePlayer" && AblageListe[3][0] == 40 && roundStatus[1][1] + 1 < spielfeld.length && spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].type == "land" && (spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false || !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId))) {  // down
+      direction = "down";
       // attack
       if (!(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.id == myId) && !(spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player == false)) {
         roundStatus[2] = [spielfeld[roundStatus[1][0]][roundStatus[1][1] + 1].player.number, spielfeld[roundStatus[1][0]][roundStatus[1][1]].player.number];
@@ -993,7 +1046,9 @@ function folgenKeyDown() {
     showStats();
   }
 }
+var direction = "finished";
   function FinishRound() {
+    direction = "finished";
     if (roundStatus[0] == "finished") spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false;
     Layout(true, 0)/*;syncData()*/;roundStatus[0] = "ingame";
     setTimeout(function () {
@@ -1012,9 +1067,10 @@ function folgenKeyDown() {
   ids = "inProgress";
 }
   window.addEventListener('mousedown', function() {
+    textBoxSelected = false;
     checkClickedField();
     // canvas.drawImage(Bild, 222, 300, 100, 100);
-    if (roundStatus[0] == "placePlayer" && xMaus > 222 && xMaus < 322 && yMaus > 300 && yMaus < 400 && confirm("Wollen sie die Aufstellung wirklich speichertn, obwohl sie noch nicht vollendet ist?")) aufstellungSpeichern();
+    if (roundStatus[0] == "placePlayer" && xMaus > 222 && xMaus < 322 && yMaus > 300 && yMaus < 400 && confirm("Wollen sie die Aufstellung wirklich speichern, obwohl sie noch nicht vollendet ist?")) aufstellungSpeichern();
     if (roundStatus[0] == "movePlayer" && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player.number == 2 && roundStatus[1][0] == AblageListe[0][0] && roundStatus[1][1] == AblageListe[0][1]) FinishRound();
     if (!(roundStatus[1] == 12)) {
     if (roundStatus[0] == "placePlayer" && !(AblageListe[0] == "none") && !(roundStatus[1] == undefined) && player[roundStatus[1]].anzahl > 0 && ((myId == idsBleibt[0] && AblageListe[0][1] > 5) || (myId == idsBleibt[1] && AblageListe[0][1] < 4)) && spielfeld[AblageListe[0][0]][AblageListe[0][1]].player == false) {
