@@ -1,9 +1,119 @@
+<div id="sidenav" class="sidenav">
+  <!-- <a href="#">About</a>
+  <a href="#">Services</a>
+  <a href="#">Clients</a>
+  <a href="#">Contact</a> -->
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" href="#" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" href="#" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" href="#" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" href="#" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
+</div>
+<style media="screen">
+  /* The sidebar menu */
+.sidenav {
+  height: 100%; /* Full-height: remove this if you want "auto" height */
+  width: 100px; /* Set the width of the sidebar */
+  position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+  z-index: 1; /* Stay on top */
+  top: 10; /* Stay at the top */
+  left: 1000;
+  background-color: #111; /* Black */
+  overflow-x: hidden; /* Disable horizontal scroll */
+  padding-top: 20px;
+}
+
+/* The navigation menu links */
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+}
+
+/* When you mouse over the navigation links, change their color */
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+/* Style page content */
+.main {
+  margin-left: 160px; /* Same as the width of the sidebar */
+  padding: 0px 10px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+</style>
 <script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script>
-<canvas id="textur" width="1800" height="700" style="opacity:1"></canvas>
+<canvas onmousedown="mousedownOnCanvas();"  id="textur" width="1800" height="700" style="opacity:1"></canvas>
+<canvas id="invisiblTextur" width="1800" height="700"></canvas>
+<div id="settings">
+  <input id="allSizes" onchange="changeUnlocked(id, checked); if (checked) sizeAdding.style.display = 'inline'; else sizeAdding.style.display = 'none';" type="checkbox"> not all sizes
+  <p id="sizeAdding" style="display: none">
+    <br>
+    <input type="text" placeholder="sizes to add" id="sizes">
+    <button type="button" id="addSizes" onclick=" if (JSON.parse(sizes.value) <= 200) unlocked.sizes.push(JSON.parse(sizes.value)); sizes.select();" name="button">add</button>
+  </p>
+  <br>
+  <input type="checkbox" checked="true" onchange="changeUnlocked('colours', checked)" id="colorChange">colour change erlaubt
+  <br>
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="pinsel">Pinsel erlaubt
+  <br>
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="kreis">kreis erlaubt
+  <br>
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="fill">füllen erlaubt
+  <br>
+  <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
+</div>
 <input type="color" name="color" id="colorPicker">
 <button type="button" name="button" id="speichern">speichern</button>
 <input type="range" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
 <script>
+  function drawingFinished() {
+    room.send({
+      message: {
+        "type": "drawing",
+        data: textur.toDataURL(),
+        size: {x: x, y: y}
+      }
+    });
+    sidenav.style.display = "none";
+  }
+  var drawings = [];
+  function iconSelected(id) {
+    var specials = {pinselIcon: {globalAlpha: 1}, kreisIcon: {toDataURL: true}}
+    if (unlocked[id.replace("Icon", "")]) {
+      zustände[1] = id.replace("Icon", "");
+      console.log(id.replace("Icon", "") + " ausgewählt");
+    }
+    if (specials[id] && specials[id].globalAlpha) canvas.globalAlpha = specials[id].globalAlpha;
+    if (specials[id] && specials[id].toDataURL) dataURL = textur.toDataURL();
+
+    // if (unlocked.pinsel && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
+    //   zustände[1] = "pinsel";
+    //   canvas.globalAlpha = 1;
+    //   console.log("pinsel ausgewählt");
+    // }
+    // else if (unlocked.kreis && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 && yMaus < 17 + 70 + 50) {
+    //   zustände[1] = "kreis";
+    //   console.log(zustände[1] + " ausgewählt");
+    //   // buttonLayout(true);
+    //   dataURL = textur.toDataURL();
+    // }
+    // else if (unlocked.fill && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 + 70 && yMaus < 17 + 70 + 70 + 50) {
+    //   zustände[1] = "fill";
+    //   console.log(zustände[1] + " ausgewählt");
+    // }
+  }
+  textur.style.display = "none";
+  invisiblTextur.style.display = "none";
+  function changeUnlocked(id, value) {
+    unlocked[id] = JSON.parse(value);
+  }
   window.onbeforeunload = function(){
     console.log("Leave Website");
       sendJson('/zeichenbattle/logout', {clientId});
@@ -23,9 +133,9 @@
     return content;
   }
 
-  let oldId = localStorage.getItem('CLIENTIDzeichenbattle');
-  const clientId = oldId ? oldId : makeid(10);
-  localStorage.setItem('CLIENTIDzeichenbattle', clientId);
+  // let oldId = localStorage.getItem('CLIENTIDzeichenbattle');
+  const clientId = /*oldId ? oldId : */makeid(10);
+  // localStorage.setItem('CLIENTIDzeichenbattle', clientId);
 
   var messageListener = null;
 
@@ -73,30 +183,123 @@
       sendMessage(msg);
     }
   };
-  var player = {};
+  function confirmSettings() {
+    settings.style.display = "none";
+    room.send({
+      message: {
+        "type": "settings",
+        data: unlocked
+      }
+    });
+  }
+  var player = {voted: 0};
+  function showResults(time) {
+    var positionsBefore = 0;
+    for (var i = 0; i < drawings.length; i++) {
+      bild = new Image();
+      bild.src = drawings[i].drawing;
+      if (i > 0) sizesBefore += drawings[i - 1].size.x;
+      else var sizesBefore = 0;
+      canvas.fillStyle = "rgba(255, 0, 0, 0.5)";
+      canvas.fillRect(drawings[i].size.x + positionsBefore, 0, 20, window.innerHeight);
+      canvas.drawImage(bild, sizesBefore + 20*i, 0);
+      positionsBefore += drawings[i].size.x;
+    }
+    if (time < 2) {
+      setTimeout(function () {
+        showResults(time + 1);
+      }, 100);
+    }
+  }
   room.setOnMessageListener(function(message) {
+    if (message.type == "drawing") {
+      drawings.push({drawing: message.data, size: message.size});
+      if (drawings.length == player.total) {
+        sidenav.style.display = "none";
+        var biggest = {x: 0, y: 0};
+        textur.width = -(drawings[0].size.x);
+        textur.height = -(drawings[0].size.y);
+        for (var i = 0; i < drawings.length; i++) {
+          // if (drawings[i].size.x > biggest.x) biggest.x = drawings[i].size.x;
+          // if (drawings[i].size.y > biggest.y) biggest.y = drawings[i].size.y;
+          textur.width += drawings[i].size.x;
+          textur.height += drawings[i].size.y;
+        }
+        showResults(0);
+      }
+    }
+    if (message.type == "settings") {
+      unlocked = message.data;
+      textur.style.display = "inline";
+      refreshUnlocked();
+    }
+    if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "Reihenfolge") player.aktuell = message.data;
-    if (message.type == "spielerDu") player.myNumber = message.data;
-  });
-  var unlocked = ["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
-  if ((unlocked.includes("colours"))) colorPicker.style.display = "none";
-  for (var i = 0; unlocked[3] && i < unlocked[3].sizes.length; i++) {
+    // if (message.type == "showStatsVoting") {
+    //   player.voted++;
+    //   if (player.voted == 1) player.voteResult = {};
+    //   if (!player.voteResult[message.name]) player.voteResult[message.name] = 0;
+    //   else player.voteResult[message.name]++;
+    //   if (player.voted == player.total) {
+    //     var highest = {name: "", number: 0};
+    //     for (var i = 0; i < Object.keys(player.voteResult).length; i++) {
+    //       if (player.voteResult[Object.keys(player.voteResult)[i]] > highest.high) {highest = {name: Object.keys(player.voteResult)[i], number: player.voteResult[Object.keys(player.voteResult)[i]]}}
+    //     }
+    //   }
+    // }
+    if (message.type == "spielerDu") {
+      player.myNumber = message.data;
+      if (message.data != 0) settings.style.display = "none";
+      names = {};
+      if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {var name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames",name);}
+      else name = localStorage.getItem("nameOnlineGames");
+      room.send({
+        message: {
+          "type": "syncPlayerName",
+          name: name,
+          player: player.myNumber
+        }
+      });
+    }
+    if (message.type == "syncPlayerName") {
+      names[message.player] = message.name;
+      // if (Object.keys(names).length == player.total) {
+      //   room.send({
+      //     message: {
+      //       type: "showStatsVoting",
+      //       data: prompt("Welcher Spieler soll der Host sein und die Einstellungen treffen dürfen? Zur Auswahl stehen: " + Object.keys(names) + ". Bitte geben sie die Zahl für die jeweilige Person ein. Also für " + names[0] + " z.B. 1")
+      //     }
+      //   });
+      // }
+  }
+});
+  var names = {};
+  var unlocked = {allSizes: false, pinsel: true, kreis: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
+  function refreshUnlocked() {
+  if (!(unlocked.colours)) colorPicker.style.display = "none";
+  for (var i = 0; i < unlocked.sizes.length; i++) {
     var text = document.createElement("H4");
-    text.innerHTML = "|"//unlocked[3].sizes[i];
+    text.innerHTML = "|"//unlocked.sizes[i];
     text.style.position = "absolute";
-    text.style.left = 90/*133*/ + unlocked[3].sizes[i]*0.6;
+    text.style.left = 90/*133*/ + unlocked.sizes[i]*0.6;
     // text.style.top = "500";
     document.body.appendChild(text);
   }
+  // buttonLayout();
+  for (var i = 0; i < Object.keys(unlocked).length; i++) {
+    if (!unlocked[Object.keys(unlocked)[i]] && (Object.keys(unlocked)[i] == "pinsel" || Object.keys(unlocked)[i] == "kreis" || Object.keys(unlocked)[i] == "fill")) document.getElementById(Object.keys(unlocked)[i] + "Icon").style.display = "none";
+  }
+}
   function sliderChanged(value) {
-    for (var i = 0; unlocked[3] && unlocked[3].sizes[i] <= JSON.parse(value); i++) {}
-    console.log("i: " + i + ", size: " + unlocked[3].sizes[i - 1] + ", value: " + value);
-    if (i > 0) sliderRadius.value = unlocked[3].sizes[i - 1];
-    else sliderRadius.value = unlocked[3].sizes[0]
+    if (unlocked.allSizes) {
+    for (var i = 0; unlocked.sizes[i] <= JSON.parse(value); i++) {}
+    console.log("i: " + i + ", size: " + unlocked.sizes[i - 1] + ", value: " + value);
+    if (i > 0) sliderRadius.value = unlocked.sizes[i - 1];
+    else sliderRadius.value = unlocked.sizes[0]
+  }
   }
 // imported
-var textur = document.getElementById('textur');
-var canvas = textur.getContext('2d'); //Dimension
+var canvas = document.getElementById('textur').getContext('2d'); //Dimension
   var dataURL = textur.toDataURL();
   var bild = new Image();
 var xMaus = 0;
@@ -104,16 +307,19 @@ var yMaus = 0;
   var hinzufügenX = 0;
   var hinzufügenY = 0;
   var zustände = ["up", "none"];
-var imgData = canvas.getImageData(xMaus,yMaus, 1, 1).data;
+  var imgData;// = canvas.getImageData(xMaus,yMaus, 1, 1).data;
   var zählerListe = [0];
 
   function laden() {
+    // canvas.fillStyle = "black";
+    // canvas.fillRect(0, 0, window.innerHeight, window.innerWidth);
     bild = new Image();
     bild.src = dataURL;
     canvas.globalAlpha = 1;
   /*  canvas.fillStyle = "white";
     canvas.fillRect(0,0,2000,1000) */
     canvas.drawImage(bild, 0, 0);
+    // buttonLayout();
   }
   var w = window,
     d = document,
@@ -122,46 +328,67 @@ var imgData = canvas.getImageData(xMaus,yMaus, 1, 1).data;
     x = w.innerWidth || e.clientWidth || g.clientWidth,
     y = w.innerHeight || e.clientHeight || g.clientHeight;
   console.log(x + ' × ' + y);
+  document.getElementsByClassName('sidenav')[0].style.left = x - 100;
   // "button layout
-  if (unlocked.includes("pinsel")) {
-  canvas.fillStyle = "blue";
-  canvas.fillRect(x - 75, 17, 50, 50);
-  canvas.fillStyle = "gray";
-  canvas.fillRect(x - 70, 22, 40, 40);
-}
-if (unlocked.includes("kreis")) {
-  canvas.fillStyle = "blue";
-  canvas.fillRect(x - 75, 17 + 70, 50, 50);
-  canvas.fillStyle = "gray";
-  canvas.fillRect(x - 70, 22 + 70, 40, 40);
-}
-if (unlocked.includes("fill")) {
-  canvas.fillStyle = "blue";
-  canvas.fillRect(x - 75, 17 + 70 + 70, 50, 50);
-  canvas.fillStyle = "gray";
-  canvas.fillRect(x - 70, 22 + 70 + 70, 40, 40);
-}
+  textur.width = x;
+  textur.height = y;
+//   function buttonLayout(noImages) {
+//   canvas.fillRect(x - 75, 0, 75, window.innerHeight)
+//   if (unlocked.pinsel) {
+//   canvas.fillStyle = "blue";
+//   canvas.fillRect(x - 75, 17, 50, 50);
+//   canvas.fillStyle = "gray";
+//   canvas.fillRect(x - 70, 22, 40, 40);
+//   // var picture = new Image();
+//   bild.src = "https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png";
+//   if (!noImages) canvas.drawImage(bild, x - 70, 17, 40, 40);
+// }
+// if (unlocked.kreis) {
+//   canvas.fillStyle = "blue";
+//   canvas.fillRect(x - 75, 17 + 70, 50, 50);
+//   canvas.fillStyle = "gray";
+//   canvas.fillRect(x - 70, 22 + 70, 40, 40);
+//   // var picture = new Image();
+//   bild.src = "https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png";
+//   if (!noImages) canvas.drawImage(bild, x - 70, 17 + 70 + 5, 40, 40);
+// }
+// if (unlocked.fill) {
+//   canvas.fillStyle = "blue";
+//   canvas.fillRect(x - 75, 17 + 70 + 70, 50, 50);
+//   canvas.fillStyle = "gray";
+//   canvas.fillRect(x - 70, 22 + 70 + 70, 40, 40);
+//   // var picture = new Image();
+//   bild.src = "https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png";
+//   if (!noImages) canvas.drawImage(bild, x - 70, 17 + 70*2 + 5, 40, 40);
+// }
+// }
 
-  window.addEventListener('DOMContentLoaded', f, false)
+  // window.addEventListener('DOMContentLoaded', f, false)
   document.onmousemove = readMouseMove
-  var f = function() {
-    var eventHandler = function(event) {
-          console.log(window.scrollX + " - " + window.scrollY);
-      hinzufügenX = window.scrollX;
-      hinzufügenY = window.scrollY;
-    };
-    window.addEventListener('scroll', eventHandler, false)
-  };
+  // var f = function() {
+  //   var eventHandler = function(event) {
+  //         console.log(window.scrollX + " - " + window.scrollY);
+  //     hinzufügenX = window.scrollX;
+  //     hinzufügenY = window.scrollY;
+  //   };
+  //   window.addEventListener('scroll', eventHandler, false)
+  // };
+  // document.body.style.backgroundColor = "black";
+  textur.style.backgroundColor = "black"
+  document.getElementById('colorPicker').value = "#ffffff";
   function readMouseMove(e) {
+    // canvas.fillStyle = "black";
+    // canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    // buttonLayout();
     if (zustände[1] == "kreis"/* && xMaus < x - 120 && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
       canvas.globalAlpha = 1;
-      canvas.fillStyle = "white";
+      canvas.fillStyle = "black";
       canvas.beginPath();
       canvas.arc(xMaus - 3,yMaus - 3,JSON.parse(document.getElementById('sliderRadius').value) + 8,0,Math.PI*2, false);
       canvas.fill();
     }
-    xMaus = e.clientX + hinzufügenX;
-    yMaus = e.clientY + hinzufügenY;
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY;
     if (zustände[1] == "kreis" && xMaus < x - 120 /* && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
       laden();
       canvas.fillStyle = document.getElementById('colorPicker').value;//"black"
@@ -180,24 +407,28 @@ if (unlocked.includes("fill")) {
     }
   }
   var searchedColores = [];
-  window.addEventListener('mousedown', function() {
+  document.body.onmouseup = function() {
+    zustände[0] = "up";
+  }
+  function mousedownOnCanvas() {
     // button click
-    if (unlocked.includes("pinsel") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
+    /*if (unlocked.pinsel && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
       zustände[1] = "pinsel";
       canvas.globalAlpha = 1;
       console.log("pinsel ausgewählt");
     }
-    else if (unlocked.includes("kreis") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 && yMaus < 17 + 70 + 50) {
+    else if (unlocked.kreis && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 && yMaus < 17 + 70 + 50) {
       zustände[1] = "kreis";
       console.log(zustände[1] + " ausgewählt");
+      buttonLayout(true);
       dataURL = textur.toDataURL();
     }
-    else if (unlocked.includes("fill") && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 + 70 && yMaus < 17 + 70 + 70 + 50) {
+    else if (unlocked.fill && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 + 70 + 70 && yMaus < 17 + 70 + 70 + 50) {
       zustände[1] = "fill";
       console.log(zustände[1] + " ausgewählt");
     }
     // füllen
-    else if (zustände[1] == "fill") {
+    else */if (zustände[1] == "fill") {
       canvas.fillStyle = document.getElementById('colorPicker').value;
       zählerListe[2] = 0;
     //  canvas.fillRect(xMaus, yMaus, 1, 1);
@@ -301,19 +532,21 @@ if (unlocked.includes("fill")) {
       canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
       canvas.fill();
       console.log("kreisPlaziert");
+      // buttonLayout(true);
       dataURL = textur.toDataURL();
     }
-    else if (zustände[0] == "up") {
+    else if (zustände[0] == "up" && zustände[1] != "none") {
       zustände[0] = "down";
       console.log(zustände[1] + " gesenkt");
     }
-    else {
+    else if (zustände[1] != "none") {
       zustände[0] = "up";
       console.log(zustände[1] + " angehoben");
     }
-  });
+  };
 dataURL = textur.toDataURL();
 function getImgDataX() {
+  // buttonLayout(true);
   var imgData = canvas.getImageData(xMaus + zählerListe[0],yMaus, 1, 1).data;
     imgData.crossOrigin = "Anonymous";
     red = imgData[0];
@@ -324,6 +557,7 @@ function getImgDataX() {
     zählerListe[2]++;
 }
 function getImgDataY() {
+  // buttonLayout(true);
   var imgData = canvas.getImageData(xMaus + zählerListe[1],yMaus + zählerListe[0], 1, 1).data;
     imgData.crossOrigin = "Anonymous";
     red = imgData[0];
