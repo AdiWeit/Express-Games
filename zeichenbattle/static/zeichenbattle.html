@@ -1,3 +1,4 @@
+<script src="https://adi.nicolaiweitkemper.de/zeichenBattleThemes.js"></script>
 <div id="sidenav" class="sidenav">
   <!-- <a href="#">About</a>
   <a href="#">Services</a>
@@ -63,16 +64,57 @@
   <br>
   <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="pinsel">Pinsel erlaubt
   <br>
-  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="kreis">kreis erlaubt
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="kreis">Kreis erlaubt
   <br>
-  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="fill">füllen erlaubt
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="fill">Füllen erlaubt
   <br>
+  <p>
+    <input onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" type="text" placeholder="eigenes Wort" id="newWord">
+    <select id="themesSelector"></select>
+    <button type="button" id="addNewWord" onclick="addWord();" name="button">add</button>
+  </p>
+  <p id="sortingSettings">
+    <input onchange="checkSortingSettings(id, checked);" type="checkbox" id="themed">Wörter Thema für Thema
+    <br>
+    <input onchange="checkSortingSettings(id, checked);" checked="true" type="checkbox" id="throughAllThemes">alle Themen durch
+    <br>
+    <input onchange="checkSortingSettings(id, checked);" type="checkbox" id="random">zufällig
+  </p>
   <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
 </div>
+<br>
 <input type="color" name="color" id="colorPicker">
 <button type="button" name="button" id="speichern">speichern</button>
 <input type="range" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
 <script>
+  settings.style.display = "none";
+  function checkSortingSettings(id, checked) {
+    themed.checked = false;
+    throughAllThemes.checked = false;
+    random.checked = false;
+    document.getElementById(id).checked = checked;
+  }
+  textBoxSelected = false;
+  function addWord(enterUsed) {
+    if (newWord.value != "") {themes.ownWords.push(newWord.value); newWord.value = ""; newWord.select();}
+    else if (!enterUsed) {
+      selectedThemes.push(themesSelector.value);
+      for (var i = 0; i < document.getElementById("themesSelector").options.length; i++) {
+        if (themesSelector.options[i].text == themesSelector.value) themesSelector[0].parentNode.removeChild(themesSelector[i]);
+      }
+      newWord.select();
+    }
+  }
+  for (var i = 0; i < Object.keys(themes).length; i++) {
+    if (Object.keys(themes)[i] != "ownWords") {
+    var opt1 = document.createElement("option");
+    document.getElementById("themesSelector").options.add(opt1);
+    opt1.setAttribute("id", i);
+    opt1.text = Object.keys(themes)[i];
+  }
+  }
+  var selectedThemes = [];
+  console.log(themes);
   function drawingFinished() {
     room.send({
       message: {
@@ -185,10 +227,14 @@
   };
   function confirmSettings() {
     settings.style.display = "none";
+    // TODO: add themes
     room.send({
       message: {
         "type": "settings",
-        data: unlocked
+        unlocked: unlocked,
+        ownWords: themes.ownWords,
+        selectedThemes: selectedThemes,
+        selectedOrder: {themed: themed.checked, throughAllThemes: throughAllThemes.checked, random: random.checked}
       }
     });
   }
@@ -229,10 +275,42 @@
       }
     }
     if (message.type == "settings") {
-      unlocked = message.data;
+      unlocked = message.unlocked;
       textur.style.display = "inline";
       refreshUnlocked();
+      selectedThemes = message.selectedThemes;
+      selectedThemes.push("ownWords");
+      themes.ownWords = message.ownWords;
+      var neededTimes = 1;
+      for (var i3 = 0; (!message.selectedOrder.throughAllThemes && i3 < 1) || (message.selectedOrder.throughAllThemes && i3 < neededTimes); i3++) {
+      for (var i = 0; i < Object.keys(themes).length; i++) {
+        if (selectedThemes.includes(Object.keys(themes)[i])) {
+          if (neededTimes == 1) neededTimes--;
+          if (i3 == 0) neededTimes += themes[Object.keys(themes)[i]].length;
+          for (var i1 = 0; (message.selectedOrder.throughAllThemes && i1 < 1) || (!message.selectedOrder.throughAllThemes && i1 < themes[Object.keys(themes)[i]].length); i1++) {
+            if (message.selectedOrder.throughAllThemes) i1 = i3;
+            if (themes[Object.keys(themes)[i]][i1]) words.push(themes[Object.keys(themes)[i]][i1]);
+          }
+        }
+      }
     }
+      if (message.selectedOrder.random && player.myNumber == 0) {
+      var j, x;
+      for (var i = words.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = words[i];
+        words[i] = words[j];
+        words[j] = x;
+      }
+      room.send({
+        message: {
+          "type": "wordsOrder",
+          data: words
+        }
+      });
+    }
+    }
+    if (message.type == "wordsOrder") words = message.data;
     if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "Reihenfolge") player.aktuell = message.data;
     // if (message.type == "showStatsVoting") {
@@ -249,7 +327,7 @@
     // }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
-      if (message.data != 0) settings.style.display = "none";
+      if (message.data == 0 && player.total > 1) settings.style.display = "inline";
       names = {};
       if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {var name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames",name);}
       else name = localStorage.getItem("nameOnlineGames");
@@ -273,6 +351,7 @@
       // }
   }
 });
+var words = [];
   var names = {};
   var unlocked = {allSizes: false, pinsel: true, kreis: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
   function refreshUnlocked() {
@@ -410,6 +489,12 @@ var yMaus = 0;
   document.body.onmouseup = function() {
     zustände[0] = "up";
   }
+  document.body.onmousedown = function() {
+  textBoxSelected = false;
+}
+document.onkeydown = function(event) {
+  if (event.key == "Enter") addWord(true);
+}
   function mousedownOnCanvas() {
     // button click
     /*if (unlocked.pinsel && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
