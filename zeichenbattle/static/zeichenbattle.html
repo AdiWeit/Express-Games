@@ -91,6 +91,9 @@
   <br>
   <input type="checkbox" onchange="if (checked) timeLimit.style.display = 'inline'; else timeLimit.style.display = 'none';">Zeitlimit
   <input type="text" style="display:none; width:250px" id="timeLimit" placeholder="[Min]:[Sek] (keine 0 als Lückenfüller!!!)">
+  <!-- TODO: für Win einer Runde 1 Punkt an winner vergeben,
+            Punkte von allen Runden zusamenzählen
+  -->
 </div>
 <br>
 <input type="color" name="color" id="colorPicker">
@@ -239,7 +242,6 @@
   };
   function confirmSettings() {
     settings.style.display = "none";
-    // TODO: add themes
     room.send({
       message: {
         "type": "settings",
@@ -300,6 +302,7 @@ function reset() {
   hitboxes = [];
   zustände = ["up", "none"];
   window.scroll(0, 0);
+  startPause();
   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
 }
   room.setOnMessageListener(function(message) {
@@ -307,7 +310,6 @@ function reset() {
     if (message.type == "endVoting") {
       player.voted++;
       if (player.voted == player.total) {
-        // TODO: showVoteResults
         for (var i = 0; i < hitboxes.length; i++) {
           canvas.fillStyle = "red";
           canvas.font = "100px Georgia";
