@@ -30,54 +30,54 @@ class zeichenbattle {
 
     this.spielerOnlineGleich0++;
     console.log("spielerOnlineGleich0: " + this.spielerOnlineGleich0);
-    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
-      console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
-      if (client.sessionId == this.player1.id) {
-      this.send(this.player1.client, {
-        "type": "spielerDu",
-        "data": 0
-      });
-    }
-    if (client.sessionId == this.player2.id) {
-      this.send(this.player2.client, {
-        "type": "spielerDu",
-        "data": 1
-      });
-    }
-    if (this.player3 != null && client.sessionId == this.player3.id) {
-      this.send(this.player3.client, {
-        "type": "spielerDu",
-        "data": 2
-      });
-    }
-    if (this.player4 != null && client.sessionId == this.player4.id) {
-      this.send(this.player4.client, {
-        "type": "spielerDu",
-        "data": 3
-      });
-    }
-      // if (client.sessionId == this.player1.id) {
-      //   this.send(this.player2.client, {
-      //     "type": "sendDataToRejoinedPlayer"
-      //   });
-      // }
-      // else {
-      //   this.send(this.player1.client, {
-      //     "type": "sendDataToRejoinedPlayer"
-      //   });
-      // }
-      this.broadcast({
-        "type": "setAblageListe[4]AfterRejoin"
-      });
-
-      console.warn("Rejoin, skipping usual onJoin…");
-      return;
-    }
+    // if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
+    //   console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
+    //   if (client.sessionId == this.player1.id) {
+    //   this.send(this.player1.client, {
+    //     "type": "spielerDu",
+    //     "data": 0
+    //   });
+    // }
+    // if (client.sessionId == this.player2.id) {
+    //   this.send(this.player2.client, {
+    //     "type": "spielerDu",
+    //     "data": 1
+    //   });
+    // }
+    // if (this.player3 != null && client.sessionId == this.player3.id) {
+    //   this.send(this.player3.client, {
+    //     "type": "spielerDu",
+    //     "data": 2
+    //   });
+    // }
+    // if (this.player4 != null && client.sessionId == this.player4.id) {
+    //   this.send(this.player4.client, {
+    //     "type": "spielerDu",
+    //     "data": 3
+    //   });
+    // }
+    //   // if (client.sessionId == this.player1.id) {
+    //   //   this.send(this.player2.client, {
+    //   //     "type": "sendDataToRejoinedPlayer"
+    //   //   });
+    //   // }
+    //   // else {
+    //   //   this.send(this.player1.client, {
+    //   //     "type": "sendDataToRejoinedPlayer"
+    //   //   });
+    //   // }
+    //   this.broadcast({
+    //     "type": "setAblageListe[4]AfterRejoin"
+    //   });
+    //
+    //   console.warn("Rejoin, skipping usual onJoin…");
+    //   return;
+    // }
 
     console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
     if (!this.player1) {
       this.player1 = newPlayer;
-      this.spielerOnline = 0;
+      if (!this.player2 && !this.player3 && !this.player4) this.spielerOnline = 0;
       console.log("create spielerOnlineGleich0");
       this.spielerOnlineGleich0 = 1;
     } else if (!this.player2) {
@@ -197,11 +197,11 @@ class zeichenbattle {
     //   this.player1 = this.player2;
     //   this.player2 = null;
     // }
-    // /*  if (client.sessionId === this.player1.id) this.player1 = null;
-    //   else if (client.sessionId === this.player2.id) this.player2 = null;
-    //   else if (client.sessionId === this.player3.id) this.player3 = null;
-    //   else this.player4 = null; */
-    // this.spielerOnline--;
+      if (client.sessionId === this.player1.id) this.player1 = null;
+      else if (client.sessionId === this.player2.id) this.player2 = null;
+      else if (client.sessionId === this.player3.id) this.player3 = null;
+      else if (client.sessionId === this.player4.id) this.player4 = null;
+    this.spielerOnline--;
     if (this.player2 != undefined) this.spielerOnlineGleich0--;
     //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; this.spielerOnline = 0; console.log("remove room");}
     // /*  if (!this.player2) {
