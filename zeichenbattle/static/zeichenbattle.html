@@ -82,6 +82,11 @@
     <br>
     <input onchange="checkSortingSettings(id, checked);" type="checkbox" id="random">zufällig
   </p>
+  <p id="votingSettings">
+    <input type="checkbox" onchange="if (checked) pointsForEveryPlayerPossibel.checked = false;" checked="true" id="pointsForAllPlayerPossible">An jeden Mitspieler bis zu <input type="text" value="10" id="pointsForAllPlayer"> Punkte verteilbar
+    <br>
+    <input type="checkbox" onchange="if (checked) pointsForAllPlayerPossible.checked = false;" id="pointsForEveryPlayerPossibel">Auf alle Mitspieler bis zu <input type="text" id="pointsForEveryPlayer"> Punkte verteilbar
+  </p>
   <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
   <br>
   <input type="checkbox" onchange="if (checked) timeLimit.style.display = 'inline'; else timeLimit.style.display = 'none';">Zeitlimit
@@ -125,7 +130,7 @@
       message: {
         "type": "drawing",
         data: textur.toDataURL(),
-        size: {x: x, y: y},
+        size: {x: x, y: y + 10},
         sender: player.myNumber
       }
     });
@@ -242,11 +247,12 @@
         ownWords: themes.ownWords,
         selectedThemes: selectedThemes,
         selectedOrder: {themed: themed.checked, throughAllThemes: throughAllThemes.checked, random: random.checked},
-        time: timeLimit.value
+        time: timeLimit.value,
+        selectedVoting: {each: {boolean: pointsForAllPlayerPossible.checked, value: pointsForAllPlayer.value}, forAll: {boolean: pointsForEveryPlayerPossibel.checked, value: pointsForEveryPlayer.value}}
       }
     });
   }
-  var player = {voted: 0, doneVoting: []};
+  var player = {voted: 0, doneVoting: [], animationsFinished: 0};
   function showResults(time) {
     var positionsBefore = 0;
     for (var i = 0; i < drawings.length; i++) {
@@ -255,8 +261,8 @@
       if (i > 0) sizesBefore += drawings[i - 1].size.x;
       else var sizesBefore = 0;
       canvas.fillStyle = "rgba(255, 0, 0, 0.5)";
-      canvas.fillRect(drawings[i].size.x + positionsBefore, 0, 20, window.innerHeight);
-      if (time == 0) hitboxes.push({from: {x: sizesBefore + 20*i, y: 0}, to: {x: sizesBefore + 20*i + drawings[i].size.x, y: window.innerHeight}});
+      canvas.fillRect(drawings[i].size.x + positionsBefore, 0, 20, drawings[i].size.y);
+      if (time == 0) hitboxes.push({from: {x: sizesBefore/* + *20*i*/, y: 0}, to: {x: sizesBefore/* + 20*i*/ + drawings[i].size.x, y: drawings[i].size.y}});
       canvas.drawImage(bild, sizesBefore + 20*i, 0);
       positionsBefore += drawings[i].size.x;
     }
@@ -266,15 +272,64 @@
       }, 100);
     }
   }
+  function resultAnimation(x, y, width, height, percentageWidth, i) {
+    canvas.fillStyle = "rgba(0, 0, 255, 0.5)";
+    canvas.fillRect(x, y, width, height);
+    if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth) {
+      setTimeout(function () {
+        resultAnimation(x, y - 1, width, height, percentageWidth, i);
+      }, 10);
+  }
+  else {
+      player.animationsFinished++;
+      if (player.animationsFinished == player.total)  {
+        setTimeout(function () {
+          reset();
+        }, 3000);
+      }
+  }
+}
+function reset() {
+  textur.width = x - 10;
+  textur.height = y;
+  sidenav.style.display = "inline";
+  words.shift();
+  player.voted = 0;
+  player.animationsFinished = 0;
+  drawings = [];
+  hitboxes = [];
+  zustände = ["up", "none"];
+  window.scroll(0, 0);
+  animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
+}
   room.setOnMessageListener(function(message) {
+    if (message.type == "addPoints") drawings[message.index].points += message.points;
+    if (message.type == "endVoting") {
+      player.voted++;
+      if (player.voted == player.total) {
+        // TODO: showVoteResults
+        for (var i = 0; i < hitboxes.length; i++) {
+          canvas.fillStyle = "red";
+          canvas.font = "100px Georgia";
+          if (!drawings[i].name) drawings[i].name = "kein Name";
+          canvas.fillText(drawings[i].name, hitboxes[i].to.x - drawings[i].size.x/2 - 25*drawings[i].name.length, hitboxes[i].to.y/2);
+          var totalPoints = 0;
+          for (var i1 = 0; i1 < drawings.length; i1++) {
+            totalPoints += drawings[i1].points;
+          }
+          resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
+        }
+      }
+    }
     if (message.type == "drawing") {
+      zustände[1] = "none";
       drawings.push({drawing: message.data, size: message.size, name: names[message.sender], points: 0});
       if (drawings.length == player.total) {
         sidenav.style.display = "none";
         var biggest = {x: 0, y: 0};
         textur.width = -(drawings[0].size.x);
         // textur.height = -(drawings[0].size.y);
-        var highestHeight = 0;
+        highestHeight = 0;
         for (var i = 0; i < drawings.length; i++) {
           // if (drawings[i].size.x > biggest.x) biggest.x = drawings[i].size.x;
           // if (drawings[i].size.y > biggest.y) biggest.y = drawings[i].size.y;
@@ -287,6 +342,15 @@
       }
     }
     if (message.type == "settings") {
+      votingSettings = message.selectedVoting;
+      if (votingSettings.forAll.boolean) {
+        pointsLeft = votingSettings.forAll.value;
+        alert("Sie können " + pointsLeft + " Punkte auf ihre Mitspieler verteilen!");
+      }
+      if (votingSettings.each.boolean) {
+        pointsLeft = votingSettings.each.value;
+        alert("Sie können jedem Mitspieler bis zu " + pointsLeft + " geben!");
+      }
       unlocked = message.unlocked;
       textur.style.display = "inline";
       refreshUnlocked();
@@ -367,22 +431,27 @@
       // }
   }
 });
+var votingSettings = {};
+var highestHeight = 0;
 function animateTheme(x, y, size, text, type) {
   canvas.fillStyle = "red";
   canvas.font = size + "px Georgia";
   canvas.clearRect(0, 0, textur.width, textur.height);
   canvas.fillText(text, x, y);
   var time = 10;
-  if (size == 177) time = 1777;
+  if (size == 177) time = 5;
   setTimeout(function () {
     if (size > /*50*/window.innerWidth/32 && x < window.innerWidth && y > size) animateTheme(x + /*22*/window.innerWidth/72.4, y - /*10*/window.innerHeight/80, size - 3, text, type);
     else if (x < window.innerWidth - 100) animateTheme(x + 1, y, size, text, type);
     else {
       if (!type) themeText.innerHTML = words[0];
-      var letterLength = words[0].length;
-      if (timeLimit.value.length + 3 > letterLength) letterLength = timeLimit.value.length + 3;
+      var letterLength = words[0].length + 1;
+      if (timeLimit.value.length + 3 > letterLength) letterLength = timeLimit.value.length + 3 + 1;
+      if (!type) textur.height -= 57;
+      if (document.body.scrollHeight > document.body.clientHeight) letterLength++;
       sidenav.style.width = 85/6*letterLength;
       sidenav.style.left = window.innerWidth - 85/6*letterLength;
+      if (document.body.scrollHeight > document.body.clientHeight) sidenav.style.left -= 85/6;
       var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "finsishFlag"];
       for (icon of iconList) {
         document.getElementById(icon).style.width = sidenav.style.width;
@@ -390,7 +459,6 @@ function animateTheme(x, y, size, text, type) {
       }
       if (!type) textur.width -= 85/6*letterLength - 5;
       sidenav.style.top = 8;
-      if (!type) textur.height -= 57;
       if (timeLimit.value != "" && !type) {
         animateTheme(window.innerWidth/2 - (177/3)*timeLimit.value.length, window.innerHeight/2, 177, timeLimit.value, "time");
       }
@@ -579,8 +647,23 @@ document.onkeydown = function(event) {
         var points = JSON.parse(prompt("Wie viele Punkte wollen sie vergeben? Um die Aktion abzubrechen, bitte abbrechen/cancel klicken!"));
         if (points != null && pointsLeft >= points) {
           drawings[i].voted = true;
-          drawings[i].points += points;
-          pointsLeft = 10;
+          room.send({
+            message: {
+              "type": "addPoints",
+              points: points,
+              index: i
+            }
+          });
+          pointsLeft -= points;
+          if (votingSettings.each.boolean) pointsLeft = JSON.parse(votingSettings.each.value);//10;
+          else alert("Sie können noch " + pointsLeft + " Punkte verteilen.")
+          if (confirm("Wollen sie ihre Punktevergabe nun beenden?")) {
+            room.send({
+              message: {
+                "type": "endVoting"
+              }
+            });
+          }
         }
         else if (points != null) alert("Sie haben nur noch " + pointsLeft + " Punkte übrig!");
       }
@@ -756,7 +839,7 @@ else {
   running = 0;
 }
 }
-function reset() {
+function resetTimer() {
 running = 0;
 timeDown = 0;
 }
