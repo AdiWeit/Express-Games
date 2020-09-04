@@ -87,10 +87,16 @@
     <br>
     <input type="checkbox" onchange="if (checked) pointsForAllPlayerPossible.checked = false;" id="pointsForEveryPlayerPossibel">Auf alle Mitspieler bis zu <input type="text" id="pointsForEveryPlayer"> Punkte verteilbar
   </p>
-  <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
   <br>
   <input type="checkbox" onchange="if (checked) timeLimit.style.display = 'inline'; else timeLimit.style.display = 'none';">Zeitlimit
   <input type="text" style="display:none; width:250px" id="timeLimit" placeholder="[Min]:[Sek] (keine 0 als Lückenfüller!!!)">
+  <br>
+  <input type="checkbox" onchange="if (checked) pointsForEverybody.checked = false;" id="pointsForWin"> Gewinner der Runde 1 Punkt geben
+  <br>
+  <input onchange="if (checked) pointsForWin.checked = false;" checked="true" id="pointsForEverybody" type="checkbox"> Punkte jeder Runde zusammenzählen
+  <input type="text" value="11" placeholder="points required for win" id="pointsRequiredForWin">
+  <br>
+  <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
   <!-- TODO: für Win einer Runde 1 Punkt an winner vergeben,
             Punkte von allen Runden zusamenzählen
   -->
@@ -128,7 +134,9 @@
   }
   var selectedThemes = [];
   console.log(themes);
+  inRound = false;
   function drawingFinished() {
+    inRound = false;
     room.send({
       message: {
         "type": "drawing",
@@ -250,7 +258,9 @@
         selectedThemes: selectedThemes,
         selectedOrder: {themed: themed.checked, throughAllThemes: throughAllThemes.checked, random: random.checked},
         time: timeLimit.value,
-        selectedVoting: {each: {boolean: pointsForAllPlayerPossible.checked, value: pointsForAllPlayer.value}, forAll: {boolean: pointsForEveryPlayerPossibel.checked, value: pointsForEveryPlayer.value}}
+        selectedVoting: {each: {boolean: pointsForAllPlayerPossible.checked, value: pointsForAllPlayer.value}, forAll: {boolean: pointsForEveryPlayerPossibel.checked, value: pointsForEveryPlayer.value}},
+        pointsRequired: JSON.parse(pointsRequiredForWin.value),
+        pointsForEveryone: pointsForEverybody.checked
       }
     });
   }
@@ -274,19 +284,84 @@
       }, 100);
     }
   }
+  var makeAudio = false;
+  function winnerScreen(gewinner, times) {
+    if (!makeAudio && times == 0) {
+      setTimeout(function () {
+        alert("Please relaod the page to play an other round!");
+      }, 5000);
+    }
+    if (name == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0 && !makeAudio) {
+          var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+          audio.currentTime = 9.0;
+          audio.play();
+          makeAudio = true;
+      }//audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        bild = new Image();
+        bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      bild = new Image();
+      bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(bild, 260, 0);
+      if (times == 0 && !makeAudio)  {makeAudio = true; var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();}
+    }
+    setTimeout(function () {
+      if (times < 5) winnerScreen(gewinner, times + 1);
+    }, 500);
+    setTimeout(function () {
+      makeAudio = false;
+    }, 5000);
+  }
   function resultAnimation(x, y, width, height, percentageWidth, i) {
     canvas.fillStyle = "rgba(0, 0, 255, 0.5)";
     canvas.fillRect(x, y, width, height);
     if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth) {
       setTimeout(function () {
-        resultAnimation(x, y - 1, width, height, percentageWidth, i);
+        /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(x, y - 1, width, height, percentageWidth, i);
       }, 10);
   }
   else {
       player.animationsFinished++;
       if (player.animationsFinished == player.total)  {
         setTimeout(function () {
-          reset();
+          var mostPoints = {number: 0, iList: []};
+          for (var i = 0; i < drawings.length; i++) {
+          if (!points[drawings[i].name]) points[drawings[i].name] = 0;
+          if (pointsForEverybody.checked) points[drawings[i].name] += drawings[i].points;
+          else {
+              if (drawings[i].points > mostPoints.number) {mostPoints.number = drawings[i].points; mostPoints.iList = [];}
+              if (drawings[i].points == mostPoints.number) mostPoints.iList.push(i);
+            }
+          }
+          if (!pointsForEverybody.checked) {
+            for (var i = 0; i < mostPoints.iList.length; i++) {
+              points[drawings[mostPoints.iList[i]].name]++;
+            }
+          }
+          var end = false;
+          var highest = {player: -1, number: 0}
+          for (var i = 0; i < Object.keys(points).length; i++) {
+            if (!highest.finished && points[Object.keys(points)[i]] > highest.number) {highest = {player: i, number: points[Object.keys(points)[i]], finished: false}}
+            if (points[Object.keys(points)[i]] >= JSON.parse(pointsRequiredForWin.value) && player.myNumber == 0 && highest.finished && i == highest.player) {
+              end = true;
+              room.send({
+                message: {
+                  "type": "win",
+                  player: Object.keys(points)[i]
+                }
+              });
+            }
+            if (!highest.finished && !(i + 1 < Object.keys(points).length)) {highest.finished = true; i = -1;}
+          }
+          if (!end) reset();
         }, 3000);
       }
   }
@@ -302,10 +377,12 @@ function reset() {
   hitboxes = [];
   zustände = ["up", "none"];
   window.scroll(0, 0);
-  startPause();
+  if (timeLimit.value != "") startPause();
   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
 }
+var points = {};
   room.setOnMessageListener(function(message) {
+    if (message.type == "win") winnerScreen(message.player, 0);
     if (message.type == "addPoints") drawings[message.index].points += message.points;
     if (message.type == "endVoting") {
       player.voted++;
@@ -319,7 +396,7 @@ function reset() {
           for (var i1 = 0; i1 < drawings.length; i1++) {
             totalPoints += drawings[i1].points;
           }
-          resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
+          /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
         }
       }
     }
@@ -345,6 +422,8 @@ function reset() {
     }
     if (message.type == "settings") {
       votingSettings = message.selectedVoting;
+      pointsRequiredForWin.value = message.pointsRequired;
+      pointsForEverybody.checked = message.pointsForEveryone;
       if (votingSettings.forAll.boolean) {
         pointsLeft = votingSettings.forAll.value;
         alert("Sie können " + pointsLeft + " Punkte auf ihre Mitspieler verteilen!");
@@ -411,7 +490,7 @@ function reset() {
       player.myNumber = message.data;
       if (message.data == 0 && player.total > 1) settings.style.display = "inline";
       names = {};
-      if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {var name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames",name);}
+      if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames",name);}
       else name = localStorage.getItem("nameOnlineGames");
       room.send({
         message: {
@@ -423,6 +502,9 @@ function reset() {
     }
     if (message.type == "syncPlayerName") {
       names[message.player] = message.name;
+      for (var i = 0; i < /*Object.keys(names).length*/4; i++) {
+        if (names[i] === names[message.player] && i != message.player) {names[message.player] += "|"; i = -1; if (player.myNumber == message.player) name += "|";}
+      }
       // if (Object.keys(names).length == player.total) {
       //   room.send({
       //     message: {
@@ -443,6 +525,7 @@ function animateTheme(x, y, size, text, type) {
   var time = 10;
   if (size == 177) time = 5;
   setTimeout(function () {
+    if (!(bild.src.toLowerCase().includes("bildschirm"))) {
     if (size > /*50*/window.innerWidth/32 && x < window.innerWidth && y > size) animateTheme(x + /*22*/window.innerWidth/72.4, y - /*10*/window.innerHeight/80, size - 3, text, type);
     else if (x < window.innerWidth - 100) animateTheme(x + 1, y, size, text, type);
     else {
@@ -468,15 +551,18 @@ function animateTheme(x, y, size, text, type) {
         console.log("time showing finished");
         timeDown = (JSON.parse(timeLimit.value.toString().split(':')[0]/*.replace("00", "0")*/)*60*1000 + JSON.parse(timeLimit.value.toString().split(':')[1]/*.replace("00", "0")*/*1000))/100;
         startPause();
+        inRound = true;
       }
       else {
         timeDown = 1;
       }
     }
+  }
   }, time);
 }
 var hitboxes = [];
 var words = [];
+  var name = "";
   var names = {};
   var unlocked = {allSizes: false, pinsel: true, kreis: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
   function refreshUnlocked() {
@@ -861,7 +947,7 @@ setTimeout(function () {
   }
   document.getElementById('timeText').innerHTML = mins + ":" + secs + ":" + "0" + tenths;
   if (timeDown > 0) increment();
-  else {
+  else if (inRound) {
     drawingFinished();
     new Audio("https://adi.nicolaiweitkemper.de/Sounds/476176__unadamlar__bell-ringing-ii.wav").play();
   }
