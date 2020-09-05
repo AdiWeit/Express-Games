@@ -469,12 +469,14 @@
         audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money.mp3").play();
       // }, 3000);
     }
-    if (message.type == "gebotBeendet" && !message.finish) var color = message.data[0][4];
+    if (message.type == "gebotBeendet" && !message.finish) {
+      var color = message.data[0][4];
+      if (Object.keys(colorObj).includes(color)) color = colorObj[color];
+    }
     if (message.type == "gebotBeendet" && (message.finish || ((message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1])) || message.gleichstand != "u"))) {
       spieler[spielerIch].coverMoney = false;
       console.log(afterNixDa);
       console.log(AblageListe[4]);
-      if (Object.keys(colorObj).includes(color)) color = colorObj[color];
       if (AblageListe[4][1] && AblageListe[4][1] > 0 && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
       else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
       else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
@@ -559,7 +561,7 @@
             Layout();
           }, 1777);
           console.log(AblageListe[2] + " - " + AblageListe[3]);
-          if (spielerIch == spielerAktuell) {
+          if (spielerIch == spielerAktuell && message.Empfänger == spielerIch) {
             // AblageListe[4][0] = "beendet";
             AblageListe[8] = "NixDaVollendet";
             if (message.data == "einen Geldhai") {
@@ -599,7 +601,7 @@
             setTimeout(function () {
               datenAktuallisieren();
             }, 1333);
-          } else if (spielerIch == spielerAktuell == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && message.Empfänger == spielerAktuell == false) {
+          } else if ((spielerIch == spielerAktuell + 1 || (spielerAktuell == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
             room.send({
               message: {
                 "type": "NixDa",
@@ -624,7 +626,7 @@
         } else if (spielerIch == spielerAktuell) {
           console.log("Nix da Battle verloren :(");
         //  alert("Leider hat der Gegner genug Nix da Karten gehabt.");
-          if (spielerIch == spielerAktuell == false && message.Status[0] == "richtigerSpielerEmpfangen" == false && message.Empfänger == spielerAktuell == false) {
+          if ((spielerIch == spielerAktuell + 1 || (spielerAktuell == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
             room.send({
               message: {
                 "type": "NixDa",
@@ -637,7 +639,7 @@
               }
             });
           }
-          if (spielerIch == spielerAktuell) {
+          if (spielerIch == spielerAktuell && message.Empfänger == spielerAktuell) {
           if (message.data == "Miete für alle") {
             AblageListe[8] = "NixDaVollendet";
             zählerListe[2] = AblageListe[11] + 1;
@@ -958,7 +960,16 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
       }
     }
-
+    if ((AblageListe[0] == "aus Gebot aussteigen" || AblageListe[0][0] != "aus Gebot aussteigen") && zählerListe[1] > 1) {
+      if (bieter != AnzahlSpieler - 1) bieter++;
+      while (zählerListe[1] > 1 && (AblageListe[1][1][bieter + 1] == false || bieter == spielerIch)) {
+        if (bieter == AnzahlSpieler - 1) {
+          bieter = -1;
+        }
+        bieter++;
+      }
+      gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
+    }
   }
 
   function vorbereitungGebot() {
@@ -2214,7 +2225,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       //   spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length - 1][5].pop();
       // }
     } else {
-      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = spieler[AblageListe[3]].kartenMitte[AblageListe[2]];
+      spieler[spielerIch].kartenMitte[spieler[spielerIch].kartenMitte.length] = JSON.parse(JSON.stringify(spieler[AblageListe[3]].kartenMitte[AblageListe[2]]));
       spieler[AblageListe[3]].kartenMitte.splice(AblageListe[2], 1);
     }
     datenAktuallisieren();
