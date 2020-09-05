@@ -1,15 +1,19 @@
 <script src="https://adi.nicolaiweitkemper.de/zeichenBattleThemes.js"></script>
 <div id="sidenav" class="sidenav">
-  <!-- <a href="#">About</a>
-  <a href="#">Services</a>
-  <a href="#">Clients</a>
-  <a href="#">Contact</a> -->
+  <!-- <a>About</a>
+  <a>Services</a>
+  <a>Clients</a>
+  <a>Contact</a> -->
   <h1 id="timeText" style="color:red; font-size: 25px"></h1>
   <h1 id="themeText" style="color:red; font-size: 25px"></h1>
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" href="#" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" href="#" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" href="#" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" href="#" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
+  <!-- <p style="color:white; font-size: 77px">⟲</p> -->
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/rightArrow.png" width="100" onclick="folgenKeyDown({key: 'y'});" id="leftArrow" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" width="100"onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow" height="100">
+  <!-- <h1 style="color:white; font-size: 77px">⟳</h1> -->
 </div>
 <style media="screen">
   /* The sidebar menu */
@@ -36,7 +40,7 @@
 
 /* When you mouse over the navigation links, change their color */
 .sidenav a:hover {
-  color: #f1f1f1;
+  color: #FF0000;
 }
 
 /* Style page content */
@@ -94,6 +98,7 @@
   <input type="checkbox" onchange="if (checked) pointsForEverybody.checked = false;" id="pointsForWin"> Gewinner der Runde 1 Punkt geben
   <br>
   <input onchange="if (checked) pointsForWin.checked = false;" checked="true" id="pointsForEverybody" type="checkbox"> Punkte jeder Runde zusammenzählen
+  <br>
   <input type="text" value="11" placeholder="points required for win" id="pointsRequiredForWin">
   <br>
   <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
@@ -105,7 +110,30 @@
 <input type="color" name="color" id="colorPicker">
 <!-- <button type="button" name="button" id="speichern">speichern</button> -->
 <input type="range" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
+<br>
+<input type="checkbox"onchange="visibleArrowButton(checked);" id="arrowsVisible">vor und zurrück buttons anzeigen
 <script>
+  if (navigator.userAgent.match(/Android/i) ||
+navigator.userAgent.match(/webOS/i) ||
+navigator.userAgent.match(/iPhone/i) ||
+navigator.userAgent.match(/iPad/i) ||
+navigator.userAgent.match(/iPod/i) ||
+navigator.userAgent.match(/BlackBerry/i) ||
+navigator.userAgent.match(/Windows Phone/i)
+) {
+var gerät = "Handy"
+console.log("Handy");
+arrowsVisible.checked = true;
+} else {
+var gerät = "Handy"//"PC"
+console.log("PC");
+visibleArrowButton(false);
+}
+function visibleArrowButton(checked) {
+  var objConverter = {true: "inline", false: "none"};
+  rightArrow.style.display = objConverter[checked];
+  leftArrow.style.display = objConverter[checked];
+}
   settings.style.display = "none";
   function checkSortingSettings(id, checked) {
     themed.checked = false;
@@ -537,7 +565,7 @@ function animateTheme(x, y, size, text, type) {
       sidenav.style.width = 85/6*letterLength;
       sidenav.style.left = window.innerWidth - 85/6*letterLength;
       if (document.body.scrollHeight > document.body.clientHeight) sidenav.style.left -= 85/6;
-      var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "finsishFlag"];
+      var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "finsishFlag", "rightArrow", "leftArrow"];
       for (icon of iconList) {
         document.getElementById(icon).style.width = sidenav.style.width;
         document.getElementById(icon).style.height = sidenav.style.width;
@@ -600,11 +628,18 @@ var yMaus = 0;
   var imgData;// = canvas.getImageData(xMaus,yMaus, 1, 1).data;
   var zählerListe = [0];
 
-  function laden() {
+  function laden(history, time) {
     // canvas.fillStyle = "black";
     // canvas.fillRect(0, 0, window.innerHeight, window.innerWidth);
-    bild = new Image();
+    if (!time || time == 0) bild = new Image();
     bild.src = dataURL;
+    if (history) {
+      bild.src = varHistory[pointOfHistory];
+      canvas.clearRect(0, 0, textur.width, textur.height);
+      setTimeout(function () {
+        if (time < 5) laden(true, time + 1)
+      }, 500);
+    }
     canvas.globalAlpha = 1;
   /*  canvas.fillStyle = "white";
     canvas.fillRect(0,0,2000,1000) */
@@ -718,14 +753,29 @@ var yMaus = 0;
     }
   }
   var searchedColores = [];
+  var varHistory = [textur.toDataURL()];
+  var pointOfHistory = 0;
+  function folgenKeyDown(event) {
+    if (event.key == "z" && event.ctrlKey && pointOfHistory > 0) pointOfHistory--;
+    if ((event.key == "y" || event.key == "Z") && pointOfHistory < varHistory.length - 1) pointOfHistory++;
+    if ((event.key == "z" && event.ctrlKey && pointOfHistory > 0) || ((event.key == "y" || event.key == "Z") && pointOfHistory < varHistory.length - 1)) {
+      laden(true, 0);
+    }
+  }
   document.body.onmouseup = function() {
-    zustände[0] = "up";
+    if (zustände[0] != "up") {
+    if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
+    varHistory.push(textur.toDataURL());
+    pointOfHistory++;
+  }
+  zustände[0] = "up";
   }
   document.body.onmousedown = function() {
   textBoxSelected = false;
 }
 document.onkeydown = function(event) {
   if (event.key == "Enter") addWord(true);
+  folgenKeyDown(event);
 }
   var pointsLeft = 10;
   function mousedownOnCanvas() {
