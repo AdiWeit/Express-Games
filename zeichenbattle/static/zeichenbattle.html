@@ -293,7 +293,7 @@ function visibleArrowButton(checked) {
     });
   }
   var player = {voted: 0, doneVoting: [], animationsFinished: 0};
-  function showResults(time) {
+  function showResults(time, type) {
     var positionsBefore = 0;
     for (var i = 0; i < drawings.length; i++) {
       bild = new Image();
@@ -302,7 +302,7 @@ function visibleArrowButton(checked) {
       else var sizesBefore = 0;
       canvas.fillStyle = "rgba(255, 0, 0, 0.5)";
       canvas.fillRect(drawings[i].size.x + positionsBefore, 0, 20, drawings[i].size.y);
-      if (time == 0) hitboxes.push({from: {x: sizesBefore/* + *20*i*/, y: 0}, to: {x: sizesBefore/* + 20*i*/ + drawings[i].size.x, y: drawings[i].size.y}});
+      if (time == 0 && !type) hitboxes.push({from: {x: sizesBefore/* + *20*i*/, y: 0}, to: {x: sizesBefore/* + 20*i*/ + drawings[i].size.x, y: drawings[i].size.y}});
       canvas.drawImage(bild, sizesBefore + 20*i, 0);
       positionsBefore += drawings[i].size.x;
     }
@@ -348,17 +348,34 @@ function visibleArrowButton(checked) {
       makeAudio = false;
     }, 5000);
   }
-  function resultAnimation(x, y, width, height, percentageWidth, i) {
+  function resultAnimation(x, y, width, height, percentageWidth, i, red) {
     canvas.fillStyle = "rgba(0, 0, 255, 0.5)";
+    if (red) canvas.fillStyle = "rgba(255, 0, 0, 0.5)";
     canvas.fillRect(x, y, width, height);
-    if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth) {
+    if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth || (red && y > highestHeight - highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)) - percentageWidth)) {
       setTimeout(function () {
-        /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(x, y - 1, width, height, percentageWidth, i);
+        /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(x, y - 1, width, height, percentageWidth, i, red);
       }, 10);
   }
   else {
       player.animationsFinished++;
       if (player.animationsFinished == player.total)  {
+        // TODO: total points animation
+        setTimeout(function () {
+          canvas.clearRect(0, 0, textur.width, textur.height);
+          setTimeout(function () {
+            showResults(0, "replay");
+          }, 600);
+          voteEnding("totalResults");
+        }, 2777);
+      }
+      else if (player.animationsFinished == player.total*2) {
+        // canvas.clearRect(0, 0, textur.width, textur.height);
+        setTimeout(function () {
+        voteEnding("addingNewPoints");
+      }, 3000);
+      }
+      else if (player.animationsFinished == player.total*3) {
         setTimeout(function () {
           var mostPoints = {number: 0, iList: []};
           for (var i = 0; i < drawings.length; i++) {
@@ -390,9 +407,9 @@ function visibleArrowButton(checked) {
             if (!highest.finished && !(i + 1 < Object.keys(points).length)) {highest.finished = true; i = -1;}
           }
           if (!end) reset();
-        }, 3000);
+          }, 3000);
+        }
       }
-  }
 }
 function reset() {
   textur.width = x - 10;
@@ -408,6 +425,22 @@ function reset() {
   if (timeLimit.value != "") startPause();
   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
 }
+function voteEnding(type) {
+  for (var i = 0; i < hitboxes.length; i++) {
+    canvas.fillStyle = "red";
+    canvas.font = "100px Georgia";
+    if (!drawings[i].name) drawings[i].name = "kein Name";
+    canvas.fillText(drawings[i].name, hitboxes[i].to.x - drawings[i].size.x/2 - 25*drawings[i].name.length, hitboxes[i].to.y/2);
+    var totalPoints = 0;
+    for (var i1 = 0; i1 < drawings.length; i1++) {
+      totalPoints += drawings[i1].points;
+    }
+    if (!points[drawings[i].name]) points[drawings[i].name] = 0;
+    if (!type) /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
+    else if (type == "totalResults") resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)), i);
+    else resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight - highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)), drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/JSON.parse(pointsRequiredForWin.value)), i, true);
+  }
+}
 var points = {};
   room.setOnMessageListener(function(message) {
     if (message.type == "win") winnerScreen(message.player, 0);
@@ -415,17 +448,7 @@ var points = {};
     if (message.type == "endVoting") {
       player.voted++;
       if (player.voted == player.total) {
-        for (var i = 0; i < hitboxes.length; i++) {
-          canvas.fillStyle = "red";
-          canvas.font = "100px Georgia";
-          if (!drawings[i].name) drawings[i].name = "kein Name";
-          canvas.fillText(drawings[i].name, hitboxes[i].to.x - drawings[i].size.x/2 - 25*drawings[i].name.length, hitboxes[i].to.y/2);
-          var totalPoints = 0;
-          for (var i1 = 0; i1 < drawings.length; i1++) {
-            totalPoints += drawings[i1].points;
-          }
-          /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
-        }
+        voteEnding();
       }
     }
     if (message.type == "drawing") {
