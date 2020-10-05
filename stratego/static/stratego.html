@@ -49,7 +49,7 @@ var opponentId;
 var idsBleibt = [];
 var typed = "";
 var audio;
-var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "#DF0174"]}
+var colorsModes = {normal: ["#BC750A", "green"], special: ["green", "#00FF00"]}
 var colors = colorsModes.normal
 var playerMoved = [false];
 var xMaus = 0;
@@ -244,8 +244,9 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
-    if (message.type == "positionBefore" && myId != ids[0]) {
+    if (message.type == "positionBefore") {
       setTimeout(function () {
+        if (myId == ids[0]) {
         if (spielfeldList.length == 0) spielfeldList.push(JSON.parse(JSON.stringify(spielfeld)));
         if (spielfeldList[spielfeldList.length - 1].after && !spielfeldList[spielfeldList.length - 1].before) spielfeldList[spielfeldList.length - 1].before = message.data;
         else spielfeldList.push(JSON.parse(JSON.stringify({before: message.data})));
@@ -254,6 +255,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
         canvas.globalAlpha = 0.5;
         canvas.fillRect(477 + 70*message.data[0], 17 + 70*message.data[1], 60, 60);
         canvas.globalAlpha = 1;
+      }
       }, 3333);
     }
     if (message.type == "onLeave") idsBleibt = [];
@@ -786,13 +788,7 @@ document.onkeydown = function(event) {
 var positionShowed = false;
 function showPlayerMovement() {
   if (roundStatus[0] == "movePlayer" && AblageListe[3][1].includes("Arrow") && !positionShowed) {
-    positionShowed = true;
-    room.send({
-      message: {
-        "type": "positionBefore",
-        "data": roundStatus[1]
-      }
-    });
+    positionShowed = roundStatus[1];
   }
 }
 function folgenKeyDown() {
@@ -1051,6 +1047,14 @@ var direction = "finished";
     direction = "finished";
     if (roundStatus[0] == "finished") spielfeld[roundStatus[1][0]][roundStatus[1][1]].player = false;
     Layout(true, 0)/*;syncData()*/;roundStatus[0] = "ingame";
+    // var data = JSON.parse(JSON.stringify(roundStatus[1]));
+    /*if (positionShowed) */var data = positionShowed;
+    room.send({
+      message: {
+        "type": "positionBefore",
+        "data": data
+      }
+    });
     setTimeout(function () {
       room.send({
         message: {
@@ -1156,6 +1160,8 @@ var direction = "finished";
   if (!(JSON.parse(localStorage.getItem("colors")) == null))  colors = JSON.parse(localStorage.getItem("colors"));
   function aufstellungInRunde() {
     if (AblageListe[3] == player.length && confirm("Sind sie mit ihrer Aufstellung zufrienden und wollen die Runde starten?")) {
+      console.log("Runde beginnen");
+      if (roundStatus[1] == 12) roundStatus[1] = 2;
       if (confirm("wollen sie diese Aufstellung auf ihrem Gerät speichern?")) aufstellungSpeichern();
       roundStatus[0] = "ingame";
       document.getElementById('textur').style = "touch-action: none";
