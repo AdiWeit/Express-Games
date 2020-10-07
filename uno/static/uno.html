@@ -1,8 +1,26 @@
 <canvas id="textur" width="1570" height="750"></canvas>
 <br>
-<input type="text" id="message" placeholder="message">
+<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
 <script>
+  document.getElementById('submit').style.position = "absolute";
+  // anonymSchreiben.style.position = "absolute";
+  document.getElementById('zeichenZuEmogis').style.position = "absolute";
+  // anonymSchreibenT.style.position = "absolute";
+  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
+  message.style.top = "757";
+  message.style.position = "absolute";
+  document.getElementById('submit').style.top = "758";
+  document.getElementById('submit').style.left = "185";
+  // anonymSchreiben.style.top = "793";
+  zeichenZuEmogis.style.top = "757";
+  // anonymSchreiben.style.left = "233";
+  zeichenZuEmogis.style.left = "233";
+  // anonymSchreibenT.style.top = "773";
+  zeichenZuEmogisT.style.top = "737";
+  // anonymSchreibenT.style.left = "253";
+  zeichenZuEmogisT.style.left = "257";
   var spielerIch = -1;
   var spielerAktuell = 0;
   var spielerGegner = -1;
@@ -29,10 +47,11 @@
       sender: spielerIch
     }
     });
-    setTimeout(function () {
-        window.scroll(scrollX, 10000)
-        document.getElementById('message').select();
-    }, 3000);
+    message.value = "";
+    // setTimeout(function () {
+    //     window.scroll(scrollX, 10000)
+    //     document.getElementById('message').select();
+    // }, 3000);
   }
   window.onbeforeunload = function() {
     console.log("Leave Website");
@@ -264,11 +283,26 @@
     showChat();
     }
     function showChat() {
+      // for (var i = 0; i < messages.length; i++) {
+      //   // if (!(messages[messages.length - 1 - i] == undefined)) {
+      //   canvas.fillStyle = "white";
+      //   canvas.font = "33px Georgia";
+      //   canvas.fillText(messages[messages.length - 1 - i], 33, 788 + 44*i);
+      // }
+      canvas.fillStyle = "brown";
+      canvas.fillRect(33, 777, 100000, 100000);
       for (var i = 0; i < messages.length; i++) {
         // if (!(messages[messages.length - 1 - i] == undefined)) {
         canvas.fillStyle = "white";
         canvas.font = "33px Georgia";
-        canvas.fillText(messages[messages.length - 1 - i], 33, 788 + 44*i);
+        var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
+        var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
+        if (zeichenZuEmogis.checked) {
+          for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+            messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+          }
+        }
+        canvas.fillText(messagesBearbeitet, 33, 800 + 11 + 44*i);
       }
       }
   //  }
@@ -389,6 +423,7 @@ function readMouseMove(e) {
 }
 document.onmousemove = readMouseMove
 window.addEventListener('mousedown', function() {
+  textBoxSelected = false;
   for (var i = 0; i < spieler[spielerIch].cards.length; i++) {
     // (55 + 177*i - 22, 555 - 22, 100 + 44, 144 + 44);
     if (xMaus > 55 + 177*i - 22 && xMaus < 55 + 177*i - 22 + 144 && yMaus > 555 - 22 && yMaus < 555 - 22 + 188 && spielerIch == spielerAktuell) {
@@ -397,7 +432,7 @@ window.addEventListener('mousedown', function() {
     }
   }
 });
-
+  var textBoxSelected = false;
   document.onkeydown = function(event) {
     if (event.key == "ArrowUp") window.scroll(textur.width, 0);
     if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
@@ -406,6 +441,7 @@ window.addEventListener('mousedown', function() {
         window.scroll(textur.width, 0);
       }, 1777);
     }
+    if (event.key == "Enter" && textBoxSelected) submit();
   }
 
 window.addEventListener("dblclick", dbClick)

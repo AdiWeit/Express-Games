@@ -2,10 +2,31 @@
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
 <h2 id="aktivitätstext"></h2>
 <canvas id="textur" width="2570" height="800"></canvas>
-<input type="text" id="message" placeholder="message">
+<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<!-- <input type="checkbox" id="anonymSchreiben"> <h3 id="anonymSchreibenT">anonym schreiben</h3> -->
+<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
 <canvas id="lastActionCheck" width="1840" height="700"></canvas>
 <script>
+  message.style.position = "absolute";
+  document.getElementById('submit').style.position = "absolute";
+  // anonymSchreiben.style.position = "absolute";
+  document.getElementById('zeichenZuEmogis').style.position = "absolute";
+  // anonymSchreibenT.style.position = "absolute";
+  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
+  message.style.top = "793";
+  document.getElementById('submit').style.top = "793";
+  document.getElementById('submit').style.left = "185";
+  // anonymSchreiben.style.top = "793";
+  zeichenZuEmogis.style.top = "793";
+  // anonymSchreiben.style.left = "233";
+  zeichenZuEmogis.style.left = "233";
+  // anonymSchreibenT.style.top = "773";
+  zeichenZuEmogisT.style.top = "773";
+  // anonymSchreibenT.style.left = "253";
+  zeichenZuEmogisT.style.left = "257";
+  // anonymSchreibenT.style.color = "white";
+  zeichenZuEmogisT.style.color = "white";
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
   var gerät = "";
@@ -450,12 +471,14 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
       data: messagesText,
       sender: SpielerId
     }
-    });
-    setTimeout(function () {
-        window.scroll(scrollX, 10000)
-        document.getElementById('message').select();
-    }, 3000);
+  });
+  document.getElementById('message').value = "";
+    // setTimeout(function () {
+        // window.scroll(scrollX, 10000)
+        // document.getElementById('message').select();
+    // }, 3000);
   }
+var textBoxSelected = false;
   function DranCheck() {
     dbGet("Olymp", "Zustand" + SpielerIdBleibt[0] + SpielerIdBleibt[1], function(result) {
       result = result.toString().split(',');
@@ -739,14 +762,37 @@ function syncData(SpielerId, ag, SteineIch, SteineMitte, SpielerIds) {
     LayoutMitteSpieler2();
     showChat();
   }
-  function showChat() {
-    for (var i = 0; i < messagesText.length; i++) {
-      // if (!(messagesText[messagesText.length - 1 - i] == undefined)) {
-      canvas.fillStyle = "#FF8000";
-      canvas.font = "33px Georgia";
-      canvas.fillText(messagesText[messagesText.length - 1 - i], 33, 788 + 44*i);
-    }
-    }
+  // function showChat() {
+  //   var messagesBearbeitet = [];
+  //   for (var i = 0; i < messagesText.length; i++) {
+  //     // if (!(messagesText[messagesText.length - 1 - i] == undefined)) {
+  //     canvas.fillStyle = "#FF8000";
+  //     canvas.font = "33px Georgia";
+  //     messagesBearbeitet.push(JSON.parse(JSON.stringify(messagesText[messagesText.length - 1 - i])));
+  //     var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
+  //     if (zeichenZuEmogis.checked) {
+  //       for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+  //         messagesBearbeitet[i] = messagesBearbeitet[i].replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+  //       }
+  //     }
+  //     canvas.fillText(messagesBearbeitet[messagesText.length - 1 - i], 33, 788 + 44*i);
+  //   }
+  //   }
+    function showChat() {
+      for (var i = 0; i < messagesText.length; i++) {
+        // if (!(messagesText[messagesText.length - 1 - i] == undefined)) {
+        var messagesTextBearbeitet = JSON.parse(JSON.stringify(messagesText[messagesText.length - 1 - i]));
+        var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
+        if (zeichenZuEmogis.checked) {
+          for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+            messagesTextBearbeitet = messagesTextBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+          }
+        }
+        canvas.fillStyle = "#DF7401";
+        canvas.font = "33px Georgia";
+        canvas.fillText(messagesTextBearbeitet, 33, 822 + 11 + 44*i);
+      }
+      }
   function LayoutMitteSpieler1() {
     //  canvas.fillStyle = "white"
     //canvas.fillRect(0,470,2000, 800);
@@ -1423,6 +1469,7 @@ function checkAndromeda() {
   var lastActionCanvas = lastActionCheck.getContext('2d');
   lastActionCheck.style.display = "none";
   window.addEventListener('mousedown', function() {
+    textBoxSelected = false;
     console.log(xMaus + " - " + yMaus);
     KoordinatenCheck();
     if (AblageListe[2] != "beendet" && AblageListe[2] != "AuswahlManuel") {
@@ -3989,6 +4036,7 @@ function gegnerKarteZiehen() {
 }
 document.onkeydown = function(event) {
   if (event.key == "ArrowUp") window.scroll(scrollX, 0);
+  if (event.key == "Enter" && textBoxSelected) submit();
   if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
     window.scroll(scrollX, 742);
     // setTimeout(function () {
