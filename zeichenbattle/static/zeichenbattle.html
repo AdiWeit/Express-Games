@@ -371,9 +371,9 @@ function visibleArrowButton(checked) {
       }
       else if (player.animationsFinished == player.total*2) {
         // canvas.clearRect(0, 0, textur.width, textur.height);
-        setTimeout(function () {
+        // setTimeout(function () {
         voteEnding("addingNewPoints");
-      }, 3000);
+      // }, 3000);
       }
       else if (player.animationsFinished == player.total*3) {
         setTimeout(function () {
@@ -407,7 +407,7 @@ function visibleArrowButton(checked) {
             if (!highest.finished && !(i + 1 < Object.keys(points).length)) {highest.finished = true; i = -1;}
           }
           if (!end) reset();
-          }, 3000);
+          }, 5555);
         }
       }
 }
