@@ -1,8 +1,20 @@
 <meta charset="utf-8">
 <canvas id="textur" width="2069" height="688"></canvas>
-<input type="text" id="message" placeholder="message">
+<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
 <button type="button" id="submit" onclick="submit()" name="button">send</button>
+<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
 <script>
+  message.style.position = "absolute";
+  document.getElementById('submit').style.position = "absolute";
+  document.getElementById('zeichenZuEmogis').style.position = "absolute";
+  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
+  message.style.top = "703";
+  document.getElementById('submit').style.top = "703";
+  document.getElementById('submit').style.left = "185";
+  zeichenZuEmogis.style.top = "703";
+  zeichenZuEmogis.style.left = "233";
+  zeichenZuEmogisT.style.top = "684";
+  zeichenZuEmogisT.style.left = "257";
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
   var Bild = new Image();
@@ -66,6 +78,7 @@
   var RemachCheck;
   var RematchAnfrage = [];
   var messages = [];
+  var lookingMessage = "beendet";
   // 1. und 2. : Koord. Stein 3. und 4. : Koord. Text 3. und 4. : X und Y Maus
   // Y war = 30, 130
   // X war ; 170, 205
@@ -176,9 +189,9 @@
       textur.height = 750 + messages.length*50;
       LayoutIch();
       if (!(name == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
-      Ablage[1] = "warten Message angucken";
+      lookingMessage = "warten Message angucken";
       setTimeout(function () {
-        Ablage[1] = "beendet";
+        lookingMessage = "beendet";
       }, 3777);
     };
     if (message.type == "KartenSpieler1") kartenSpieler1 = message.data;
@@ -430,10 +443,11 @@
       sender: name
     }
     });
-    setTimeout(function () {
-        window.scroll(scrollX, 10000)
-        document.getElementById('message').select();
-    }, 3000);
+    document.getElementById('message').value = "";
+    // setTimeout(function () {
+        // window.scroll(scrollX, 10000)
+        // document.getElementById('message').select();
+    // }, 3000);
   }
   function Ampel() {
     if (Sperren[2] == false) {
@@ -649,13 +663,28 @@ else {
     //}
   }
   function showChat() {
-    canvas.fillStyle = "brown"; //Farbe
+    // canvas.fillStyle = "brown"; //Farbe
+    // canvas.fillRect(0, 650, textur.width, textur.height - 650);
+    // for (var i = 0; i < messages.length; i++) {
+    //   // if (!(messages[messages.length - 1 - i] == undefined)) {
+    //   canvas.fillStyle = "white";
+    //   canvas.font = "33px Georgia";
+    //   canvas.fillText(messages[messages.length - 1 - i], 33, 700 + 44*i);
+    // }
+    canvas.fillStyle = "brown";
     canvas.fillRect(0, 650, textur.width, textur.height - 650);
     for (var i = 0; i < messages.length; i++) {
       // if (!(messages[messages.length - 1 - i] == undefined)) {
       canvas.fillStyle = "white";
       canvas.font = "33px Georgia";
-      canvas.fillText(messages[messages.length - 1 - i], 33, 700 + 44*i);
+      var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
+      var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
+      if (zeichenZuEmogis.checked) {
+        for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
+          messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
+        }
+      }
+      canvas.fillText(messagesBearbeitet, 33, 777 + 11 + 44*i);
     }
     }
 
@@ -1019,14 +1048,15 @@ else {
   window.addEventListener('DOMContentLoaded', f, false)
   document.onkeydown = function(event) {
     if (event.key == "ArrowUp") window.scroll(scrollX, 0);
-    if (event.key == "Enter" && !(Ablage[1] == "beendet")) {
+    if (event.key == "Enter" && !(lookingMessage == "beendet")) {
       window.scroll(scrollX, 742);
       setTimeout(function () {
         window.scroll(scrollX, 0);
       }, 1777);
     }
+    if (event.key == "Enter" && textBoxSelected) submit();
   }
-
+  var textBoxSelected = false;
 window.addEventListener("dblclick", dbClick)
 
 function dbClick() {

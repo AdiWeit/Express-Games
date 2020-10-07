@@ -22,8 +22,8 @@ class davincicode {
   console.log("Spiel beginnen");
 reihenfolge = [this.player1.id, this.player2.id];
 this.broadcast({
-"type": "Reihenfolge",
-"data": reihenfolge
+type: "Reihenfolge",
+data: reihenfolge
 });
 this.send(this.player1.client, {
   "type": "name",
