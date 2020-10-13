@@ -11,6 +11,7 @@
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/drawLine.png" width="100" onclick="iconSelected(id)" id="lineIcon" height="97">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" width="100"onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow" height="100">
   <!-- <h1 style="color:white; font-size: 77px">⟳</h1> -->
@@ -73,6 +74,8 @@
   <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="kreis">Kreis erlaubt
   <br>
   <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="fill">Füllen erlaubt
+  <br>
+  <input type="checkbox" checked="true" onchange="changeUnlocked(id, checked);" id="line">Linien zeichnen erlaubt
   <br>
   <p>
     <input onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" type="text" placeholder="eigenes Wort" id="newWord">
@@ -226,9 +229,9 @@ function visibleArrowButton(checked) {
     return content;
   }
 
-  // let oldId = localStorage.getItem('CLIENTIDzeichenbattle');
-  const clientId = /*oldId ? oldId : */makeid(10);
-  // localStorage.setItem('CLIENTIDzeichenbattle', clientId);
+   let oldId = localStorage.getItem('CLIENTIDzeichenbattle');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDzeichenbattle', clientId);
 
   var messageListener = null;
 
@@ -443,6 +446,7 @@ function voteEnding(type) {
 }
 var points = {};
   room.setOnMessageListener(function(message) {
+    if (message.type == "endGame") {alert("somebody doesn't want to continue playing, so the game ends!")}
     if (message.type == "win") winnerScreen(message.player, 0);
     if (message.type == "addPoints") drawings[message.index].points += message.points;
     if (message.type == "endVoting") {
@@ -539,6 +543,13 @@ var points = {};
     // }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
+      if (!message.newRound) {
+        room.send({
+          message: {
+            "type": "endGame"
+          }
+        });
+      }
       if (message.data == 0 && player.total > 1) settings.style.display = "inline";
       names = {};
       if (!localStorage.getItem("nameOnlineGames") || localStorage.getItem("nameOnlineGames") == "null") {name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");localStorage.setItem("nameOnlineGames",name);}
@@ -588,7 +599,7 @@ function animateTheme(x, y, size, text, type) {
       sidenav.style.width = 85/6*letterLength;
       sidenav.style.left = window.innerWidth - 85/6*letterLength;
       if (document.body.scrollHeight > document.body.clientHeight) sidenav.style.left -= 85/6;
-      var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "finsishFlag", "rightArrow", "leftArrow"];
+      var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "lineIcon", "finsishFlag", "rightArrow", "leftArrow"];
       for (icon of iconList) {
         document.getElementById(icon).style.width = sidenav.style.width;
         document.getElementById(icon).style.height = sidenav.style.width;
@@ -615,7 +626,7 @@ var hitboxes = [];
 var words = [];
   var name = "";
   var names = {};
-  var unlocked = {allSizes: false, pinsel: true, kreis: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
+  var unlocked = {allSizes: false, pinsel: true, kreis: true, line: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
   function refreshUnlocked() {
   if (!(unlocked.colours)) colorPicker.style.display = "none";
   for (var i = 0; i < unlocked.sizes.length; i++) {
@@ -628,7 +639,7 @@ var words = [];
   }
   // buttonLayout();
   for (var i = 0; i < Object.keys(unlocked).length; i++) {
-    if (!unlocked[Object.keys(unlocked)[i]] && (Object.keys(unlocked)[i] == "pinsel" || Object.keys(unlocked)[i] == "kreis" || Object.keys(unlocked)[i] == "fill")) document.getElementById(Object.keys(unlocked)[i] + "Icon").style.display = "none";
+    if (!unlocked[Object.keys(unlocked)[i]] && (Object.keys(unlocked)[i] == "pinsel" || Object.keys(unlocked)[i] == "kreis" || Object.keys(unlocked)[i] == "line" || Object.keys(unlocked)[i] == "fill")) document.getElementById(Object.keys(unlocked)[i] + "Icon").style.display = "none";
   }
 }
   function sliderChanged(value) {
@@ -740,7 +751,7 @@ var yMaus = 0;
     yMaus = e.clientY + scrollY;
     if (zustände[1] == "kreis" && xMaus < x - 120 /* && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
       laden();
-      canvas.fillStyle = document.getElementById('colorPicker').value;//"black"
+      // canvas.fillStyle = document.getElementById('colorPicker').value;//"black"
       canvas.globalAlpha = 0.3;
       canvas.beginPath();
       canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
@@ -748,7 +759,7 @@ var yMaus = 0;
     }
     if (zustände[0] == "down" && zustände[1] == "pinsel") {
       console.log("zeichnen");
-      canvas.fillStyle = document.getElementById('colorPicker').value;
+      // canvas.fillStyle = document.getElementById('colorPicker').value;
       canvas.fillRect(xMaus - 5, yMaus - 5, sliderRadius.value, sliderRadius.value);
     }
     if ((zustände[0][0] == "placed" && xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)) {
@@ -786,7 +797,7 @@ var yMaus = 0;
     }
   }
   document.body.onmouseup = function() {
-    if (zustände[0] != "up") {
+    if (zustände[0] != "up" && (lineCoordinate == false || lineCoordinate == undefined)) {
     if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
     varHistory.push(textur.toDataURL());
     pointOfHistory++;
@@ -829,6 +840,7 @@ document.onkeydown = function(event) {
         else if (points != null) alert("Sie haben nur noch " + pointsLeft + " Punkte übrig!");
       }
     }
+    canvas.fillStyle = document.getElementById('colorPicker').value;
     // button click
     /*if (unlocked.pinsel && xMaus > x - 75 && xMaus < x - 75 + 50 && yMaus > 17 && yMaus < 17 + 50) {
       zustände[1] = "pinsel";
@@ -846,8 +858,20 @@ document.onkeydown = function(event) {
       console.log(zustände[1] + " ausgewählt");
     }
     // füllen
-    else */if (zustände[1] == "fill") {
-      canvas.fillStyle = document.getElementById('colorPicker').value;
+    else */
+    if (zustände[1] == "line") {
+      if (!lineCoordinate) lineCoordinate = {x: xMaus, y: yMaus};
+      else {
+        canvas.lineWidth = document.getElementById('sliderRadius').value;
+        canvas.strokeStyle = document.getElementById('colorPicker').value;
+        canvas.beginPath();
+        canvas.moveTo(lineCoordinate.x, lineCoordinate.y);
+        canvas.lineTo(xMaus, yMaus);
+        canvas.stroke();
+        lineCoordinate = false;
+      }
+    }
+    if (zustände[1] == "fill") {
       zählerListe[2] = 0;
     //  canvas.fillRect(xMaus, yMaus, 1, 1);
       zählerListe[0] = 0;
@@ -944,7 +968,7 @@ document.onkeydown = function(event) {
   // Kreis zeichneXn
     else if (zustände[1] == "kreis" && xMaus < x - 120 && xMaus < x - 120 && (zustände[0][0] == "placed" && xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66) == false) {
       zustände[0] = ["placed", xMaus, yMaus];
-      canvas.fillStyle = document.getElementById('colorPicker').value;
+      // canvas.fillStyle = document.getElementById('colorPicker').value;
       canvas.globalAlpha = 1;
       canvas.beginPath();
       canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
@@ -963,6 +987,7 @@ document.onkeydown = function(event) {
     }
   };
 dataURL = textur.toDataURL();
+var lineCoordinate;
 function getImgDataX() {
   // buttonLayout(true);
   var imgData = canvas.getImageData(xMaus + zählerListe[0],yMaus, 1, 1).data;
