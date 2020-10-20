@@ -662,14 +662,14 @@ var yMaus = 0;
   var imgData;// = canvas.getImageData(xMaus,yMaus, 1, 1).data;
   var zählerListe = [0];
 
-  function laden(history, time) {
+  function laden(history, time/*, clear*/) {
     // canvas.fillStyle = "black";
     // canvas.fillRect(0, 0, window.innerHeight, window.innerWidth);
+    /*if (clear) */canvas.clearRect(0, 0, textur.width, textur.height);
     if (!time || time == 0) bild = new Image();
     bild.src = dataURL;
-    if (history) {
+    if (history || pointOfHistory != varHistory.length - 1) {
       bild.src = varHistory[pointOfHistory];
-      canvas.clearRect(0, 0, textur.width, textur.height);
       setTimeout(function () {
         if (time < 5) laden(true, time + 1)
       }, 500);
@@ -740,19 +740,30 @@ var yMaus = 0;
     // canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
     // buttonLayout();
     if (timeDown > 0) {
-    if (zustände[1] == "kreis"/* && xMaus < x - 120 && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
-      canvas.globalAlpha = 1;
-      canvas.fillStyle = "black";
-      canvas.beginPath();
-      canvas.arc(xMaus - 3,yMaus - 3,JSON.parse(document.getElementById('sliderRadius').value) + 8,0,Math.PI*2, false);
-      canvas.fill();
-    }
+      if (zustände[1] == "line" && lineCoordinate) {
+        laden();
+        canvas.globalAlpha = 0.3;
+        canvas.lineWidth = document.getElementById('sliderRadius').value;
+        canvas.strokeStyle = document.getElementById('colorPicker').value;
+        canvas.beginPath();
+        canvas.moveTo(lineCoordinate.x, lineCoordinate.y);
+        canvas.lineTo(xMaus, yMaus);
+        canvas.stroke();
+      }
+    // if (zustände[1] == "kreis"/* && xMaus < x - 120 && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
+    //   canvas.globalAlpha = 1;
+    //   canvas.fillStyle = "black";
+    //   canvas.beginPath();
+    //   canvas.arc(xMaus - 3,yMaus - 3,JSON.parse(document.getElementById('sliderRadius').value) + 8,0,Math.PI*2, false);
+    //   canvas.fill();
+    // }
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY;
     if (zustände[1] == "kreis" && xMaus < x - 120 /* && (zustände[0][0] == "placed" == false || xMaus > zustände[0][1] + 66 || yMaus > zustände[0][2] + 66 || xMaus < zustände[0][1] - 66 || yMaus < zustände[0][2] - 66)*/) {
       laden();
       // canvas.fillStyle = document.getElementById('colorPicker').value;//"black"
       canvas.globalAlpha = 0.3;
+      canvas.fillStyle = document.getElementById('colorPicker').value;
       canvas.beginPath();
       canvas.arc(xMaus,yMaus,document.getElementById('sliderRadius').value,0,Math.PI*2, false);
       canvas.fill();
@@ -785,6 +796,7 @@ var yMaus = 0;
     if (ev.type == "touchmove") {
       readMouseMove({clientX: xMaus, clientY: yMaus});
     }
+    if (ev.type == "touchend" && zustände[1] == "line") mousedownOnCanvas();
   }
   var searchedColores = [];
   var varHistory = [textur.toDataURL()];
@@ -800,6 +812,7 @@ var yMaus = 0;
     if (zustände[0] != "up" && (lineCoordinate == false || lineCoordinate == undefined)) {
     if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
     varHistory.push(textur.toDataURL());
+    dataURL = textur.toDataURL();
     pointOfHistory++;
   }
   zustände[0] = "up";
@@ -862,6 +875,8 @@ document.onkeydown = function(event) {
     if (zustände[1] == "line") {
       if (!lineCoordinate) lineCoordinate = {x: xMaus, y: yMaus};
       else {
+        laden();
+        canvas.globalAlpha = 1;
         canvas.lineWidth = document.getElementById('sliderRadius').value;
         canvas.strokeStyle = document.getElementById('colorPicker').value;
         canvas.beginPath();
@@ -869,6 +884,7 @@ document.onkeydown = function(event) {
         canvas.lineTo(xMaus, yMaus);
         canvas.stroke();
         lineCoordinate = false;
+        dataURL = textur.toDataURL();
       }
     }
     if (zustände[1] == "fill") {
