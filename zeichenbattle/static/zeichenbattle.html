@@ -102,19 +102,18 @@
   <br>
   <input onchange="if (checked) pointsForWin.checked = false;" checked="true" id="pointsForEverybody" type="checkbox"> Punkte jeder Runde zusammenzählen
   <br>
-  <input type="text" value="11" placeholder="points required for win" id="pointsRequiredForWin">
+  <input type="text" value="41" placeholder="points required for win" id="pointsRequiredForWin">
   <br>
   <button type="button" id="confirmSetting" onclick="confirmSettings();" name="button">Runde beginnen</button>
-  <!-- TODO: für Win einer Runde 1 Punkt an winner vergeben,
-            Punkte von allen Runden zusamenzählen
-  -->
 </div>
 <br>
 <input type="color" name="color" id="colorPicker">
 <!-- <button type="button" name="button" id="speichern">speichern</button> -->
-<input type="range" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
+<input type="range" style="width:200" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
 <br>
 <input type="checkbox"onchange="visibleArrowButton(checked);" id="arrowsVisible">vor und zurrück buttons anzeigen
+<br>
+<input type="text" id="Zoomlevel" value="25" placeholder="Zoomlevel bei Auswertung in %">
 <script>
   if (navigator.userAgent.match(/Android/i) ||
 navigator.userAgent.match(/webOS/i) ||
@@ -213,6 +212,8 @@ function visibleArrowButton(checked) {
   window.onbeforeunload = function(){
     console.log("Leave Website");
       sendJson('/zeichenbattle/logout', {clientId});
+      localStorage.setItem("paintingNowZeichenbattle", textur.toDataURL());
+      localStorage.setItem("timeDownZeichenbattle", timeDown);
       return 'Are you sure you want to leave?';
   };
 
@@ -363,7 +364,6 @@ function visibleArrowButton(checked) {
   else {
       player.animationsFinished++;
       if (player.animationsFinished == player.total)  {
-        // TODO: total points animation
         setTimeout(function () {
           canvas.clearRect(0, 0, textur.width, textur.height);
           setTimeout(function () {
@@ -411,6 +411,7 @@ function visibleArrowButton(checked) {
           }
           if (!end) reset();
           }, 5555);
+          localStorage.setItem("pointsZeichenbattle", JSON.stringify(points));
         }
       }
 }
@@ -426,6 +427,7 @@ function reset() {
   zustände = ["up", "none"];
   window.scroll(0, 0);
   if (timeLimit.value != "") startPause();
+  document.body.style.zoom = 1;
   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
 }
 function voteEnding(type) {
@@ -453,6 +455,7 @@ var points = {};
       player.voted++;
       if (player.voted == player.total) {
         voteEnding();
+        document.body.style.zoom = JSON.parse(Zoomlevel.value)/100;
       }
     }
     if (message.type == "drawing") {
@@ -474,23 +477,46 @@ var points = {};
         textur.height = highestHeight;
         showResults(0);
       }
+      else localStorage.setItem("drawingsZeichenbattle", JSON.stringify(drawings));
     }
-    if (message.type == "settings") {
+    if (message.type == "sendSettings") {
+      room.send({
+        message: {
+          "type": "settings",
+          unlocked: unlocked,
+          ownWords: themes.ownWords,
+          selectedThemes: selectedThemes,
+          // selectedOrder: {themed: themed.checked, throughAllThemes: throughAllThemes.checked, random: random.checked},
+          time: timeLimit.value,
+          selectedVoting: votingSettings,
+          pointsRequired: JSON.parse(pointsRequiredForWin.value),
+          pointsForEveryone: pointsForEverybody.checked
+        }
+      });
+      room.send({
+        message: {
+          "type": "wordsOrder",
+          data: words
+        }
+      });
+    }
+    if (message.type == "settings"&& Object.keys(votingSettings).length == 0) {
       votingSettings = message.selectedVoting;
       pointsRequiredForWin.value = message.pointsRequired;
       pointsForEverybody.checked = message.pointsForEveryone;
       if (votingSettings.forAll.boolean) {
         pointsLeft = votingSettings.forAll.value;
-        alert("Sie können " + pointsLeft + " Punkte auf ihre Mitspieler verteilen!");
+        if (!(selectedThemes.includes("ownWords"))) alert("Sie können " + pointsLeft + " Punkte auf ihre Mitspieler verteilen!");
       }
       if (votingSettings.each.boolean) {
         pointsLeft = votingSettings.each.value;
-        alert("Sie können jedem Mitspieler bis zu " + pointsLeft + " geben!");
+        if (!(selectedThemes.includes("ownWords"))) alert("Sie können jedem Mitspieler bis zu " + pointsLeft + " geben!");
       }
       unlocked = message.unlocked;
       textur.style.display = "inline";
       refreshUnlocked();
       selectedThemes = message.selectedThemes;
+      if (!(selectedThemes.includes("ownWords"))) {
       selectedThemes.push("ownWords");
       themes.ownWords = message.ownWords;
       var neededTimes = 1;
@@ -514,16 +540,17 @@ var points = {};
         words[i] = words[j];
         words[j] = x;
       }
-      room.send({
-        message: {
-          "type": "wordsOrder",
-          data: words
-        }
-      });
     }
+    room.send({
+      message: {
+        "type": "wordsOrder",
+        data: words
+      }
+    });
     setTimeout(function () {
       animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
     }, 1000);
+  }
     timeLimit.value = message.time;
     }
     if (message.type == "wordsOrder") words = message.data;
@@ -543,7 +570,26 @@ var points = {};
     // }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
-      if (!message.newRound) {
+      if (!message.newRound && confirm("Wollen sie die angefangene Runde weiterspielen?")) {
+        points = JSON.parse(localStorage.getItem("pointsZeichenbattle"));
+        if (points === null) points = {};
+        dataURL = localStorage.getItem("paintingNowZeichenbattle");
+        textur.style.display = "inline";
+        settings.style.display = "none";
+        laden(undefined, 0, true);
+        // unlocked = JSON.parse(localStorage.getItem("unlockedZeichenbattle"));
+        refreshUnlocked();
+        varHistory.push(textur.toDataURL());
+        pointOfHistory++;
+        timeDown = JSON.parse(localStorage.getItem("timeDownZeichenbattle"));
+        if (timeDown != 1) startPause();
+        inRound = true;
+        drawings = JSON.parse(localStorage.getItem("drawingsZeichenbattle"));
+        setTimeout(function () {
+          themeText.innerHTML = words[0];
+        }, 2000);
+      }
+      else if (!message.newRound) {
         room.send({
           message: {
             "type": "endGame"
@@ -641,6 +687,7 @@ var words = [];
   for (var i = 0; i < Object.keys(unlocked).length; i++) {
     if (!unlocked[Object.keys(unlocked)[i]] && (Object.keys(unlocked)[i] == "pinsel" || Object.keys(unlocked)[i] == "kreis" || Object.keys(unlocked)[i] == "line" || Object.keys(unlocked)[i] == "fill")) document.getElementById(Object.keys(unlocked)[i] + "Icon").style.display = "none";
   }
+  // localStorage.setItem("unlockedZeichenbattle", JSON.stringify(unlocked));
 }
   function sliderChanged(value) {
     if (unlocked.allSizes) {
@@ -662,18 +709,16 @@ var yMaus = 0;
   var imgData;// = canvas.getImageData(xMaus,yMaus, 1, 1).data;
   var zählerListe = [0];
 
-  function laden(history, time/*, clear*/) {
+  function laden(history, time, notClear/*, clear*/) {
     // canvas.fillStyle = "black";
     // canvas.fillRect(0, 0, window.innerHeight, window.innerWidth);
-    /*if (clear) */canvas.clearRect(0, 0, textur.width, textur.height);
+    /*if (clear) */ if (!notClear) canvas.clearRect(0, 0, textur.width, textur.height);
     if (!time || time == 0) bild = new Image();
     bild.src = dataURL;
-    if (history || pointOfHistory != varHistory.length - 1) {
-      bild.src = varHistory[pointOfHistory];
+      if (history || pointOfHistory != varHistory.length - 1) bild.src = varHistory[pointOfHistory];
       setTimeout(function () {
-        if (time < 5) laden(true, time + 1)
+        if (time != undefined && time < 5) laden(history, time + 1);
       }, 500);
-    }
     canvas.globalAlpha = 1;
   /*  canvas.fillStyle = "white";
     canvas.fillRect(0,0,2000,1000) */
