@@ -522,10 +522,11 @@ var points = {};
         if (zoomAusstellung.checked) {
           window.scroll(textur.width, textur.height);
           document.body.style.zoom = 1;
-          while (scrollX > 0) {
+          while (scrollX > 0 && document.body.style.zoom > 0.01) {
             document.body.style.zoom -= 0.01;
             window.scroll(textur.width, textur.height);
           }
+          if (document.body.style.zoom <= 0.01) window.scroll(0, 0);
         }
       }
       else localStorage.setItem("drawingsZeichenbattle", JSON.stringify(drawings));
