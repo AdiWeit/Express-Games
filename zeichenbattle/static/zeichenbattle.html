@@ -7,13 +7,13 @@
   <h1 id="timeText" style="color:red; font-size: 25px"></h1>
   <h1 id="themeText" style="color:red; font-size: 25px"></h1>
   <!-- <p style="color:white; font-size: 77px">⟲</p> -->
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" width="100"onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/drawLine.png" width="100" onclick="iconSelected(id)" id="lineIcon" height="97">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/rightArrow.png" width="100" onclick="folgenKeyDown({key: 'y'});" id="leftArrow" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" style="width: 100; height: 100" onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" style="width: 100; height: 100" onclick="iconSelected(id)" id="pinselIcon"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" style="width: 100; height: 100" onclick="iconSelected(id)" id="kreisIcon"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" style="width: 100; height: 100" onclick="iconSelected(id)" id="fillIcon"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/drawLine.png" style="width: 100; height: 100" onclick="iconSelected(id)" id="lineIcon"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" style="width: 100; height: 100" onclick="drawingFinished();" id="finsishFlag"">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/rightArrow.png" style="width: 100; height: 100" onclick="folgenKeyDown({key: 'y'});" id="leftArrow"">
   <!-- <h1 style="color:white; font-size: 77px">⟳</h1> -->
 </div>
 <style media="screen">
@@ -121,8 +121,13 @@
 <br>
 <button type="button" style="display:none" id="endVotingB" onclick="endVotingF();" name="button">Punktevergabe beenden</button>
 <br>
-<input type="text" id="Zoomlevel" value="25" placeholder="Zoomlevel bei Auswertung in %">
-<input type="checkbox" id="zoomAusstellung"> bei "Ausstellung" so weit rauszoomen, dass alle Bilder auf den Bildschirm passen
+<input type="text" id="Zoomlevel" style="display:none" value="25" placeholder="Zoomlevel bei Auswertung in %">
+<br>
+<input type="checkbox" checked="true" onchange="if (checked) stayZoomP.style.display = 'inline'; else stayZoomP.style.display = 'none'" id="zoomAusstellung"> bei "Ausstellung" so weit rauszoomen, dass alle Bilder auf den Bildschirm passen
+<p style="display:inline" id="stayZoomP">
+  <br>
+  <input type="checkbox" checked="true" onchange="if (checked) Zoomlevel.style.display = 'none'; else Zoomlevel.style.display = 'inline';" id="stayZoom"> auch bei Auswertung auf dem Zoomlevel bleiben
+</p>
 <script>
   var app = new Vue({
   el: '#app',
@@ -493,7 +498,7 @@ var points = {};
       player.voted++;
       if (player.voted == player.total) {
         voteEnding();
-        document.body.style.zoom = JSON.parse(Zoomlevel.value)/100;
+        if (!stayZoom.checked) document.body.style.zoom = JSON.parse(Zoomlevel.value)/100;
       }
     }
     if (message.type == "drawing") {
@@ -588,12 +593,14 @@ var points = {};
         words[j] = x;
       }
     }
+    if (player.myNumber == 0) {
     room.send({
       message: {
         "type": "wordsOrder",
         data: words
       }
     });
+  }
     // setTimeout(function () {
     //   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
     // }, 3000);
@@ -706,6 +713,7 @@ function animateTheme(x, y, size, text, type) {
       }
       // if (!type) textur.width -= 85/6*letterLength - 5;
       sidenav.style.top = 8;
+      if (timeLimit.value == "") inRound = true;
       if (timeLimit.value != "" && !type) {
         animateTheme(window.innerWidth/2 - (177/3)*timeLimit.value.length, window.innerHeight/2, 177, timeLimit.value, "time");
       }
@@ -859,7 +867,7 @@ var yMaus = 0;
     // canvas.fillStyle = "black";
     // canvas.fillRect(0, 0, window.innerWidth, window.innerHeight);
     // buttonLayout();
-    if (timeDown > 0) {
+    if (timeDown > 0 && (gerät == "PC" || zustände[1] != "kreis")) {
       if (zustände[1] == "line" && lineCoordinate) {
         laden();
         canvas.globalAlpha = 0.3;
@@ -901,26 +909,40 @@ var yMaus = 0;
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY;
   }
+  xMaus /= JSON.parse(document.body.style.zoom);
+  yMaus /= JSON.parse(document.body.style.zoom);
 }
 
   document.addEventListener('touchmove', touch);
   document.addEventListener('touchstart', touch);
   document.addEventListener('touchend', touch);
   // var inkMovement = false;
+  document.body.style.zoom = "1";
   function touch(ev) {
     if (ev.touches[0]) xMaus = ev.touches[0]["pageX"]// + scrollX;
     if (ev.touches[0]) yMaus = ev.touches[0]["pageY"]// + scrollY;
-    if (ev.type == "touchend" && xMaus < textur.width/*inkMovement*/ && inRound) mouseUpOnCanvas();
-    if (ev.type == "touchend") zustände[0] = "up";
+    xMaus /= JSON.parse(document.body.style.zoom);
+    yMaus /= JSON.parse(document.body.style.zoom);
+    if (ev.type == "touchend") {
+      console.log(ev.type);
+    }
+    if (ev.type == "touchend" && xMaus < textur.width/*inkMovement*/ && inRound) {
+      if (zustände[1] == "line") {
+        // zustände[0] = "up";
+        laden();
+      }
+      // mouseUpOnCanvas();
+    }
     if (ev.type == "touchstart") {
       mousedownOnCanvas();
       // inkMovement = false;
     }
-    if (ev.type == "touchmove") {
+    if (ev.type == "touchmove" && zustände[1] != "kreis") {
       readMouseMove({clientX: xMaus, clientY: yMaus});
       // inkMovement = true;
     }
     if (ev.type == "touchend" && zustände[1] == "line") mousedownOnCanvas();
+    if (ev.type == "touchend") zustände[0] = "up";
   }
   var searchedColores = [];
   var varHistory = [textur.toDataURL()];
@@ -933,8 +955,9 @@ var yMaus = 0;
     }
   }
   function mouseUpOnCanvas() {
-    if (zustände[0] != "up" && (lineCoordinate == false || lineCoordinate == undefined)) {
+    if (((zustände[0] != "up" && gerät == "PC") || (gerät == "Handy"/* && zustände[1] == "line"*/)) && (lineCoordinate == false || lineCoordinate == undefined || gerät == "Handy")) {
     if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
+    console.log("new point of history created");
     varHistory.push(textur.toDataURL());
     dataURL = textur.toDataURL();
     pointOfHistory++;
@@ -1000,7 +1023,7 @@ document.onkeydown = function(event) {
     }
     // füllen
     else */
-    if (zustände[1] == "line") {
+    if (zustände[1] == "line" && xMaus < textur.width) {
       if (!lineCoordinate) lineCoordinate = {x: xMaus, y: yMaus};
       else {
         laden();
