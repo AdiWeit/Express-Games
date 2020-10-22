@@ -7,13 +7,13 @@
   <h1 id="timeText" style="color:red; font-size: 25px"></h1>
   <h1 id="themeText" style="color:red; font-size: 25px"></h1>
   <!-- <p style="color:white; font-size: 77px">⟲</p> -->
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/rightArrow.png" width="100" onclick="folgenKeyDown({key: 'y'});" id="leftArrow" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" width="100"onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/stift.png" width="100" onclick="iconSelected(id)" id="pinselIcon" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/kreis.png" width="100" onclick="iconSelected(id)" id="kreisIcon" height="100">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/fuellen.png" width="100" onclick="iconSelected(id)" id="fillIcon" height="97">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/drawLine.png" width="100" onclick="iconSelected(id)" id="lineIcon" height="97">
   <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/finished.png" width="100" onclick="drawingFinished();" id="finsishFlag" height="100">
-  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png" width="100"onclick="folgenKeyDown({key: 'z', ctrlKey: true});" id="rightArrow" height="100">
+  <img src="https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/rightArrow.png" width="100" onclick="folgenKeyDown({key: 'y'});" id="leftArrow" height="100">
   <!-- <h1 style="color:white; font-size: 77px">⟳</h1> -->
 </div>
 <style media="screen">
@@ -57,7 +57,7 @@
 }
 </style>
 <script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script>
-<canvas onmousedown="mousedownOnCanvas();"  id="textur" width="1800" height="700" style="opacity:1"></canvas>
+<canvas onmousedown="mousedownOnCanvas();" onmouseup="mouseUpOnCanvas();" id="textur" width="1800" height="700" style="opacity:1"></canvas>
 <canvas id="invisiblTextur" width="1800" height="700"></canvas>
 <div id="settings">
   <input id="allSizes" onchange="changeUnlocked(id, checked); if (checked) sizeAdding.style.display = 'inline'; else sizeAdding.style.display = 'none';" type="checkbox"> not all sizes
@@ -90,9 +90,9 @@
     <input onchange="checkSortingSettings(id, checked);" type="checkbox" id="random">zufällig
   </p>
   <p id="votingSettings">
-    <input type="checkbox" onchange="if (checked) pointsForEveryPlayerPossibel.checked = false;" checked="true" id="pointsForAllPlayerPossible">An jeden Mitspieler bis zu <input type="text" value="10" id="pointsForAllPlayer"> Punkte verteilbar
+    <input type="checkbox" onchange="if (checked) pointsForEveryPlayerPossible.checked = false;" checked="true" id="pointsForAllPlayerPossible">An jeden Mitspieler bis zu <input type="text" value="10" id="pointsForAllPlayer"> Punkte verteilbar
     <br>
-    <input type="checkbox" onchange="if (checked) pointsForAllPlayerPossible.checked = false;" id="pointsForEveryPlayerPossibel">Auf alle Mitspieler bis zu <input type="text" id="pointsForEveryPlayer"> Punkte verteilbar
+    <input type="checkbox" onchange="if (checked) pointsForAllPlayerPossible.checked = false;" id="pointsForEveryPlayerPossible">Auf alle Mitspieler bis zu <input type="text" id="pointsForEveryPlayer"> Punkte verteilbar
   </p>
   <br>
   <input type="checkbox" onchange="if (checked) timeLimit.style.display = 'inline'; else timeLimit.style.display = 'none';">Zeitlimit
@@ -109,12 +109,27 @@
 <br>
 <input type="color" name="color" id="colorPicker">
 <!-- <button type="button" name="button" id="speichern">speichern</button> -->
-<input type="range" style="width:200" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
+<input type="range" list="tickmarks" style="width:200" min="1" max="200" onchange="sliderChanged(value);" value="37" class="slider" id="sliderRadius">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<div id="app">
+<datalist id="tickmarks">
+  <option v-for="size in sizes" v-bind:value="size"></option>
+</datalist>
+</div>
 <br>
 <input type="checkbox"onchange="visibleArrowButton(checked);" id="arrowsVisible">vor und zurrück buttons anzeigen
 <br>
+<button type="button" style="display:none" id="endVotingB" onclick="endVotingF();" name="button">Punktevergabe beenden</button>
+<br>
 <input type="text" id="Zoomlevel" value="25" placeholder="Zoomlevel bei Auswertung in %">
+<input type="checkbox" id="zoomAusstellung"> bei "Ausstellung" so weit rauszoomen, dass alle Bilder auf den Bildschirm passen
 <script>
+  var app = new Vue({
+  el: '#app',
+  data: {
+    sizes: []
+  }
+})
   if (navigator.userAgent.match(/Android/i) ||
 navigator.userAgent.match(/webOS/i) ||
 navigator.userAgent.match(/iPhone/i) ||
@@ -127,7 +142,7 @@ var gerät = "Handy"
 console.log("Handy");
 arrowsVisible.checked = true;
 } else {
-var gerät = "Handy"//"PC"
+var gerät = "PC"//"PC"
 console.log("PC");
 visibleArrowButton(false);
 }
@@ -182,8 +197,15 @@ function visibleArrowButton(checked) {
   function iconSelected(id) {
     var specials = {pinselIcon: {globalAlpha: 1}, kreisIcon: {toDataURL: true}}
     if (unlocked[id.replace("Icon", "")]) {
+      if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.height = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
+      if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.width = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
+      if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.backgroundColor = "";
       zustände[1] = id.replace("Icon", "");
+      if (document.getElementById(id)) document.getElementById(id).style.height = JSON.parse(document.getElementById(id).style.width.toString().split("px")[0]) + 10 + "px";
+      if (document.getElementById(id)) document.getElementById(id).style.width = JSON.parse(document.getElementById(id).style.width.toString().split("px")[0]) + 10 + "px";
+      if (document.getElementById(id)) document.getElementById(id).style.backgroundColor = "gray";
       console.log(id.replace("Icon", "") + " ausgewählt");
+
     }
     if (specials[id] && specials[id].globalAlpha) canvas.globalAlpha = specials[id].globalAlpha;
     if (specials[id] && specials[id].toDataURL) dataURL = textur.toDataURL();
@@ -290,7 +312,7 @@ function visibleArrowButton(checked) {
         selectedThemes: selectedThemes,
         selectedOrder: {themed: themed.checked, throughAllThemes: throughAllThemes.checked, random: random.checked},
         time: timeLimit.value,
-        selectedVoting: {each: {boolean: pointsForAllPlayerPossible.checked, value: pointsForAllPlayer.value}, forAll: {boolean: pointsForEveryPlayerPossibel.checked, value: pointsForEveryPlayer.value}},
+        selectedVoting: {each: {boolean: pointsForAllPlayerPossible.checked, value: pointsForAllPlayer.value}, forAll: {boolean: pointsForEveryPlayerPossible.checked, value: pointsForEveryPlayer.value}},
         pointsRequired: JSON.parse(pointsRequiredForWin.value),
         pointsForEveryone: pointsForEverybody.checked
       }
@@ -298,6 +320,7 @@ function visibleArrowButton(checked) {
   }
   var player = {voted: 0, doneVoting: [], animationsFinished: 0};
   function showResults(time, type) {
+    textur.style.touchAction = '';
     var positionsBefore = 0;
     for (var i = 0; i < drawings.length; i++) {
       bild = new Image();
@@ -352,13 +375,13 @@ function visibleArrowButton(checked) {
       makeAudio = false;
     }, 5000);
   }
-  function resultAnimation(x, y, width, height, percentageWidth, i, red) {
+  function resultAnimation(x, y, width, height, percentageWidth, i, red, pointsBefore) {
     canvas.fillStyle = "rgba(0, 0, 255, 0.5)";
     if (red) canvas.fillStyle = "rgba(255, 0, 0, 0.5)";
     canvas.fillRect(x, y, width, height);
-    if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth || (red && y > highestHeight - highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)) - percentageWidth)) {
+    if (y > highestHeight/*drawings[i].size.y*/ - percentageWidth || (red && y > highestHeight - highestHeight*(pointsBefore[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)) - percentageWidth)) {
       setTimeout(function () {
-        /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(x, y - 1, width, height, percentageWidth, i, red);
+        /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(x, y - 1, width, height, percentageWidth, i, red, pointsBefore);
       }, 10);
   }
   else {
@@ -380,20 +403,6 @@ function visibleArrowButton(checked) {
       }
       else if (player.animationsFinished == player.total*3) {
         setTimeout(function () {
-          var mostPoints = {number: 0, iList: []};
-          for (var i = 0; i < drawings.length; i++) {
-          if (!points[drawings[i].name]) points[drawings[i].name] = 0;
-          if (pointsForEverybody.checked) points[drawings[i].name] += drawings[i].points;
-          else {
-              if (drawings[i].points > mostPoints.number) {mostPoints.number = drawings[i].points; mostPoints.iList = [];}
-              if (drawings[i].points == mostPoints.number) mostPoints.iList.push(i);
-            }
-          }
-          if (!pointsForEverybody.checked) {
-            for (var i = 0; i < mostPoints.iList.length; i++) {
-              points[drawings[mostPoints.iList[i]].name]++;
-            }
-          }
           var end = false;
           var highest = {player: -1, number: 0}
           for (var i = 0; i < Object.keys(points).length; i++) {
@@ -411,39 +420,68 @@ function visibleArrowButton(checked) {
           }
           if (!end) reset();
           }, 5555);
-          localStorage.setItem("pointsZeichenbattle", JSON.stringify(points));
         }
       }
 }
 function reset() {
   textur.width = x - 10;
+  textur.style.touchAction = 'none';
   textur.height = y;
+  if (gerät == "Handy") {textur.height -= 75; window.scroll(0, 0);}
   sidenav.style.display = "inline";
   words.shift();
   player.voted = 0;
   player.animationsFinished = 0;
   drawings = [];
   hitboxes = [];
+  if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.height = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
+  if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.width = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
+  if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.backgroundColor = "";
   zustände = ["up", "none"];
   window.scroll(0, 0);
   if (timeLimit.value != "") startPause();
   document.body.style.zoom = 1;
   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
+  while (varHistory.length > 1) {
+    varHistory.pop();
+  }
 }
 function voteEnding(type) {
+  var pointsBefore = JSON.parse(JSON.stringify(points));
   for (var i = 0; i < hitboxes.length; i++) {
     canvas.fillStyle = "red";
     canvas.font = "100px Georgia";
     if (!drawings[i].name) drawings[i].name = "kein Name";
     canvas.fillText(drawings[i].name, hitboxes[i].to.x - drawings[i].size.x/2 - 25*drawings[i].name.length, hitboxes[i].to.y/2);
-    var totalPoints = 0;
-    for (var i1 = 0; i1 < drawings.length; i1++) {
-      totalPoints += drawings[i1].points;
-    }
+    // var totalPoints = 0;
+    // for (var i1 = 0; i1 < drawings.length; i1++) {
+    //   totalPoints += drawings[i1].points;
+    // }
     if (!points[drawings[i].name]) points[drawings[i].name] = 0;
-    if (!type) /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/totalPoints), i);
+    if (!type && pointsForAllPlayerPossible.checked) /*if (!(bild.src.includes("Bildschirm"))) */resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/pointsLeft /*totalPoints*/), i);
+    else if (!type) resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/JSON.parse(votingSettings.forAll.value) /*totalPoints*/), i);
     else if (type == "totalResults") resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight, drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)), i);
-    else resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight - highestHeight*(points[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)), drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/JSON.parse(pointsRequiredForWin.value)), i, true);
+    else {
+      points = JSON.parse(JSON.stringify(pointsBefore));
+      var mostPoints = {number: 0, iList: []};
+      for (var i1 = 0; i1 < drawings.length; i1++) {
+      if (!points[drawings[i1].name]) points[drawings[i1].name] = 0;
+      if (pointsForEverybody.checked) points[drawings[i1].name] += drawings[i1].points;
+      else {
+          if (drawings[i1].points > mostPoints.number) {mostPoints.number = drawings[i1].points; mostPoints.iList = [];}
+          if (drawings[i1].points == mostPoints.number) mostPoints.iList.push(i1);
+        }
+        if (!pointsForEverybody.checked) drawings[i1].points = 0;
+      }
+      if (!pointsForEverybody.checked) {
+        for (var i1 = 0; i1 < mostPoints.iList.length; i1++) {
+          points[drawings[mostPoints.iList[i1]].name]++;
+          drawings[mostPoints.iList[i1]].points = 1;
+        }
+      }
+      localStorage.setItem("pointsZeichenbattle", JSON.stringify(points));
+      resultAnimation(hitboxes[i].from.x, /*hitboxes[i].from.y + drawings[i].size.y*/highestHeight - highestHeight*(pointsBefore[drawings[i].name]/JSON.parse(pointsRequiredForWin.value)), drawings[i].size.x, 1, /*drawings[i].size.y*/highestHeight*(drawings[i].points/JSON.parse(pointsRequiredForWin.value)), i, true, pointsBefore);
+    }
   }
 }
 var points = {};
@@ -459,11 +497,11 @@ var points = {};
       }
     }
     if (message.type == "drawing") {
-      zustände[1] = "none";
       drawings.push({drawing: message.data, size: message.size, name: names[message.sender], points: 0});
       if (drawings.length == player.total) {
         sidenav.style.display = "none";
-        var biggest = {x: 0, y: 0};
+        endVotingB.style.display = 'inline';
+        // var biggest = {x: 0, y: 0};
         textur.width = -(drawings[0].size.x);
         // textur.height = -(drawings[0].size.y);
         highestHeight = 0;
@@ -476,6 +514,14 @@ var points = {};
         }
         textur.height = highestHeight;
         showResults(0);
+        if (zoomAusstellung.checked) {
+          window.scroll(textur.width, textur.height);
+          document.body.style.zoom = 1;
+          while (scrollX > 0) {
+            document.body.style.zoom -= 0.01;
+            window.scroll(textur.width, textur.height);
+          }
+        }
       }
       else localStorage.setItem("drawingsZeichenbattle", JSON.stringify(drawings));
     }
@@ -496,7 +542,8 @@ var points = {};
       room.send({
         message: {
           "type": "wordsOrder",
-          data: words
+          data: words,
+          rejoined: true
         }
       });
     }
@@ -547,13 +594,16 @@ var points = {};
         data: words
       }
     });
-    setTimeout(function () {
-      animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
-    }, 1000);
+    // setTimeout(function () {
+    //   animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
+    // }, 3000);
   }
     timeLimit.value = message.time;
     }
-    if (message.type == "wordsOrder") words = message.data;
+    if (message.type == "wordsOrder") {
+      words = message.data;
+      if (!message.rejoined) animateTheme(window.innerWidth/2 - (177/3)*words[0].length, window.innerHeight/2, 177, words[0]);
+    }
     if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "Reihenfolge") player.aktuell = message.data;
     // if (message.type == "showStatsVoting") {
@@ -571,6 +621,8 @@ var points = {};
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
       if (!message.newRound && confirm("Wollen sie die angefangene Runde weiterspielen?")) {
+        if (gerät == "Handy") textur.height -= 75;
+        textur.style.touchAction = 'none';
         points = JSON.parse(localStorage.getItem("pointsZeichenbattle"));
         if (points === null) points = {};
         dataURL = localStorage.getItem("paintingNowZeichenbattle");
@@ -640,17 +692,19 @@ function animateTheme(x, y, size, text, type) {
       if (!type) themeText.innerHTML = words[0];
       var letterLength = words[0].length + 1;
       if (timeLimit.value.length + 3 > letterLength) letterLength = timeLimit.value.length + 3 + 1;
-      if (!type) textur.height -= 57;
+      // if (!type) textur.height -= 57;
       if (document.body.scrollHeight > document.body.clientHeight) letterLength++;
       sidenav.style.width = 85/6*letterLength;
       sidenav.style.left = window.innerWidth - 85/6*letterLength;
+      textur.width = document.getElementsByClassName('sidenav')[0].style.left.toString().split("px")[0] - 10;
+      textur.style.touchAction = 'none';
       if (document.body.scrollHeight > document.body.clientHeight) sidenav.style.left -= 85/6;
       var iconList = ["pinselIcon", "kreisIcon", "fillIcon", "lineIcon", "finsishFlag", "rightArrow", "leftArrow"];
       for (icon of iconList) {
-        document.getElementById(icon).style.width = sidenav.style.width;
-        document.getElementById(icon).style.height = sidenav.style.width;
+        document.getElementById(icon).style.width = JSON.parse(sidenav.style.width.toString().split("px")[0]) - 10;
+        document.getElementById(icon).style.height = JSON.parse(sidenav.style.width.toString().split("px")[0]) - 10;
       }
-      if (!type) textur.width -= 85/6*letterLength - 5;
+      // if (!type) textur.width -= 85/6*letterLength - 5;
       sidenav.style.top = 8;
       if (timeLimit.value != "" && !type) {
         animateTheme(window.innerWidth/2 - (177/3)*timeLimit.value.length, window.innerHeight/2, 177, timeLimit.value, "time");
@@ -675,14 +729,17 @@ var words = [];
   var unlocked = {allSizes: false, pinsel: true, kreis: true, line: true, fill: true, sizes: [/*10, 30, 50, 133*/], colours: true};//["pinsel", "kreis", "fill", {sizes: [10, 30, 50, 133]}, "colours"];
   function refreshUnlocked() {
   if (!(unlocked.colours)) colorPicker.style.display = "none";
-  for (var i = 0; i < unlocked.sizes.length; i++) {
-    var text = document.createElement("H4");
-    text.innerHTML = "|"//unlocked.sizes[i];
-    text.style.position = "absolute";
-    text.style.left = 90/*133*/ + unlocked.sizes[i]*0.6;
-    // text.style.top = "500";
-    document.body.appendChild(text);
-  }
+  app.sizes = unlocked.sizes;
+  sliderChanged(sliderRadius.value);
+  // for (var i = 0; i < unlocked.sizes.length; i++) {
+  //   var text = document.createElement("H4");
+  //   text.innerHTML = "|"//unlocked.sizes[i];
+  //   text.style.position = "absolute";
+  //   text.style.left = 90/*133*/ + unlocked.sizes[i]*0.6;
+  //   text.style.top = textur.height + 50;
+  //   // text.style.top = "500";
+  //   document.body.appendChild(text);
+  // }
   // buttonLayout();
   for (var i = 0; i < Object.keys(unlocked).length; i++) {
     if (!unlocked[Object.keys(unlocked)[i]] && (Object.keys(unlocked)[i] == "pinsel" || Object.keys(unlocked)[i] == "kreis" || Object.keys(unlocked)[i] == "line" || Object.keys(unlocked)[i] == "fill")) document.getElementById(Object.keys(unlocked)[i] + "Icon").style.display = "none";
@@ -690,11 +747,28 @@ var words = [];
   // localStorage.setItem("unlockedZeichenbattle", JSON.stringify(unlocked));
 }
   function sliderChanged(value) {
-    if (unlocked.allSizes) {
-    for (var i = 0; unlocked.sizes[i] <= JSON.parse(value); i++) {}
-    console.log("i: " + i + ", size: " + unlocked.sizes[i - 1] + ", value: " + value);
-    if (i > 0) sliderRadius.value = unlocked.sizes[i - 1];
-    else sliderRadius.value = unlocked.sizes[0]
+    if (unlocked.allSizes && !(unlocked.sizes.includes(value))) {
+      var otherSizes = [];
+      for (var i = 0; JSON.parse(value) + i < sliderRadius.max; i++) {
+        if (unlocked.sizes.includes(JSON.parse(value) + i)) {
+          otherSizes.push({value: JSON.parse(value) + i, distence: i});
+          i = sliderRadius.max;
+        }
+      }
+      for (var i = 0; JSON.parse(value) - i > 0; i++) {
+        if (unlocked.sizes.includes(JSON.parse(value) - i)) {
+          otherSizes.push({value: JSON.parse(value) - i, distence: i});
+          i = JSON.parse(value);
+        }
+      }
+      if (!otherSizes[1] || otherSizes[0].distence < otherSizes[1].distence) sliderRadius.value = otherSizes[0].value;
+      else sliderRadius.value = otherSizes[1].value;
+
+    // for (var i = 0; unlocked.sizes[i] <= JSON.parse(value); i++) {}
+    // console.log("i: " + i + ", size: " + unlocked.sizes[i - 1] + ", value: " + value);
+    // if (i > 0) sliderRadius.value = unlocked.sizes[i - 1];
+    // else sliderRadius.value = unlocked.sizes[0]
+
   }
   }
 // imported
@@ -734,8 +808,9 @@ var yMaus = 0;
   console.log(x + ' × ' + y);
   document.getElementsByClassName('sidenav')[0].style.left = x - 100;
   // "button layout
-  textur.width = x - 10;
-  textur.height = y;
+  textur.width = document.getElementsByClassName('sidenav')[0].style.left.toString().split("px")[0] - 10;//x - 10;
+  textur.height = y - 50;
+  if (gerät == "Handy") {textur.height -= 75; window.scroll(0, 0);}
 //   function buttonLayout(noImages) {
 //   canvas.fillRect(x - 75, 0, 75, window.innerHeight)
 //   if (unlocked.pinsel) {
@@ -831,15 +906,19 @@ var yMaus = 0;
   document.addEventListener('touchmove', touch);
   document.addEventListener('touchstart', touch);
   document.addEventListener('touchend', touch);
+  // var inkMovement = false;
   function touch(ev) {
     if (ev.touches[0]) xMaus = ev.touches[0]["pageX"]// + scrollX;
     if (ev.touches[0]) yMaus = ev.touches[0]["pageY"]// + scrollY;
+    if (ev.type == "touchend" && xMaus < textur.width/*inkMovement*/ && inRound) mouseUpOnCanvas();
     if (ev.type == "touchend") zustände[0] = "up";
     if (ev.type == "touchstart") {
       mousedownOnCanvas();
+      // inkMovement = false;
     }
     if (ev.type == "touchmove") {
       readMouseMove({clientX: xMaus, clientY: yMaus});
+      // inkMovement = true;
     }
     if (ev.type == "touchend" && zustände[1] == "line") mousedownOnCanvas();
   }
@@ -853,7 +932,7 @@ var yMaus = 0;
       laden(true, 0);
     }
   }
-  document.body.onmouseup = function() {
+  function mouseUpOnCanvas() {
     if (zustände[0] != "up" && (lineCoordinate == false || lineCoordinate == undefined)) {
     if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
     varHistory.push(textur.toDataURL());
@@ -870,6 +949,14 @@ document.onkeydown = function(event) {
   folgenKeyDown(event);
 }
   var pointsLeft = 10;
+  function endVotingF() {
+    room.send({
+      message: {
+        "type": "endVoting"
+      }
+    });
+    endVotingB.style.display = 'none';
+  }
   function mousedownOnCanvas() {
     for (var i = 0; i < hitboxes.length; i++) {
       if (xMaus > hitboxes[i].from.x && xMaus < hitboxes[i].to.x && xMaus > hitboxes[i].from.y && yMaus < hitboxes[i].to.y && drawings[i].name != names[player.myNumber] && !drawings[i].voted) {
@@ -888,11 +975,7 @@ document.onkeydown = function(event) {
           if (votingSettings.each.boolean) pointsLeft = JSON.parse(votingSettings.each.value);//10;
           else alert("Sie können noch " + pointsLeft + " Punkte verteilen.")
           if (confirm("Wollen sie ihre Punktevergabe nun beenden?")) {
-            room.send({
-              message: {
-                "type": "endVoting"
-              }
-            });
+            endVotingF();
           }
         }
         else if (points != null) alert("Sie haben nur noch " + pointsLeft + " Punkte übrig!");
@@ -932,7 +1015,7 @@ document.onkeydown = function(event) {
         dataURL = textur.toDataURL();
       }
     }
-    if (zustände[1] == "fill") {
+    if (zustände[1] == "fill" && xMaus < textur.width) {
       zählerListe[2] = 0;
     //  canvas.fillRect(xMaus, yMaus, 1, 1);
       zählerListe[0] = 0;
