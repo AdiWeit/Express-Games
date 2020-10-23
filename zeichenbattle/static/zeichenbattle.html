@@ -1000,8 +1000,8 @@ document.onkeydown = function(event) {
     for (var i = 0; i < hitboxes.length; i++) {
       if (xMaus > hitboxes[i].from.x && xMaus < hitboxes[i].to.x && xMaus > hitboxes[i].from.y && yMaus < hitboxes[i].to.y && drawings[i].name != names[player.myNumber] && !drawings[i].voted) {
         console.log(i + ". drawing clicked");
-        var points = JSON.parse(prompt("Wie viele Punkte wollen sie vergeben? Um die Aktion abzubrechen, bitte abbrechen/cancel klicken!"));
-        if (points != null && pointsLeft >= points) {
+        if (endVotingB.style.display == 'inline') var points = JSON.parse(prompt("Wie viele Punkte wollen sie vergeben? Um die Aktion abzubrechen, bitte abbrechen/cancel klicken!"));
+        if (points && pointsLeft >= points) {
           drawings[i].voted = true;
           room.send({
             message: {
@@ -1017,7 +1017,7 @@ document.onkeydown = function(event) {
             endVotingF();
           }
         }
-        else if (points != null) alert("Sie haben nur noch " + pointsLeft + " Punkte übrig!");
+        else if (points) alert("Sie haben nur noch " + pointsLeft + " Punkte übrig!");
       }
     }
     canvas.fillStyle = document.getElementById('colorPicker').value;
