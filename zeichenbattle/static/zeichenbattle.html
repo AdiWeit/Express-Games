@@ -57,7 +57,7 @@
 }
 </style>
 <script src="https://adi.nicolaiweitkemper.de/Database/js.js"></script>
-<canvas onmousedown="mousedownOnCanvas();" onmouseup="mouseUpOnCanvas();" id="textur" width="1800" height="700" style="opacity:1"></canvas>
+<canvas onmousedown="mousedownOnCanvas();" onmouseup="if (gerät == 'Handy') mouseUpOnCanvas();" id="textur" width="1800" height="700" style="opacity:1"></canvas>
 <canvas id="invisiblTextur" width="1800" height="700"></canvas>
 <div id="settings">
   <input id="allSizes" onchange="changeUnlocked(id, checked); if (checked) sizeAdding.style.display = 'inline'; else sizeAdding.style.display = 'none';" type="checkbox"> not all sizes
@@ -119,6 +119,7 @@
 <br>
 <input type="checkbox"onchange="visibleArrowButton(checked);" id="arrowsVisible">vor und zurrück buttons anzeigen
 <br>
+<input type="checkbox" checked="true" id="correctLine" name="button">Linienkorrektur</input>
 <button type="button" style="display:none" id="endVotingB" onclick="endVotingF();" name="button">Punktevergabe beenden</button>
 <br>
 <input type="text" id="Zoomlevel" style="display:none" value="25" placeholder="Zoomlevel bei Auswertung in %">
@@ -526,7 +527,10 @@ var points = {};
             document.body.style.zoom -= 0.01;
             window.scroll(textur.width, textur.height);
           }
-          if (document.body.style.zoom <= 0.01) window.scroll(0, 0);
+          if (document.body.style.zoom <= 0.01) {
+            window.scroll(0, 0);
+            document.body.style.zoom = "1";
+          }
         }
       }
       else localStorage.setItem("drawingsZeichenbattle", JSON.stringify(drawings));
@@ -871,6 +875,14 @@ var yMaus = 0;
     if (timeDown > 0 && (gerät == "PC" || zustände[1] != "kreis")) {
       if (zustände[1] == "line" && lineCoordinate) {
         laden();
+        if (((yMaus < lineCoordinate.y && lineCoordinate.y - yMaus > 5) || xMaus > lineCoordinate.x && xMaus - lineCoordinate.x > 5) && !lineCoordinate.changed && correctLine.checked) {
+          lineCoordinate = {x: lineCoordinate.x - JSON.parse(sliderRadius.value)/2, y: lineCoordinate.y, changed: true}
+          console.log("corrected!");
+        }
+        if (xMaus < lineCoordinate.x && lineCoordinate.x - xMaus > 5 && !lineCoordinate.changed && correctLine.checked) {
+          lineCoordinate = {x: lineCoordinate.x + JSON.parse(sliderRadius.value)/2, y: lineCoordinate.y, changed: true}
+          console.log("corrected!");
+        }
         canvas.globalAlpha = 0.3;
         canvas.lineWidth = document.getElementById('sliderRadius').value;
         canvas.strokeStyle = document.getElementById('colorPicker').value;
@@ -955,6 +967,9 @@ var yMaus = 0;
       laden(true, 0);
     }
   }
+  document.body.onmouseup = function() {
+    if (gerät == "PC") mouseUpOnCanvas();
+  }
   function mouseUpOnCanvas() {
     if (((zustände[0] != "up" && gerät == "PC") || (gerät == "Handy"/* && zustände[1] == "line"*/)) && (lineCoordinate == false || lineCoordinate == undefined || gerät == "Handy")) {
     if (pointOfHistory != varHistory.length - 1) pointOfHistory = varHistory.length - 1;
@@ -1025,7 +1040,7 @@ document.onkeydown = function(event) {
     // füllen
     else */
     if (zustände[1] == "line" && xMaus < textur.width) {
-      if (!lineCoordinate) lineCoordinate = {x: xMaus, y: yMaus};
+      if (!lineCoordinate) lineCoordinate = {x: xMaus, y: yMaus - JSON.parse(sliderRadius.value)/2};
       else {
         laden();
         canvas.globalAlpha = 1;
@@ -1038,6 +1053,7 @@ document.onkeydown = function(event) {
         lineCoordinate = false;
         dataURL = textur.toDataURL();
       }
+      if (!correctLine.checked) lineCoordinate.y += JSON.parse(sliderRadius.value)/2;
     }
     if (zustände[1] == "fill" && xMaus < textur.width) {
       zählerListe[2] = 0;
