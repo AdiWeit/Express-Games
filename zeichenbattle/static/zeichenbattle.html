@@ -439,6 +439,7 @@ function reset() {
   player.drawingsVoted = 0;
   player.animationsFinished = 0;
   drawings = [];
+  localStorage.setItem("drawingsZeichenbattle", "{}");
   hitboxes = [];
   if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.height = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
   if (document.getElementById(zustände[1] + 'Icon')) document.getElementById(zustände[1] + 'Icon').style.width = JSON.parse(document.getElementById(zustände[1] + 'Icon').style.width.toString().split("px")[0]) - 10 + "px";
@@ -492,7 +493,10 @@ function voteEnding(type) {
 }
 var points = {};
   room.setOnMessageListener(function(message) {
-    if (message.type == "endGame") {alert("somebody doesn't want to continue playing, so the game ends!")}
+    if (message.type == "endGame") {
+      alert("somebody doesn't want to continue playing, so the game ends!");
+      localStorage.setItem("drawingsZeichenbattle", "{}");
+    }
     if (message.type == "win") winnerScreen(message.player, 0);
     if (message.type == "addPoints") drawings[message.index].points += message.points;
     if (message.type == "endVoting") {
@@ -1055,13 +1059,15 @@ document.onkeydown = function(event) {
       if (!correctLine.checked) lineCoordinate.y += JSON.parse(sliderRadius.value)/2;
     }
     if (zustände[1] == "fill" && xMaus < textur.width) {
+      localStorage.setItem("paintingNowZeichenbattle", textur.toDataURL());
+      localStorage.setItem("timeDownZeichenbattle", timeDown);
       zählerListe[2] = 0;
     //  canvas.fillRect(xMaus, yMaus, 1, 1);
       zählerListe[0] = 0;
       getImgDataX();
       searchedColores = [red, green, blue, alpha];
       while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && xMaus + zählerListe[0] - 2 < x  && zustände[0] == "beendet" == false) {
-        if (xMaus + zählerListe[0] > x) {
+        if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
           alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
           zustände[0] = "beendet";
           setTimeout(function () {
@@ -1075,6 +1081,13 @@ document.onkeydown = function(event) {
       zählerListe[0] = -1;
       getImgDataX();
       while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+          alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+          zustände[0] = "beendet";
+          setTimeout(function () {
+            zustände[0] = "up"
+          }, 2000);
+        }
         getImgDataX();
         canvas.fillRect(xMaus + zählerListe[0], yMaus, 1, 1);
         zählerListe[0]--;
@@ -1083,9 +1096,23 @@ document.onkeydown = function(event) {
       zählerListe[0] = 1;
       getImgDataY();
       while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+          alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+          zustände[0] = "beendet";
+          setTimeout(function () {
+            zustände[0] = "up"
+          }, 2000);
+        }
       zählerListe[0] = 1;
       getImgDataY();
       while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+          alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+          zustände[0] = "beendet";
+          setTimeout(function () {
+            zustände[0] = "up"
+          }, 2000);
+        }
         getImgDataY();
         canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
         zählerListe[0]++;
@@ -1093,6 +1120,13 @@ document.onkeydown = function(event) {
       zählerListe[0] = -1;
       getImgDataY();
       while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+        if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+          alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+          zustände[0] = "beendet";
+          setTimeout(function () {
+            zustände[0] = "up"
+          }, 2000);
+        }
         getImgDataY();
         canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
         zählerListe[0]--;
@@ -1126,9 +1160,23 @@ document.onkeydown = function(event) {
     zählerListe[1] = -1;
     getImgDataY();
     while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+        alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+        zustände[0] = "beendet";
+        setTimeout(function () {
+          zustände[0] = "up"
+        }, 2000);
+      }
     zählerListe[0] = 1;
     getImgDataY();
     while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+        alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+        zustände[0] = "beendet";
+        setTimeout(function () {
+          zustände[0] = "up"
+        }, 2000);
+      }
       getImgDataY();
       canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
       zählerListe[0]++;
@@ -1136,6 +1184,13 @@ document.onkeydown = function(event) {
     zählerListe[0] = -1;
     getImgDataY();
     while (red == searchedColores[0] && green == searchedColores[1] && blue == searchedColores[2] && alpha == searchedColores[3] && zustände[0] == "beendet" == false) {
+      if (xMaus + zählerListe[0] > x || yMaus + zählerListe[0] > y || xMaus + zählerListe[1] > x) {
+        alert("Die Größe des Objektes übersteigt die Größe des Bildschirmes! Bitte prüfen sie ihr Objekt nach möglichen Lücken, die zu Fehlern führen könnten!")
+        zustände[0] = "beendet";
+        setTimeout(function () {
+          zustände[0] = "up"
+        }, 2000);
+      }
       getImgDataY();
       canvas.fillRect(xMaus + zählerListe[1], yMaus + zählerListe[0], 1, 1);
       zählerListe[0]--;
