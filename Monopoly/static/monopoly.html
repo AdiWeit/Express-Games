@@ -1820,106 +1820,18 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       if (AblageListe[3] < AnzahlSpieler) {
         console.log("bezahlen " + AblageListe[3] + " ( " + AblageListe[0] + "€)");
         bezahlen();
-        if (AblageListe[7] < 6) {
           spieler[spielerIch].einkommen[0] += AblageListe[7];
           spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[7];
-        } else {
-          while (AblageListe[5].length > 0) {
-            spieler[spielerIch].einkommen[0] += AblageListe[5][0];
-            spieler[spielerIch].einkommen[spieler[spielerIch].einkommen.length] = AblageListe[5][0];
-            AblageListe[5].shift();
-          }
-        }
-      }
     }
   }
+}
 
   function bezahlen() {
     /* zu bezahlen: AblageListe[0] */
     AblageListe[5] = [];
     zählerListe[1] = 1;
     var preise = [];
-    while (/*AblageListe[0] > 0 && */zählerListe[1] < spieler[AblageListe[3]].einkommen.length) {
-    //   if (AblageListe[0] > 9 && spieler[AblageListe[3]].einkommen.includes(10)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 10) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 10
-    //         AblageListe[0] -= 10;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 10;
-    //   }
-    //   if (AblageListe[0] > 4 && spieler[AblageListe[3]].einkommen.includes(5)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 5) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 5;
-    //         AblageListe[0] -= 5;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 5;
-    //   }
-    //   if (AblageListe[0] > 3 && spieler[AblageListe[3]].einkommen.includes(4)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 4) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 4;
-    //         AblageListe[0] -= 4;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 4;
-    //   }
-    //   if (AblageListe[0] > 2 && spieler[AblageListe[3]].einkommen.includes(3)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 3) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 3
-    //         AblageListe[0] -= 3;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 3;
-    //   }
-    //
-    //   if (AblageListe[0] > 1 && spieler[AblageListe[3]].einkommen.includes(2)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 2) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 2
-    //         AblageListe[0] -= 2;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 2;
-    //   }
-    //
-    //   if (AblageListe[0] > 0 && spieler[AblageListe[3]].einkommen.includes(1)) {
-    //     zählerListe[0] = 1;
-    //     while (zählerListe[0] < spieler[AblageListe[3]].einkommen.length) {
-    //       if (spieler[AblageListe[3]].einkommen[zählerListe[0]] == 1) {
-    //         spieler[AblageListe[3]].einkommen.splice(zählerListe[0], 1)
-    //         zählerListe[0] = spieler[AblageListe[3]].einkommen.length;
-    //         spieler[AblageListe[3]].einkommen[0] -= 1
-    //         AblageListe[0] -= 1;
-    //       }
-    //       zählerListe[0]++;
-    //     }
-    //     AblageListe[5][AblageListe[5].length] = 1;
-    //   }
+    while (zählerListe[1] < spieler[AblageListe[3]].einkommen.length) {
     var totalMoney = 0;
     var moneyList = [];
     for (var i = zählerListe[1]; i < spieler[AblageListe[3]].einkommen.length; i++) {
