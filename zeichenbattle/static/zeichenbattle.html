@@ -428,13 +428,23 @@ function visibleArrowButton(checked) {
         }
       }
 }
-function reset() {
+function reset(pInterruptAnimation) {
   textur.width = x - 10;
   textur.style.touchAction = 'none';
   textur.height = y;
   if (gerät == "Handy") {textur.height -= 75; window.scroll(0, 0);}
   sidenav.style.display = "inline";
   words.shift();
+  interruptAnimation = pInterruptAnimation;
+  if (words.length == 0 && player.myNumber == 0) {
+    room.send({
+      message: {
+        "type": "newWord",
+        data: prompt("Ihnen sind die Wörter ausgegangen! Bitte geben sie ein weiteres ein!")
+      }
+    });
+  }
+  else if (words.length == 0) words.push("!tsoH mov troW seuen fua netraw ettiB");
   player.voted = 0;
   player.drawingsVoted = 0;
   player.animationsFinished = 0;
@@ -492,10 +502,16 @@ function voteEnding(type) {
   }
 }
 var points = {};
+var interruptAnimation = false;
   room.setOnMessageListener(function(message) {
     if (message.type == "endGame") {
       alert("somebody doesn't want to continue playing, so the game ends!");
       localStorage.setItem("drawingsZeichenbattle", "{}");
+    }
+    if (message.type == "newWord") {
+      if (player.myNumber == 0) words.push("egal!");
+      words.push(message.data);
+      reset(true);
     }
     if (message.type == "win") winnerScreen(message.player, 0);
     if (message.type == "addPoints") drawings[message.index].points += message.points;
@@ -700,6 +716,7 @@ function animateTheme(x, y, size, text, type) {
   var time = 10;
   if (size == 177) time = 5;
   setTimeout(function () {
+    if (!(interruptAnimation && text == "!tsoH mov troW seuen fua netraw ettiB")) {
     if (!(bild.src.toLowerCase().includes("bildschirm"))) {
     if (size > /*50*/window.innerWidth/32 && x < window.innerWidth && y > size) animateTheme(x + /*22*/window.innerWidth/72.4, y - /*10*/window.innerHeight/80, size - 3, text, type);
     else if (x < window.innerWidth - 100) animateTheme(x + 1, y, size, text, type);
@@ -736,6 +753,7 @@ function animateTheme(x, y, size, text, type) {
       }
     }
   }
+}
   }, time);
 }
 var hitboxes = [];
