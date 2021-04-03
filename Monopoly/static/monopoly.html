@@ -601,7 +601,7 @@
             setTimeout(function () {
               datenAktuallisieren();
             }, 1333);
-          } else if ((spielerIch == spielerAktuell + 1 || (spielerAktuell == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
+          } else if ((spielerIch == spielerAktuell + 1 || (spielerAktuell + 1 == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
             room.send({
               message: {
                 "type": "NixDa",
@@ -626,7 +626,7 @@
         } else if (spielerIch == spielerAktuell) {
           console.log("Nix da Battle verloren :(");
         //  alert("Leider hat der Gegner genug Nix da Karten gehabt.");
-          if ((spielerIch == spielerAktuell + 1 || (spielerAktuell == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
+          if ((spielerIch == spielerAktuell + 1 || (spielerAktuell + 1 == AnzahlSpieler && spielerIch == 0)) && message.Status[0] != "richtigerSpielerEmpfangen" && message.Empfänger != spielerAktuell) {
             room.send({
               message: {
                 "type": "NixDa",
