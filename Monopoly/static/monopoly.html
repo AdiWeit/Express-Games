@@ -960,16 +960,16 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
         gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
       }
     }
-    if ((AblageListe[0] == "aus Gebot aussteigen" || AblageListe[0][0] != "aus Gebot aussteigen") && zählerListe[1] > 1) {
-      if (bieter != AnzahlSpieler - 1) bieter++;
-      while (zählerListe[1] > 1 && (AblageListe[1][1][bieter + 1] == false || bieter == spielerIch)) {
-        if (bieter == AnzahlSpieler - 1) {
-          bieter = -1;
-        }
-        bieter++;
-      }
-      gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
-    }
+    // if ((AblageListe[0] == "aus Gebot aussteigen" || AblageListe[0][0] != "aus Gebot aussteigen") && zählerListe[1] > 1) {
+    //   if (bieter != AnzahlSpieler - 1) bieter++;
+    //   while (zählerListe[1] > 1 && (AblageListe[1][1][bieter + 1] == false || bieter == spielerIch)) {
+    //     if (bieter == AnzahlSpieler - 1) {
+    //       bieter = -1;
+    //     }
+    //     bieter++;
+    //   }
+    //   gebotAnServer(AblageListe[1][1], bieter, AblageListe[1][0], AblageListe[1][2]);
+    // }
   }
 
   function vorbereitungGebot() {
