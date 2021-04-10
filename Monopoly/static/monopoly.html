@@ -477,12 +477,14 @@
       spieler[spielerIch].coverMoney = false;
       console.log(afterNixDa);
       console.log(AblageListe[4]);
+      // setTimeout(function () {
       if (AblageListe[4][1] && AblageListe[4][1] > 0 && afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] != "Auswahl Karten ablegen") AblageListe[4][0] = "bezahlen Gegner";
       else if (/*(AblageListe[4][1] && AblageListe[4][1] > 0)*/afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "Auswahl Karten ablegen") AblageListe[4] = afterNixDa["AblageListe[4]"];
       else if (/*AblageListe[4][0] != "Warten Bezahlen" && */AblageListe[4][0] != "Auswahl Karten ablegen"/* && AblageListe[4][0] != ""*/ && (AblageListe[4][0] != "warten auf Gebot" || afterNixDa["AblageListe[4]"] == "beendet") && spielerIch == spielerAktuell) AblageListe[4][0] = "beendet";
       if (afterNixDa["AblageListe[4]"] && afterNixDa["AblageListe[4]"][0] == "warten auf Gebot") AblageListe[4][0] = "beendet";
       if (afterNixDa["Warten Bezahlen Gegner"] && afterNixDa["Warten Bezahlen Gegner"] == true) AblageListe[4][0] = "Warten Bezahlen Gegner";
       else if (ereignis == "" && afterNixDa["AblageListe[4]"][0] != "bezahlen Gegner") AblageListe[4][0] = "beendet";
+    // }, 2222);
       //checkRundenende();
     }
     if (message.type == "gebotBeendet" && message.Empfänger == spielerIch + 1 && message.gleichstand == "u" && (JSON.parse(message.data[1][0]) != message.data[0][1] || confirm("Wollen sie die " + message.data[0][3] + " (" + color + ") für " + message.data[1][0] + "€ kaufen? Es hat eine Versteigerung stattgefunden, bei der sie bisher noch nicht teilnehmen konnten, aber alle anderen haben entweder zu wenig Geld, oder von sich aus abgelehnt."))) {
@@ -498,7 +500,7 @@
       });
       AblageListe[0] = JSON.parse(message.data[1][0]);
       //    spieler[spielerIch.einkommen][0] -=
-      bezahlen();
+      bezahlen(true);
       datenAktuallisieren(false, true);
       alert("sie haben die Ersteigerung gewonnen, die Straße auf die Hand bekommen und für sie bezahlt!");
       // wofür?
@@ -1827,7 +1829,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
   }
 }
 
-  function bezahlen() {
+  function bezahlen(doNotSync) {
     /* zu bezahlen: AblageListe[0] */
     AblageListe[5] = [];
     zählerListe[1] = 1;
@@ -1917,7 +1919,7 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       }
     }
     setTimeout(function () {
-      datenAktuallisieren();
+      if (!doNotSync) datenAktuallisieren();
     }, 500);
     audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money-ka-ching-sound-effect-no-copyright-youtubemp3free.org.mp3").play();
   }
