@@ -182,6 +182,7 @@
     }
     //if (message.type == "size") {playerReadyList = 0; wrongAnswers = 0; tips = 0; }
     if (message.type == "size"/* && mode == "normal"*/) {
+      textur.height = message.highest;
       if (tips == -1 && wrongAnswers == -1/*player.points.length == 0*/) inRound = true;
       size = message.data;
       if (message.layout || mode == "normal") {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
@@ -346,10 +347,19 @@ newShapes++;
     }
     else {
       data = {width: [], height: []}
-      var umfang = Math.round(Math.random() *166) + 210;
+      var volumen = (Math.round(Math.random() *166) + 210)*(Math.round(Math.random() *122) + 50);
+      var width = Math.round(Math.random() *122) + 50;
+      var highest = 0;
+      var volumes = [];
       for (var i = 0; i < amount; i++) {
-        data.width.push(Math.round(Math.random() *122) + 50);
-        data.height.push(umfang - data.width[i] - Math.round(Math.random() *5) + 5)
+        data.width.push(width - Math.round(Math.random() *50) + 1);
+        // --> war erst Toleranz von 25, jetzt wie bei differentshapes 333
+        for (var i1 = 0; data.width[i]*i1 < volumen - (/*Math.round(Math.random() *50)*/ + 333); i1++) {}
+        data.height.push(i1);
+        if (volumes.includes(data.width[i]*data.height[i])) data.height[i]--;
+        volumes.push(data.width[i]*data.height[i]);
+        if (data.height[data.height.length - 1] > highest) highest = data.height[data.height.length - 1];
+        // data.height.push(umfang - data.width[i]/* - (Math.round(Math.random() *2))*/)
         // data.height.push(Math.round(Math.random() *88) + 50);
         // var highest = {width: {number: 0, i: -1}, height: {number: 0, i: -3}}
         // var lowest = {width: {number: 200, i: -2}, height: {number: 200, i: -4}}
@@ -366,15 +376,16 @@ newShapes++;
         // }
         // if (i > 0 && (highest.width.i == highest.height.i || lowest.width.i == lowest.height.i/* || prettyHigh.width.includes(i) ||prettyHigh.height.includes(i) || (i > 0 && (data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] > 7333 || data.height[i]*data.width[i] - data.height[i - 1]*data.width[i - 1] < -7333))  /*(i > 0 && ((data.width[i] - data.width[i - 1] < 10) && (data.height[i] - data.width[i-1] < 10)))*/)) {i--; data.width.pop(); data.height.pop();};
       }
-      newShapesFinished();
+      newShapesFinished(highest);
     }
   }
-  function newShapesFinished() {
+  function newShapesFinished(highest) {
     console.log("new shape created!");
     room.send({
       message: {
         "type": "size",
         "data": data,
+        highest: highest + 40,
         layout: globalFirst
       }
     });
