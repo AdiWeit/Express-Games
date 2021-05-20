@@ -217,6 +217,7 @@
             player.requiredPoints += vote[i].pointsRequired;
           }
           amount = amount/vote.length;
+          if (amount > 50 && mode == "field") amount = 50;
           player.requiredPoints = player.requiredPoints/vote.length;
           if (player.myNumber == 0) {
             setTimeout(function () {
@@ -280,17 +281,15 @@
   function fill() {
     shapeReached = [];
     visualisationFinished = 0;
+    var pColours = ["red", "blue"];
     setTimeout(function () {
+      speed = 10;
+      for (var i = 0; mode == "field" && i < 2; i++) {
+        showResults(0, 0, 0, null, pColours[i]);
+      }
       for (var i = 0; i < amount; i++) {
         if (mode != "field") showResults(0, 0, i, 0);
-        else {
-          canvas.fillStyle = "#FFBF00";
-          canvas.font = "21px Georgia";
-          canvas.fillText(colours.red, (50*5 - 5)/2 + 33, 520 + 30);
-          canvas.fillText(colours.blue, (50*5 - 5) + 33, 520 + 30);
-        }
         // TODO: löschen wenn Animation
-        if (mode == "field" && winner != -1) showResult(winner, 0);
         canvas.fillStyle = "black";
         canvas.font = "30px Georgia";
         if (i == player.myNumber) canvas.fillStyle = "#0B99B6";
@@ -422,22 +421,24 @@ newShapes++;
     else {
       var field = [];
       var colours = {red: 0, blue: 0};
+      var randomCounter = {red: 0, blue: 0}
       for (var i = 0; i < Math.round(amount*16.67); i++) {
         field[i] = [];
-        for (var i1 = 0; i1 < 50; i1++) {
+        for (var i1 = 0; i1 < Math.round(amount*16.67); i1++) {
           if (!field[i][i1 - 1] && Math.round(Math.random() *100) > 50) field[i][i1] = {colour: "red"};
           else if (!field[i][i1 - 1]) field[i][i1] = {colour: "blue"};
-          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16) && Math.round(Math.random() *100) > 50) field[i][i1] = {colour: "red"};
-          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16)) field[i][i1] = {colour: "blue"};
+          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16) && Math.round(Math.random() *100) > 49) {randomCounter.red++; field[i][i1] = {colour: "red"};}
+          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16)) {field[i][i1] = {colour: "blue"}; randomCounter.blue++;}
           // else if (colours.blue - colours.red > 7) field[i][i1] = {colour: "red"};
           // else if (colours.blue - colours.red < -7) field[i][i1] = {colour: "blue"};
           else if (field[i][i1 - 1] && field[i][i1 - 1].colour == "red" && (Math.round(Math.random() *5)) > 1) field[i][i1] = {colour: "red"};
-          else if (!field[i][i1 - 1] || field[i][i1 - 1].colour == "red") field[i][i1] = {colour: "blue"};
-          else if (field[i][i1 - 1] && field[i][i1 - 1].colour == "blue" && (Math.round(Math.random() *5)) > 1) field[i][i1] = {colour: "blue"};
+          else if (!field[i][i1 - 1] || field[i][i1 - 1].colour == "red") {console.log("blue"); field[i][i1] = {colour: "blue"};}
+          else if (field[i][i1 - 1] && field[i][i1 - 1].colour == "blue" && (Math.round(Math.random() *5)) > 1) {console.log("blue"); field[i][i1] = {colour: "blue"};}
           else if (!field[i][i1 - 1] || field[i][i1 - 1].colour == "blue") field[i][i1] = {colour: "red"};
           colours[field[i][i1].colour]++;
         }
       }
+      console.log(randomCounter);
       if (field[0][0].colour == "red" && colours.red == colours.blue) field[0][0].colour = "blue";
       if (field[0][0].colour == "blue" && colours.red == colours.blue) field[0][0].colour = "red";
       console.log(colours);
@@ -570,7 +571,7 @@ newShapes++;
     // }, 4000);
   }
   // var makeAudio = false;
-  function showResults(time, i1, i, highestTime) {
+  function showResults(time, i1, i, highestTime, colour) {
     //canvas.fil  lStyle = "#0B99B6";
     if (mode == "normal") {
     var highestMult = {i: -1, number: 0}
@@ -601,7 +602,7 @@ newShapes++;
       if ((!loading.restarted && loading.boolean)) loading.restarted = true;
     }
   }
-  else {
+  else if (mode == "differentShapes") {
     if (i == mostPixBleibt.i) canvas.fillStyle = "#40FF00";
     else canvas.fillStyle = "red";
     imageData = canvas.getImageData(20 + 188*i + time, 20 + 188 - i1, 1, 1);
@@ -641,7 +642,46 @@ newShapes++;
       if (!inRound || (!loading.restarted && loading.boolean)) loading.restarted = true;
     }
   }
+  else if (!inRound) {
+    while (size[i] && size[i][i1] && size[i][i1].colour != colour && size[i]) {
+      i++;
+      if (!size[i]) {
+        i = 0;
+        i1++;
+      }
+    }
+    var changedColours = {red: "green", blue: "yellow"};
+    var colourCoordinates = {red: 2, blue: 1};
+    canvas.fillStyle = colour;
+    canvas.fillRect((50*5 - 5)/colourCoordinates[colour] + 33, 520, 40, 20);
+    canvas.fillStyle = changedColours[colour];
+    canvas.fillRect((50*5 - 5)/colourCoordinates[colour] + 33, 540, 40, 20);
+
+    canvas.fillStyle = "#FFBF00";
+    canvas.font = "21px Georgia";
+    canvas.fillText(time, (50*5 - 5)/colourCoordinates[colour] + 33, 520 + 30);
+
+    canvas.fillStyle = changedColours[colour];
+    canvas.fillRect(10 + i*10, 10 + i1*10, 10, 10);
+    i++;
+    if (!size[i]) {
+      i = 0;
+      i1++;
+    }
+    if (time < colours[colour]) {
+      if (!size[i][i1  + 1]) speed = 500;
+      if (visualisationFinished == 1) speed = 10;
+        setTimeout(function () {
+          showResults(time + 1, i1, i, null, colour);
+        }, speed);
+      }
+      else {
+        visualisationFinished++;
+        if (visualisationFinished == 2 && winner != -1) showResult(winner, 0);
+      }
   }
+}
+  var speed = 10;
   var shapeReached = [];
   var highest;
   var visualisationFinished = 0;
