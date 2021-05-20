@@ -310,7 +310,7 @@
         }
       }
     }
-    if (same != AnzahlSpieler - 1) player[Object.keys(times)[bestTime.player]].points++;
+    if (bestTime.same != AnzahlSpieler - 1) player[Object.keys(times)[bestTime.player]].points++;
     if (player[Object.keys(times)[bestTime.player]].points >= player.pointsRequired) {
       room.send({
         message: {
