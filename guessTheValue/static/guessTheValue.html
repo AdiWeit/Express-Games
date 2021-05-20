@@ -1,10 +1,13 @@
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
 <div id="voting">
-  <input type="text" id="amountOfGlasses" placeholder="glasses to compare at the same time" value="3">
+  <input type="text" id="amountOfGlasses" onchange="if (modeSelction.value == 'field' && value > 50) value = 50;" placeholder="glasses to compare at the same time" value="3">
   <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
   <br>
-  <h2>different shapes</h2>
-  <input type="checkbox" checked="true" onchange="modeSelectionChanged(checked)" id="differentShapesCheck">
+  <select id="modeSelction" onchange="modeSelectionChanged(value);">
+    <option value="normal">normal</option>
+    <option value="differentShapes">different shapes</option>
+    <option value="field">field</option>
+  </select>
   <br>
   <button type="button" id="confirmVoteB" onclick="confirmVote();" name="button">this is my vote!</button>
 </div>
@@ -96,6 +99,7 @@
   var samecheckCanvas = samecheckTextur.getContext('2d');
   var mostPixBleibt = {};
   var loading = {boolean: false, restarted: false};
+  var colours = {};
   room.setOnMessageListener(function(message) {
     // if (message.type == "Reihenfolge") {
     //   player.aktuell = message.data;
@@ -132,7 +136,7 @@
       if (playerReadyList == player.total) {
         layout(undefined, checkCanvas);
         layout(undefined, canvas);
-        if (mode == "normal") {createNewSize(); inRound = true;}
+        if (mode == "normal" || mode == "field") {createNewSize(); inRound = true;}
         loading = {boolean: false, restarted: false};
         if (!(angular.equals(valueShapes(checkCanvas), valueShapes(samecheckCanvas))) && mode == "differentShapes") {
           inRound = true;
@@ -154,7 +158,7 @@
       mode = "";
       playerReadyList = 0;
       setTimeout(function () {
-        confirmVote();
+        if (!inRound && readyB.style.display == "none") confirmVote();
       }, 40000);
     }
     if (message.type == "AnzahlSpieler") {winner = -1; player.total = message.data; pointsRequiredT.value = 5*player.total/*10 + (player.total - 2)*2;*/; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
@@ -162,7 +166,7 @@
       playerReadyList = 0;
       if (!player.points[message.number]) player.points[message.number] = 0;
       if (tips == -1) tips = 0;
-      if (mode == "differentShapes") player.points[message.number] += player.total - tips;
+      if (mode != "normal") player.points[message.number] += player.total - tips;
       else player.points[message.number]++;
       if (wrongAnswers == -1) wrongAnswers = 0;
       tips++;
@@ -186,6 +190,18 @@
       if (tips == -1 && wrongAnswers == -1/*player.points.length == 0*/) inRound = true;
       size = message.data;
       if (message.layout || mode == "normal") {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
+      if (mode == "field") {
+        colours = message.colours;
+        layout(message.data, canvas);
+        if (message.colours.red > message.colours.blue) {
+          mostPix.number = message.colours.red;
+          mostPix.colour = "red";
+        }
+        else if (message.colours.red < message.colours.blue) {
+          mostPix.number = message.colours.blue;
+          mostPix.colour = "blue";
+        }
+      }
     }
     if (message.type == "vote") {
       vote.push(message.data);
@@ -208,26 +224,33 @@
             }, 1000);
         }
       }
-        var modeCounter = 0;
+        var modeCounter = {};
         for (var i = 0; i < vote.length; i++) {
-          if (vote[i].mode) modeCounter++;
-          else modeCounter--;
+          if (!Object.keys(modeCounter).includes(vote[i].mode)) modeCounter[vote[i].mode] = 0;
+          modeCounter[vote[i].mode]++;
         }
-        if (modeCounter > 0) {
-          mode = "differentShapes";
-          if (mode == "") alert("different shapes wins!");
+        var highest = {number: 0, mode: "", draw: []};
+        for (var pMode of Object.keys(modeCounter)) {
+          if (modeCounter[pMode] > highest.number) {
+            highest.number = modeCounter[pMode];
+            highest.mode = pMode;
+            highest.draw = [];
+          }
+          /*else*/ if (modeCounter[pMode] == highest.number) {
+            highest.draw.push(pMode);
+          }
         }
-        else if (modeCounter < 0) {
-          mode = "normal";
-          if (mode == "") alert("easy shapes wins!");
-        }
+        if (highest.draw.length < 2) mode = highest.mode;
+        if (mode == "differentShapes" && highest.draw.length < 2) alert("different shapes wins!");
+        else if (mode == "normal" && highest.draw.length < 2) alert("normal shapes wins!");
+        else if (mode == "field" && highest.draw.length < 2) alert("field shapes wins!");
         else {
-          if (mode == "") alert("The vote results in a draw! The Computer will decide, which mode will be placed!");
+          if (highest.draw.length > 1) alert("The vote results in a draw! The Computer will decide, which mode will be placed!");
           if (player.myNumber == 0) {
             room.send({
               message: {
                 "type": "vote",
-                data: {mode: Math.round(Math.random() *1), amountOfGlasses: message.data.amountOfGlasses, pointsRequired: message.data.pointsRequired}
+                data: {mode: highest.draw[Math.round(Math.random() *(highest.draw.length - 1))], amountOfGlasses: message.data.amountOfGlasses, pointsRequired: message.data.pointsRequired}
               }
             });
               setTimeout(function () {
@@ -235,13 +258,20 @@
               }, 1000);
           }
         }
+        mode = "field";
       }
     }
   });
-  function modeSelectionChanged(checked) {
-    if (checked) pointsRequiredT.value = 5*player.total//10 + (player.total - 2)*2;
-    else pointsRequiredT.value = 5 + (player.total - 2)
+  function modeSelectionChanged(mode) {
+    if (mode == "normal" || mode == "differentShapes") amountOfGlasses.value = 3;
+    if (mode == "normal") pointsRequiredT.value = 5 + (player.total - 2);
+    else if (mode == "differentShapes") pointsRequiredT.value = 5*player.total;//10 + (player.total - 2)*2;
+    else {
+      pointsRequiredT.value = 5*player.total;//10 + (player.total - 2)*2;
+      amountOfGlasses.value = 50;
+    }
   }
+  document.body.style.background = "#FFBF00";
   var winner = -1;
   var tips = -1;
   var amount = 0;
@@ -252,12 +282,22 @@
     visualisationFinished = 0;
     setTimeout(function () {
       for (var i = 0; i < amount; i++) {
-        showResults(0, 0, i, 0);
+        if (mode != "field") showResults(0, 0, i, 0);
+        else {
+          canvas.fillStyle = "#FFBF00";
+          canvas.font = "21px Georgia";
+          canvas.fillText(colours.red, (50*5 - 5)/2 + 33, 520 + 30);
+          canvas.fillText(colours.blue, (50*5 - 5) + 33, 520 + 30);
+        }
+        // TODO: löschen wenn Animation
+        if (mode == "field" && winner != -1) showResult(winner, 0);
         canvas.fillStyle = "black";
         canvas.font = "30px Georgia";
         if (i == player.myNumber) canvas.fillStyle = "#0B99B6";
-        if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, 77);
-        else if (i < player.total) canvas.fillText("0", 60 + 188*i, 77);
+        var yCoord = 77;
+        if (mode == "field") yCoord = 600;
+        if (player.points[i] != undefined) canvas.fillText(player.points[i], 60 + 188*i, yCoord);
+        else if (i < player.total) canvas.fillText("0", 60 + 188*i, yCoord);
       }
     }, 700);
     readyB.style.display = "inline";
@@ -265,10 +305,11 @@
   }
   function confirmVote() {
     confirmVoteB.style.display = "none";
+    if (modeSelction.value == "field") amountOfGlasses.value = Math.round(amountOfGlasses.value/16.67);
     room.send({
       message: {
         "type": "vote",
-        "data": {mode: differentShapesCheck.checked, amountOfGlasses: JSON.parse(amountOfGlasses.value), pointsRequired: JSON.parse(pointsRequiredT.value)}
+        "data": {mode: modeSelction.value, amountOfGlasses: JSON.parse(amountOfGlasses.value), pointsRequired: JSON.parse(pointsRequiredT.value)}
       }
     });
   }
@@ -289,7 +330,7 @@ newShapes++;
   }
 }
 
-  var mostPix;
+  var mostPix = {number: 0, i: -1};
   var newShapes = 0;
   function checkSizeDifference() {
     layout(data, checkCanvas);
@@ -345,7 +386,7 @@ newShapes++;
     }
     checkSizeDifference();
     }
-    else {
+    else if (mode == "normal") {
       data = {width: [], height: []}
       var volumen = (Math.round(Math.random() *166) + 210)*(Math.round(Math.random() *122) + 50);
       var width = Math.round(Math.random() *122) + 50;
@@ -378,15 +419,42 @@ newShapes++;
       }
       newShapesFinished(highest);
     }
+    else {
+      var field = [];
+      var colours = {red: 0, blue: 0};
+      for (var i = 0; i < Math.round(amount*16.67); i++) {
+        field[i] = [];
+        for (var i1 = 0; i1 < 50; i1++) {
+          if (!field[i][i1 - 1] && Math.round(Math.random() *100) > 50) field[i][i1] = {colour: "red"};
+          else if (!field[i][i1 - 1]) field[i][i1] = {colour: "blue"};
+          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16) && Math.round(Math.random() *100) > 50) field[i][i1] = {colour: "red"};
+          else if ((colours.blue - colours.red < 16 || colours.red - colours.blue < 16)) field[i][i1] = {colour: "blue"};
+          // else if (colours.blue - colours.red > 7) field[i][i1] = {colour: "red"};
+          // else if (colours.blue - colours.red < -7) field[i][i1] = {colour: "blue"};
+          else if (field[i][i1 - 1] && field[i][i1 - 1].colour == "red" && (Math.round(Math.random() *5)) > 1) field[i][i1] = {colour: "red"};
+          else if (!field[i][i1 - 1] || field[i][i1 - 1].colour == "red") field[i][i1] = {colour: "blue"};
+          else if (field[i][i1 - 1] && field[i][i1 - 1].colour == "blue" && (Math.round(Math.random() *5)) > 1) field[i][i1] = {colour: "blue"};
+          else if (!field[i][i1 - 1] || field[i][i1 - 1].colour == "blue") field[i][i1] = {colour: "red"};
+          colours[field[i][i1].colour]++;
+        }
+      }
+      if (field[0][0].colour == "red" && colours.red == colours.blue) field[0][0].colour = "blue";
+      if (field[0][0].colour == "blue" && colours.red == colours.blue) field[0][0].colour = "red";
+      console.log(colours);
+      globalFirst = false;
+      data = field;
+      newShapesFinished(null, colours);
+    }
   }
-  function newShapesFinished(highest) {
+  function newShapesFinished(highest, colours) {
     console.log("new shape created!");
     room.send({
       message: {
         "type": "size",
         "data": data,
         highest: highest + 40,
-        layout: globalFirst
+        layout: globalFirst,
+        colours: colours,
       }
     });
     if (globalFirst && mode == "differentShapes") createNewSize();
@@ -594,7 +662,7 @@ newShapes++;
     // canvas.fillStyle = "#0B99B6";
     // canvas.fillRect(30, (20 +size.height[i] - filled), 40, filled);
   }
-  else {
+  else if (mode == "differentShapes") {
     if (!point) var point = size;
     canvas.fillStyle = "black";
     for (var i = 0; i < point.points.length; i++) {
@@ -608,10 +676,23 @@ newShapes++;
     canvas.fill();
   }
   }
+  else if (point) {
+    textur.height = point[0].length*10 + 60 + 80;
+    for (var i = 0; i < point.length; i++) {
+      for (var i1 = 0; i1 < point[i].length; i1++) {
+        canvas.fillStyle = point[i][i1].colour;
+        canvas.fillRect(10 + i*10, 10 + i1*10, 10, 10);
+      }
+    }
+    canvas.fillStyle = "red";
+    canvas.fillRect((50*5 - 5)/2 + 33, 520, 40, 40);
+    canvas.fillStyle = "blue";
+    canvas.fillRect((50*5 - 5) + 33, 520, 40, 40);
+  }
   }
   function readMouseMove(e) {
-    xMaus = e.clientX + scrollX;
-    yMaus = e.clientY + scrollY + 23;
+    xMaus = e.clientX + scrollX + textur.getBoundingClientRect().left;
+    yMaus = e.clientY + scrollY + textur.getBoundingClientRect().top + 23;
     //    console.log(xMaus + " - " + yMaus);
   }
   document.onmousemove = readMouseMove
@@ -631,7 +712,7 @@ newShapes++;
       }
       inRound = false;
     }
-    else if (mode != "normal" && inRound && checkSelected() != undefined) {
+    else if (mode == "differentShapes" && inRound && checkSelected() != undefined) {
       mostPix = {number: 0, i: -1};
       for (var i = 0; i < amount; i++) {
         if (valueShapes(canvas)[i] > mostPix.number) {mostPix.number = valueShapes(canvas)[i]; mostPix.i = i;}
@@ -642,13 +723,19 @@ newShapes++;
       }
       else wrongAnswer(coordinate);
     }
-    if (checkSelected() != undefined) inRound = false;
+    else if (inRound) {
+      if (checkSelected().colour == mostPix.colour) rightAnswer(checkSelected().coordinate);
+      if (checkSelected().colour != mostPix.colour) wrongAnswer(checkSelected().coordinate);
+      inRound = false;
+    }
+    if (checkSelected() != undefined || (mode == "field" && checkSelected() != undefined)) inRound = false;
   }
   var xCoord = 0;
   function rightAnswer(coordinate) {
     console.log("right answer!");
     if (mode == "normal") {xCoord = - 62; var yCoord = 20 + highest.number + 27;}
     // else {xCoord = 0; var yCoord = 200}
+    // if (mode == "field") {xCoord = 77; yCoord = 677;}
     var Bild = new Image();
     Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dieSiedler/greenCheckBox.png";
     var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
@@ -670,7 +757,8 @@ newShapes++;
   function wrongAnswer(coordinate) {
     console.log("wrong answer!");
     if (mode == "normal") {xCoord = - 62; var yCoord = 20 + highest.number + 27;}
-    else {xCoord = 0; var yCoord = 200}
+    else if (mode == "differentShapes") {xCoord = 0; var yCoord = 200}
+    // else {xCoord = 77; var yCoord = 677;}
     var Bild = new Image();
     Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/dieSiedler/redXBox.png";
     var audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%c3%b6%c3%b6t.mp3").play();
@@ -692,6 +780,8 @@ newShapes++;
       for (var i = 0; i < amount; i++) {
         if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/  && yMaus < 250) return i;
       }
+      if (mode == "field" && xMaus > (50*5 - 5)/2 + 33 && xMaus < (50*5 - 5)/2 + 33 + 40 && yMaus > 520 && yMaus < 660) return {colour: "red", coordinate: 0.5};
+      if (mode == "field" && xMaus > (50*5 - 5) + 33 && xMaus < (50*5 - 5) + 33 + 40 && yMaus > 520 && yMaus < 660) return {colour: "blue", coordinate: 1};
   }
 
 </script>
