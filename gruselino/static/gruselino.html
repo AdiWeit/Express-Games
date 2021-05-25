@@ -46,18 +46,18 @@ var host = window.document.location.host.replace(/:.*/, '');
   var falscheAntworten = 0;
   var gestaltenTemporär = {names: ["Hexe", "Ritter", "Katze", "Fledermaus", "Eule", "Vampier", "Kürbis", "Gespenst"], pixelRates: [[70, 70], [130, 130], [150, 150], [700, 700], [700, 700], [70, 70], [300, 300], [70, 70]], coordinates: [0, -35, -35, -300, -323, -10, -130, 0]};
   var gestalten = {names: ["Hexe", "Ritter", "Katze", "Fledermaus", "Eule", "Vampier", "Kürbis", "Gespenst"], pixelRates: [[70, 70], [130, 130], [150, 150], [700, 700], [700, 700], [70, 70], [300, 300], [70, 70]], coordinates: [0, -35, -35, -300, -323, -10, -130, 0]};
-      // Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Background.jpeg";
-      // Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Regal.png";
+      // Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Background.jpeg";
+      // Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Regal.png";
       Layout();
       setTimeout(function () {
         Layout();
       }, 500);
   function Layout() {
     Bild = new Image();
-    Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Background.jpeg";
+    Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Background.jpeg";
     canvas.drawImage(Bild, -130, 0);
     Bild = new Image();
-    Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Regal.png";
+    Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/Regal.png";
     canvas.drawImage(Bild, 400, 100, 500, 500);
     canvas.drawImage(Bild, 900, 100, 500, 500);
     LayoutGestalten(8);
@@ -96,13 +96,13 @@ var host = window.document.location.host.replace(/:.*/, '');
     for (var i = 0; i < Anzahl; i++) {
       Bild = new Image();
       if ((Anzahl == 8 && gestalten.names[i] == "Kürbis") || (Anzahl == 7 && gestaltenTemporär.names[i] == "Kürbis")) {
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/K%C3%BCrbis.png";
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/K%C3%BCrbis.png";
       }
       else if (Anzahl == 7) {
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + gestaltenTemporär.names[i] + ".png";
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + gestaltenTemporär.names[i] + ".png";
       }
       else {
-        Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + gestalten.names[i] + ".png";
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + gestalten.names[i] + ".png";
       }
     //  console.log(Bild.src + " - " + i + " Anzahl: " + Anzahl);
       if (!(Anzahl == 8)) {
@@ -218,7 +218,7 @@ room.setOnMessageListener(function(message) {
   if (message.type == "rightAnswers") {
     rightAnswers = message.data;
     setTimeout(function () {
-      audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/epic-win-sound-effects-youtubemp3free.org.mp3");
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/epic-win-sound-effects-youtubemp3free.org.mp3");
       audio.currentTime = 10.5;
       audio.play();
     setTimeout(function () {
@@ -230,10 +230,10 @@ room.setOnMessageListener(function(message) {
     Bild = new Image();
     document.getElementById('missing').value = message.answer
     if (document.getElementById('missing').value == "Kürbis") {
-      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/K%C3%BCrbis.png";
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/K%C3%BCrbis.png";
     }
     else {
-      Bild.src = "http://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + document.getElementById('missing').value + ".png";
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gruselino%20online/" + document.getElementById('missing').value + ".png";
     }
     canvas.drawImage(Bild, 575, 0, 500, 500);
     canvas.fillStyle = "#B61010"
@@ -316,7 +316,7 @@ function tip() {
     console.log("right Answer!");
     inRound = false;
     rightAnswers[spielerIch]++;
-    audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
+    audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
     room.send({
       message: {
         "type": "rightAnswers",
@@ -328,7 +328,7 @@ function tip() {
   else if ((gestaltenTemporär.names.includes("Katze") && gestaltenTemporär.names.includes("Kürbs"))) {
     console.log("wrong Answer!");
     inRound = false;
-    audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
+    audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
     falscheAntworten++;
     room.send({
       message: {
@@ -341,7 +341,7 @@ function tip() {
     console.log("right Answer!");
     inRound = false;
     rightAnswers[spielerIch]++;
-    audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
+    audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/right%20answer%20sound%20effect-%5bAudioTrimmer.com%5d.mp3").play();
     room.send({
       message: {
         "type": "rightAnswers",
@@ -352,7 +352,7 @@ function tip() {
   else if (document.getElementById('missing').value.length > 1) {
     console.log("wrong Answer!");
     inRound = false;
-    audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
+    audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
     falscheAntworten++;
     room.send({
       message: {
