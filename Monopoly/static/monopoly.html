@@ -539,6 +539,12 @@
       else if (ereignis == "Miete") {
         MieteAlle();
       }
+      else if (afterNixDa["nächste"] == "versteigerungen abarbeiten" && versteigerungen.length > 0) {
+        versteigerungenAbarbeiten();
+      }
+      else if (afterNixDa["nächste"] == "versteigerungen abarbeiten") {
+        afterNixDa["nächste"] == "beendet";
+      }
     }
     if (message.type == "NixDa") {
       if (message.Status[0] == "abgebrochen" || message.Status[0] == "richtigerSpielerEmpfangen") {
@@ -1887,9 +1893,12 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
       }
 
       if (AblageListe[1] + zählerListe[1] <= AblageListe[0]/* || spieler[AblageListe[3]].kartenMitte.length == 1 && AblageListe[0] > 0*/) {
+        versteigerungen = [];
         while (spieler[AblageListe[3]].kartenMitte.length > 0) {
+          versteigerungen.push({gebote, bieter, 'afterNixDa["card"]': spieler[AblageListe[3]].kartenMitte[spieler[AblageListe[3]].kartenMitte.length - 1], 'AblageListe[3]': AblageListe[3]});
           spieler[AblageListe[3]].kartenMitte.pop()
         }
+        versteigerungenAbarbeiten();
       } else if (AblageListe[0] != null) {
         afterNixDa["ereignis"] = JSON.parse(JSON.stringify(ereignis));
         AblageListe[4][0] = "Warten Bezahlen Gegner";
@@ -1925,8 +1934,20 @@ for (var i1 = 0; i1 < Object.keys(points[0]).length + 1; i1++) { // über Werte
     }, 500);
     audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/money-ka-ching-sound-effect-no-copyright-youtubemp3free.org.mp3").play();
   }
-
-
+  function versteigerungenAbarbeiten() {
+    afterNixDa["card"] = versteigerungen[0]['afterNixDa["card"]'];
+    afterNixDa["nächste"] = "versteigerungen abarbeiten";
+    if (vorbereitungGebot()) {
+      room.send({
+        message: {
+        "type": "getAfterNixDa",
+        }
+      });
+      gebotAnServer(versteigerungen[0].gebote, versteigerungen[0].bieter, versteigerungen[0]['afterNixDa["card"]'], versteigerungen[0]['AblageListe[3]']);
+    }
+    versteigerungen.shift();
+  }
+  var versteigerungen = [];
   var ablageSpielerAktuell = -1;
   function Spielerwechsel(noAlert) {
     if (spieler[spielerIch].kartenIch.length > 7) {
