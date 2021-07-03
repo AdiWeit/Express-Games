@@ -147,25 +147,21 @@
   // canvas.fillText("UNO!", window.innerWidth/2 - 200, window.innerHeight/2 - 100);
   function unoAnimation(x, y, size, direction) {
     canvas.fillStyle = "red";
-    if (direction == -1) {
       Layout();
-      for (var i = 0; i < size; i++) {
+      for (var i = 30; i < size; i++) {
         canvas.font = i + "px Georgia";
         canvas.fillStyle = "red";
         canvas.fillText("UNO!", x, i + 33 + 80 + 11);
       }
-      canvas.fillStyle = "white";
-    }
+    canvas.fillStyle = "white";
     canvas.font = size + "px Georgia";
     var waitingTime = 1;
-    canvas.fillText("UNO!", x, y);
+    canvas.fillText("UNO!", x, y + 5);
     if (size == 201) {
       waitingTime = 2000;
       direction = -1;
-      canvas.fillStyle = "white";
-      canvas.fillText("UNO!", x, y);
     }
-    if (size > 29) {
+    if (size > 36) {
       setTimeout(function () {
         unoAnimation(x, y + direction, size + direction, direction);
       }, waitingTime);
@@ -176,7 +172,7 @@
     if (message.type == "Uno!") {
       // canvas.fillRect(33 + 177*i, 33, 111, 133);
       new Audio("http://adi.nicolaiweitkemper.de/Sounds/Uno!.wav").play();
-      unoAnimation(33 + 177*message.player, 33 + 111 + 11, 30, 1);
+      unoAnimation(33 + 177*message.player, 33 + 111 + 11, 37, 1);
     }
     if (message.type == "Reihenfolge") {
       spielerAktuell = message.data;
