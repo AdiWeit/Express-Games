@@ -145,6 +145,12 @@
   }
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
+    if (message.type == "Uno!") {
+      canvas.fillStyle = "red";
+      canvas.font = "200px Georgia";
+      canvas.fillText("UNO!", window.innerWidth/2 - 200, window.innerHeight/2 - 100);
+      new Audio("http://adi.nicolaiweitkemper.de/Sounds/Uno!.wav").play();
+    }
     if (message.type == "Reihenfolge") {
       spielerAktuell = message.data;
       if (AnzahlSpieler == 2 && spielerIch == 0) {
@@ -244,6 +250,7 @@
     }
     // else spielerwechsel();
   }
+  var unoExpected = false;
   function spielerwechsel() {
     AblageListe[0] = [];
     for (var i = 4; i < Object.keys(spieler).length; i++) {
@@ -275,6 +282,17 @@
       showCard(55 + 177*i, 555, spieler[spielerIch].cards[i]);
     }
     showCard(700, 277, spieler.kartenAbgelegt[spieler.kartenAbgelegt.length - 1]);
+    canvas.fillStyle = "silver";
+    canvas.beginPath();
+    canvas.arc(75, 310, 50,0,Math.PI*2, false);
+    canvas.fill();
+    canvas.fillStyle = "red";
+    canvas.beginPath();
+    canvas.arc(75, 310, 40,0,Math.PI*2, false);
+    canvas.fill();
+    canvas.fillStyle = "white";
+    canvas.font = "33px Georgia";
+    canvas.fillText("UNO", 40, 320);
     if (times < 5) {
       setTimeout(function () {
         Layout(times + 1)
@@ -386,6 +404,13 @@ function playCard(data, card) {
   ///*else */if (/*data[1] == "aussetzen"/* || data[1] == "Richtungswechsel" ||*/ (data[1] == "Richtungswechsel" && AnzahlSpieler == 2)) spielerwechsel();
     // else /*if ()*/ {
       Layout(0);
+      if (spieler[spielerIch].cards.length > 1) unoExpected = {boolean: false, done: false};
+      if (spieler[spielerIch].cards.length == 1) unoExpected = {boolean: true, done: false};
+      if (spieler[spielerIch].cards.length == 0 && !unoExpected.done) {
+        getCard(spieler[spielerIch].cards, 1);
+        new Audio("http://adi.nicolaiweitkemper.de/Sounds/UnoMissed.wav").play();
+        Layout();
+      }
       spielerwechsel();// autoZiehen();
     // }
   }
@@ -429,6 +454,16 @@ window.addEventListener('mousedown', function() {
     if (xMaus > 55 + 177*i - 22 && xMaus < 55 + 177*i - 22 + 144 && yMaus > 555 - 22 && yMaus < 555 - 22 + 188 && spielerIch == spielerAktuell) {
       console.log(i);
       playCard(spieler[spielerIch].cards[i], i);
+    }
+    // canvas.arc(75, 310, 40,0,Math.PI*2, false);
+    if (xMaus > 75 - 40 && xMaus < 75 + 40 && yMaus > 310 - 40 && yMaus < 310 + 40 && unoExpected.boolean) {
+      unoExpected.done = true;
+      room.send({
+        message: {
+        type: "Uno!",
+        player: spielerIch
+      }
+      });
     }
   }
 });
