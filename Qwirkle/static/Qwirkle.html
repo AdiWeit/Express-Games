@@ -1,0 +1,231 @@
+<canvas onclick="canvasClicked();" id="textur" width="1845" height="700"></canvas>
+<script>
+  var canvas = textur.getContext('2d');
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/Qwirkle/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDQwirkle');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDQwirkle', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/Qwirkle/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/Qwirkle/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/Qwirkle/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  var player = {colours: ["red", "green", "blue", "yellow"], 0: {}, 1: {}, 2: {}, 3: {}};
+  room.setOnMessageListener(function(message) {
+    // if (message.type == "selectedMode") {
+    //
+    // }
+    // if (message.type == "Reihenfolge")  player.aktuell = message.data;
+    if (message.type == "AnzahlSpieler") player.total = message.data;
+    if (message.type == "steinePlayer" && message.player == player.myNumber) {
+      player[message.player].steine = message.data;
+      layout();
+    }
+    if (message.type == "spielerDu") {
+      player.myNumber = message.data;
+      room.send({
+        message: {
+          "type": "vote",
+          "easyMode": confirm('Wollen Sie die einfache Version von Scrabble spielen?')
+        }
+      });
+    }
+    if (message.type == "placeStein") {
+      if (!field[message.coord.x][message.coord.y]) field[message.coord.x][message.coord.y] = {};
+      field[message.coord.x][message.coord.y].stein = JSON.parse(JSON.stringify(message.stein));
+      if (player.myNumber == message.player) player[player.myNumber].steine.splice(message.steinI, 1);
+      layout();
+    }
+  });
+  var boardSize = {x: 10, y: 10};
+  var field = [];
+  for (var i = 0; i < boardSize.x; i++) {
+    field[i] = [];
+    field[i].length = boardSize.y;
+  }
+  function layout() {
+    canvas.fillStyle = "#B45F04";
+    canvas.fillRect(0, 0, textur.width, textur.height);
+    var pointsPlayer = [];
+    for (var i = 0; i < field.length; i++) {
+      for (var i1 = 0; i1 < field[i].length; i1++) {
+        canvas.fillStyle = "rgb(212, 161, 114)";
+        canvas.fillRect(10 + 50*i, 10 + 50*player.total + 50*i1, 10, 50);
+        canvas.fillRect(10 + 50*i, 10 + 50*player.total + 50*i1, 50, 10);
+        if (field[i][i1] && field[i][i1].stein) {
+          displayStein(field[i][i1].stein, i, i1);
+        }
+        // if (field[i][i1].right == "border" || !field[i][i1].right) canvas.fillStyle = "rgb(212, 161, 114)";
+        // else canvas.fillStyle = player.colours[field[i][i1].right];
+        // canvas.fillRect(10 + 50*i + 50, 10 + 50*i1, 10, 50);
+        // if (field[i][i1].bottom == "border" || !field[i][i1].bottom) canvas.fillStyle = "rgb(212, 161, 114)";
+        // else canvas.fillStyle = player.colours[field[i][i1].bottom];
+        // canvas.fillRect(10 + 50*i, 10 + 50*i1 + 50, 50, 10);
+
+        // if (!(field[i][i1].completed === false)) {
+        //   if (!pointsPlayer[field[i][i1].completed]) pointsPlayer[field[i][i1].completed] = 0;
+        //   pointsPlayer[field[i][i1].completed]++;
+        //   canvas.strokeStyle = player.colours[field[i][i1].completed];
+        //   canvas.lineWidth = 7;
+        //   canvas.beginPath();
+        //   canvas.moveTo(10 + 50*i + 10, 10 + 50*i1 + 10 + 50*player.total);
+        //   canvas.lineTo(10 + 50*i + 10 + 50, 10 + 50*i1 + 10 + 50 + 50*player.total);
+        //
+        //   canvas.moveTo(10 + 50*i + 50, 10 + 10 + 50*i1 + 50*player.total);
+        //   canvas.lineTo(10 + 50*i, 10 + 50*i1 + 10 + 50 + 50*player.total);
+        //   canvas.stroke();
+        // }
+        // else {
+        //   freeFields++;
+        // }
+      }
+    }
+    canvas.fillStyle = "rgb(212, 161, 114)";
+    canvas.fillRect(10 + (boardSize.x)*50, 10 + 50*player.total, 10, 50*(boardSize.y));
+    canvas.fillRect(10, 10 + 50*player.total + (boardSize.x)*50, 50*(boardSize.y) + 10, 10);
+    // check winner
+    // var highest = {};
+    // for (var i = 0; i < Object.keys(pointsPlayer).length; i++) {
+    //   if (!highest.number || pointsPlayer[Object.keys(pointsPlayer)[i]] > highest.number) {highest.number = pointsPlayer[Object.keys(pointsPlayer)[i]]; highest.player = Object.keys(pointsPlayer)[i];}
+    // }
+    canvas.fillRect(10, 10 + 50*i, 10 + boardSize.x*50, 10);
+    for (var i = 0; i < boardSize.x + 1; i++) {
+      canvas.fillRect(10 + 50*i, 10, 10, player.total*50);
+    }
+    for (var i = 0; i < player.total; i++) {
+      canvas.fillRect(10, 10 + 50*i, 10 + boardSize.x*50, 10);
+      canvas.fillStyle = player.colours[i];
+      canvas.fillRect(20, 20 + 50*i, 40, 40);
+      if (i == player.myNumber) {
+        player[i].steine.forEach((stein, i1) => {
+          if (selected.i != undefined && i1 == selected.i) {
+            canvas.fillStyle = "red";
+            canvas.fillRect(10 + 50*(i1 + 2), 10 + 50*i, 60, 60);
+          }
+          displayStein(stein, i1 + 2, -(player.total - i));
+        });
+      }
+      var verfügbar = boardSize.x - (pointsPlayer[i] + "").length - 1;
+      canvas.fillStyle = "rgb(212, 161, 114)";
+    }
+  }
+
+  function displayStein(stein, i, i1) {
+    canvas.fillStyle = "black";
+    canvas.fillRect(20 + 50*i, 20 + 50*player.total + 50*i1, 40, 40)
+    if (stein.colour) canvas.fillStyle = stein.colour;
+    if (stein.name == "rectangle") canvas.fillRect(30 + 50*i, 30 + 50*player.total + 50*i1, 20, 20)
+    else if (stein.name == "circle") {
+      canvas.beginPath();
+      canvas.arc(30 + 50*i + 10, 30 + 50*player.total + 50*i1 + 10, 15, 2 * Math.PI, false);
+      canvas.fill();
+    }
+    else if (stein.name == "ring") {
+      canvas.beginPath();
+      canvas.arc(30 + 50*i + 10, 30 + 50*player.total + 50*i1 + 10, 15, 2 * Math.PI, false);
+      canvas.fill();
+      canvas.fillStyle = "black";
+      canvas.beginPath();
+      canvas.arc(30 + 50*i + 10, 30 + 50*player.total + 50*i1 + 10, 9, 2 * Math.PI, false);
+      canvas.fill();
+    }
+    else {
+      canvas.beginPath();
+      canvas.moveTo(20 + 50*i + stein.points[0].x, 20 + 50*player.total + 50*i1 + stein.points[0].y);
+      stein.points.forEach((point, i2) => {
+        if (i2 > 0) canvas.lineTo(20 + 50*i + point.x, 20 + 50*player.total + 50*i1 + point.y);
+      });
+      canvas.closePath();
+      canvas.fill();
+    }
+  }
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY;
+  }
+  document.onmousemove = readMouseMove
+  var selected = {};
+  function canvasClicked() {
+    for (var i = 0; i < player[player.myNumber].steine.length; i++) {
+      if (xMaus > 10 + 50*(2 + i) && xMaus < 10 + 50*(3 + i) && yMaus > 10 + 50*player.myNumber && yMaus < 10 + 50*(player.myNumber + 1)) {
+        selected = {stein: player[player.myNumber].steine[i], i: i};
+        layout();
+      }
+    }
+    for (var i = 0; i < field.length; i++) {
+      for (var i1 = 0; i1 < field[0].length; i1++) {
+        if (xMaus > 10 + 50*i && xMaus < 10 + 50*(i + 1) && yMaus > 10 + 50*(player.total + i1) && yMaus < 10 + 50*(player.total + i1 + 1) && selected.i != undefined) {
+          room.send({
+            message: {
+              "type": "placeStein",
+              "coord": {x: i, y: i1},
+              steinI: selected.i,
+              player: player.myNumber
+            }
+          });
+        }
+      }
+    }
+  }
+
+</script>
