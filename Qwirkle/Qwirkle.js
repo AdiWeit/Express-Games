@@ -96,32 +96,32 @@ class Qwirkle {
         });
       }
     }
-    this.canPlace = (coord, stein, player) => {
+    this.canPlace = (data) => {
       var snake = {shapes: [], colours: []};
-      if (!field[coord.x]) field[coord.x] = [];
-      for (var i = coord.x + 1; field[i] && field[i][coord.y] && field[i][coord.y].stein; i++) {
-        if (!snake.shapes.includes(field[i][coord.y].stein.name)) snake.shapes.push(field[i][coord.y].stein.name);
-        if (!snake.colours.includes(field[i][coord.y].stein.colour)) snake.colours.push(field[i][coord.y].stein.colour);
+      if (!field[data.coord.x]) field[data.coord.x] = [];
+      for (var i = data.coord.x + 1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i++) {
+        if (!snake.shapes.includes(field[i][data.coord.y].stein.name)) snake.shapes.push(field[i][data.coord.y].stein.name);
+        if (!snake.colours.includes(field[i][data.coord.y].stein.colour)) snake.colours.push(field[i][data.coord.y].stein.colour);
       }
-      for (var i = coord.x + -1; field[i] && field[i][coord.y] && field[i][coord.y].stein; i--) {
-        if (!snake.shapes.includes(field[i][coord.y].stein.name)) snake.shapes.push(field[i][coord.y].stein.name);
-        if (!snake.colours.includes(field[i][coord.y].stein.colour)) snake.colours.push(field[i][coord.y].stein.colour);
+      for (var i = data.coord.x + -1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i--) {
+        if (!snake.shapes.includes(field[i][data.coord.y].stein.name)) snake.shapes.push(field[i][data.coord.y].stein.name);
+        if (!snake.colours.includes(field[i][data.coord.y].stein.colour)) snake.colours.push(field[i][data.coord.y].stein.colour);
       }
-      for (var i = coord.y + -1; field[coord.x][i] && field[coord.x][i].stein; i--) {
-        if (!snake.shapes.includes(field[coord.x][i].stein.name)) snake.shapes.push(field[coord.x][i].stein.name);
-        if (!snake.colours.includes(field[coord.x][i].stein.colour)) snake.colours.push(field[coord.x][i].stein.colour);
+      for (var i = data.coord.y + -1; field[data.coord.x][i] && field[data.coord.x][i].stein; i--) {
+        if (!snake.shapes.includes(field[data.coord.x][i].stein.name)) snake.shapes.push(field[data.coord.x][i].stein.name);
+        if (!snake.colours.includes(field[data.coord.x][i].stein.colour)) snake.colours.push(field[data.coord.x][i].stein.colour);
       }
-      for (var i = coord.y + 1; field[coord.x][i] && field[coord.x][i].stein; i++) {
-        if (!snake.shapes.includes(field[coord.x][i].stein.name)) snake.shapes.push(field[coord.x][i].stein.name);
-        if (!snake.colours.includes(field[coord.x][i].stein.colour)) snake.colours.push(field[coord.x][i].stein.colour);
+      for (var i = data.coord.y + 1; field[data.coord.x][i] && field[data.coord.x][i].stein; i++) {
+        if (!snake.shapes.includes(field[data.coord.x][i].stein.name)) snake.shapes.push(field[data.coord.x][i].stein.name);
+        if (!snake.colours.includes(field[data.coord.x][i].stein.colour)) snake.colours.push(field[data.coord.x][i].stein.colour);
       }
       var rules = {
-        sameColour: ((!snake.shapes.length || !snake.shapes.includes(stein.name)) && (!snake.colours.length || snake.colours.includes(stein.colour))),
-        sameShape: ((snake.shapes.length < 2 && (!snake.shapes.length || stein.name == snake.shapes[0])) && (!snake.colours.length || !snake.colours.includes(stein.colour)))
+        sameColour: ((!snake.shapes.length || !snake.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.colours.length || snake.colours.includes(player[data.player].steine[data.steinI].colour))),
+        sameShape: ((snake.shapes.length < 2 && (!snake.shapes.length || player[data.player].steine[data.steinI].name == snake.shapes[0])) && (!snake.colours.length || !snake.colours.includes(player[data.player].steine[data.steinI].colour)))
       };
       console.log(snake);
       console.log(rules);
-      return player == Reihenfolge && (!field[coord.x][coord.y] || !field[coord.x][coord.y].stein) && (rules.sameColour || rules.sameShape)
+      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.sameColour || rules.sameShape)
     }
   }
 
@@ -365,7 +365,7 @@ class Qwirkle {
         this.voteFunc(data.message);
      }
      else if (data.message.type == "placeStein") {
-       if (this.canPlace(data.message.coord, player[data.message.player].steine[data.message.steinI], data.message.player)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
+       if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
        this.broadcast({
          "type": "placeStein",
          "coord": data.message.coord,
