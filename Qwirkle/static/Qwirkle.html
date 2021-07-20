@@ -75,7 +75,10 @@
     // if (message.type == "selectedMode") {
     //
     // }
-    if (message.type == "Reihenfolge")  player.aktuell = message.data;
+    if (message.type == "Reihenfolge")  {
+      player.aktuell = message.data;
+      layout();
+    }
     if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "steinePlayer" && message.player == player.myNumber) {
       player[message.player].steine = message.data;
@@ -172,6 +175,12 @@
       var verfügbar = boardSize.x - (pointsPlayer[i] + "").length - 1;
       canvas.fillStyle = "rgb(212, 161, 114)";
     }
+    var img = new Image();
+    img.src = 'https://adi.nicolaiweitkemper.de/Bilder/trash.png';
+    canvas.drawImage(img, 20 + 50*8, 20 + 50*player.myNumber, 40, 40);
+    img = new Image();
+    img.src = 'https://adi.nicolaiweitkemper.de/Bilder/check.png';
+    canvas.drawImage(img, 20 + 50*9, 20 + 50*player.myNumber, 40, 40);
   }
 
   function displayStein(stein, i, i1) {
@@ -210,12 +219,31 @@
   document.onmousemove = readMouseMove
   var selected = {};
   function canvasClicked() {
-    for (var i = 0; i < player[player.myNumber].steine.length; i++) {
+    for (var i = 0; i < 8; i++) {
       if (xMaus > 10 + 50*(2 + i) && xMaus < 10 + 50*(3 + i) && yMaus > 10 + 50*player.myNumber && yMaus < 10 + 50*(player.myNumber + 1)) {
+        if (i < player[player.myNumber].steine.length) {
         selected = {stein: player[player.myNumber].steine[i], i: i};
         layout();
       }
+      else if (i == player[player.myNumber].steine.length) {
+        room.send({
+          message: {
+            "type": "newStein",
+            steinI: selected.i,
+            player: player.myNumber
+          }
+        });
+        player[player.myNumber].steine.splice(selected.i, 1);
+      }
+      else {
+        room.send({
+          message: {
+            "type": "spielerwechsel"
+          }
+        });
+      }
     }
+  }
     for (var i = 0; i < field.length; i++) {
       for (var i1 = 0; i1 < field[0].length; i1++) {
         if (xMaus > 10 + 50*i && xMaus < 10 + 50*(i + 1) && yMaus > 10 + 50*(player.total + i1) && yMaus < 10 + 50*(player.total + i1 + 1) && selected.i != undefined) {

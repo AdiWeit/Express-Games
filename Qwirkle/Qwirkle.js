@@ -6,6 +6,7 @@ var kartenSpieler = [];
 var zählerListe = [];
 var votes;
 let mode;
+var turntype = "";
 var field = [];
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
@@ -86,16 +87,19 @@ class Qwirkle {
       // }
       for (var i = 0; i < spielerOnline; i++) {
         player[i].steine = [];
-        for (var i1=0; i1 < 6; i1++) {
-          player[i].steine.push(beutel[0]);
-          beutel.shift();
-        }
-        this.broadcast({
-        "type": "steinePlayer",
-        "player": i,
-        data: player[i].steine
-        });
+        this.getCards(i, 6);
       }
+    }
+    this.getCards = (playerI, number) => {
+      for (var i1 = 0; i1 < number; i1++) {
+        player[playerI].steine.push(beutel[0]);
+        beutel.shift();
+      }
+      this.broadcast({
+      "type": "steinePlayer",
+      "player": playerI,
+      data: player[playerI].steine
+      });
     }
     this.canPlace = (data) => {
       var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
@@ -140,10 +144,18 @@ class Qwirkle {
       };
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape) && sameLine
+      return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
     }
     this.spielerwechsel = () => {
+      turntype = "";
+      placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
+      Reihenfolge++;
+      if (Reihenfolge == spielerOnline) Reihenfolge = 0;
+      this.broadcast({
+        "type": "Reihenfolge",
+        "data": Reihenfolge
+      });
     }
   }
 
@@ -260,6 +272,7 @@ class Qwirkle {
         newRound: true
       });
       Reihenfolge = Math.floor(Math.random() * spielerOnline);
+      turntype = "";
       this.broadcast({
         "type": "Reihenfolge",
         "data": Reihenfolge
@@ -383,11 +396,16 @@ class Qwirkle {
           AblageListe[1] = "abgebrochen";
         }, 500);
       } */
+      // TODO: spielerwechsel: check if right player initiates it
+      // console.log(client);
+      // console.log(this.player1.client);
+      // console.log(this.player2.client);
       if (data.message.type == "vote") {
         this.voteFunc(data.message);
      }
      else if (data.message.type == "placeStein") {
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
+         turntype = "placeStein";
        this.broadcast({
          "type": "placeStein",
          "coord": data.message.coord,
@@ -405,6 +423,12 @@ class Qwirkle {
        }
      }
      }
+     else if (data.message.type == "newStein" && !placeDirection.coords.length) {
+       turntype = "newStein";
+       player[data.message.player].steine.splice(data.message.steinI, 1);
+       this.getCards(data.message.player, 1);
+     }
+     else if (data.message.type == "spielerwechsel") this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
