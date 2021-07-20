@@ -75,7 +75,7 @@
     // if (message.type == "selectedMode") {
     //
     // }
-    // if (message.type == "Reihenfolge")  player.aktuell = message.data;
+    if (message.type == "Reihenfolge")  player.aktuell = message.data;
     if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "steinePlayer" && message.player == player.myNumber) {
       player[message.player].steine = message.data;
@@ -154,11 +154,15 @@
     }
     for (var i = 0; i < player.total; i++) {
       canvas.fillRect(10, 10 + 50*i, 10 + boardSize.x*50, 10);
+      if (i == player.aktuell) {
+        canvas.fillStyle = 'rgba(114, 190, 245, 1)';
+        canvas.fillRect(10, 10 + 50*i, 60, 60);
+      }
       canvas.fillStyle = player.colours[i];
       canvas.fillRect(20, 20 + 50*i, 40, 40);
       if (i == player.myNumber) {
         player[i].steine.forEach((stein, i1) => {
-          if (selected.i != undefined && i1 == selected.i) {
+          if (selected.i != undefined && i1 == selected.i && player.aktuell == player.myNumber) {
             canvas.fillStyle = "red";
             canvas.fillRect(10 + 50*(i1 + 2), 10 + 50*i, 60, 60);
           }
