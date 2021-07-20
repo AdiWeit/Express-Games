@@ -9,6 +9,7 @@ let mode;
 var field = [];
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
+var placeDirection = {coords: [], string: ""};
 var steine = {
   easy: [
     {name: "rectangle"},
@@ -115,6 +116,10 @@ class Qwirkle {
         if (!snake.down.shapes.includes(field[data.coord.x][i].stein.name)) snake.down.shapes.push(field[data.coord.x][i].stein.name);
         if (!snake.down.colours.includes(field[data.coord.x][i].stein.colour)) snake.down.colours.push(field[data.coord.x][i].stein.colour);
       }
+      var sameLine = false;
+      if (placeDirection.coords.length < 2) sameLine = true;
+      else if ((!(data.coord.x - placeDirection.coords[placeDirection.coords.length - 1].x) && placeDirection.string == 'y') || (!(data.coord.y - placeDirection.coords[placeDirection.coords.length - 1].y) && placeDirection.string == 'x')) sameLine = true;
+      console.log("in line " + placeDirection.string + " : " + sameLine);
       var rules = {
         right: {
         sameColour: ((!snake.right.shapes.length || !snake.right.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.right.colours.length || (snake.right.colours.includes(player[data.player].steine[data.steinI].colour) && snake.right.colours.length == 1))),
@@ -133,10 +138,12 @@ class Qwirkle {
         sameShape: ((snake.down.shapes.length < 2 && (!snake.down.shapes.length || player[data.player].steine[data.steinI].name == snake.down.shapes[0])) && (!snake.down.colours.length || !snake.down.colours.includes(player[data.player].steine[data.steinI].colour)))
       }
       };
-      console.log(player[data.player].steine[data.steinI]);
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
+      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape) && sameLine
+    }
+    this.spielerwechsel = () => {
+      console.log("changing playing player");
     }
   }
 
@@ -391,6 +398,11 @@ class Qwirkle {
        if (!field[data.message.coord.x][data.message.coord.y]) field[data.message.coord.x][data.message.coord.y] = {};
        field[data.message.coord.x][data.message.coord.y].stein = player[data.message.player].steine[data.message.steinI];
        player[data.message.player].steine.splice(data.message.steinI, 1);
+       placeDirection.coords.push(data.message.coord);
+       if (placeDirection.coords.length == 2) {
+        if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
+        else placeDirection.string = "y";
+       }
      }
      }
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
