@@ -97,31 +97,46 @@ class Qwirkle {
       }
     }
     this.canPlace = (data) => {
-      var snake = {shapes: [], colours: []};
+      var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
       for (var i = data.coord.x + 1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i++) {
-        if (!snake.shapes.includes(field[i][data.coord.y].stein.name)) snake.shapes.push(field[i][data.coord.y].stein.name);
-        if (!snake.colours.includes(field[i][data.coord.y].stein.colour)) snake.colours.push(field[i][data.coord.y].stein.colour);
+        if (!snake.right.shapes.includes(field[i][data.coord.y].stein.name)) snake.right.shapes.push(field[i][data.coord.y].stein.name);
+        if (!snake.right.colours.includes(field[i][data.coord.y].stein.colour)) snake.right.colours.push(field[i][data.coord.y].stein.colour);
       }
       for (var i = data.coord.x + -1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i--) {
-        if (!snake.shapes.includes(field[i][data.coord.y].stein.name)) snake.shapes.push(field[i][data.coord.y].stein.name);
-        if (!snake.colours.includes(field[i][data.coord.y].stein.colour)) snake.colours.push(field[i][data.coord.y].stein.colour);
+        if (!snake.left.shapes.includes(field[i][data.coord.y].stein.name)) snake.left.shapes.push(field[i][data.coord.y].stein.name);
+        if (!snake.left.colours.includes(field[i][data.coord.y].stein.colour)) snake.left.colours.push(field[i][data.coord.y].stein.colour);
       }
       for (var i = data.coord.y + -1; field[data.coord.x][i] && field[data.coord.x][i].stein; i--) {
-        if (!snake.shapes.includes(field[data.coord.x][i].stein.name)) snake.shapes.push(field[data.coord.x][i].stein.name);
-        if (!snake.colours.includes(field[data.coord.x][i].stein.colour)) snake.colours.push(field[data.coord.x][i].stein.colour);
+        if (!snake.up.shapes.includes(field[data.coord.x][i].stein.name)) snake.up.shapes.push(field[data.coord.x][i].stein.name);
+        if (!snake.up.colours.includes(field[data.coord.x][i].stein.colour)) snake.up.colours.push(field[data.coord.x][i].stein.colour);
       }
       for (var i = data.coord.y + 1; field[data.coord.x][i] && field[data.coord.x][i].stein; i++) {
-        if (!snake.shapes.includes(field[data.coord.x][i].stein.name)) snake.shapes.push(field[data.coord.x][i].stein.name);
-        if (!snake.colours.includes(field[data.coord.x][i].stein.colour)) snake.colours.push(field[data.coord.x][i].stein.colour);
+        if (!snake.down.shapes.includes(field[data.coord.x][i].stein.name)) snake.down.shapes.push(field[data.coord.x][i].stein.name);
+        if (!snake.down.colours.includes(field[data.coord.x][i].stein.colour)) snake.down.colours.push(field[data.coord.x][i].stein.colour);
       }
       var rules = {
-        sameColour: ((!snake.shapes.length || !snake.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.colours.length || snake.colours.includes(player[data.player].steine[data.steinI].colour))),
-        sameShape: ((snake.shapes.length < 2 && (!snake.shapes.length || player[data.player].steine[data.steinI].name == snake.shapes[0])) && (!snake.colours.length || !snake.colours.includes(player[data.player].steine[data.steinI].colour)))
+        right: {
+        sameColour: ((!snake.right.shapes.length || !snake.right.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.right.colours.length || (snake.right.colours.includes(player[data.player].steine[data.steinI].colour) && snake.right.colours.length == 1))),
+        sameShape: ((snake.right.shapes.length < 2 && (!snake.right.shapes.length || player[data.player].steine[data.steinI].name == snake.right.shapes[0])) && (!snake.right.colours.length || !snake.right.colours.includes(player[data.player].steine[data.steinI].colour)))
+      },
+        left: {
+        sameColour: ((!snake.left.shapes.length || !snake.left.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.left.colours.length || (snake.left.colours.includes(player[data.player].steine[data.steinI].colour) && snake.left.colours.length == 1))),
+        sameShape: ((snake.left.shapes.length < 2 && (!snake.left.shapes.length || player[data.player].steine[data.steinI].name == snake.left.shapes[0])) && (!snake.left.colours.length || !snake.left.colours.includes(player[data.player].steine[data.steinI].colour)))
+      },
+        up: {
+        sameColour: ((!snake.up.shapes.length || !snake.up.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.up.colours.length || (snake.up.colours.includes(player[data.player].steine[data.steinI].colour) && snake.up.colours.length == 1))),
+        sameShape: ((snake.up.shapes.length < 2 && (!snake.up.shapes.length || player[data.player].steine[data.steinI].name == snake.up.shapes[0])) && (!snake.up.colours.length || !snake.up.colours.includes(player[data.player].steine[data.steinI].colour)))
+      },
+        down: {
+        sameColour: ((!snake.down.shapes.length || !snake.down.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.down.colours.length || (snake.down.colours.includes(player[data.player].steine[data.steinI].colour) && snake.down.colours.length == 1))),
+        sameShape: ((snake.down.shapes.length < 2 && (!snake.down.shapes.length || player[data.player].steine[data.steinI].name == snake.down.shapes[0])) && (!snake.down.colours.length || !snake.down.colours.includes(player[data.player].steine[data.steinI].colour)))
+      }
       };
+      console.log(player[data.player].steine[data.steinI]);
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.sameColour || rules.sameShape)
+      return data.player == Reihenfolge && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
     }
   }
 
