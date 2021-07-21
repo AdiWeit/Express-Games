@@ -32,6 +32,7 @@ class Qwirkle {
   constructor(broadcastReceiver, sendReceiver) {
     this.broadcast = broadcastReceiver;
     this.send = sendReceiver;
+    this.player = [];
     this.voteFunc = (data) => {
       votes[data.easyMode]++;
       var voteConverter = {0: false, 1: true};
@@ -96,11 +97,11 @@ class Qwirkle {
         beutel.shift();
       }
       if (!doNotSend) {
-      this.broadcast({
-      "type": "steinePlayer",
-      "player": playerI,
-      data: player[playerI].steine
-      });
+        this.send(this.player[playerI + 1].client, {
+          "type": "steinePlayer",
+          // "player": playerI,
+          data: player[playerI].steine
+        });
     }
     }
     this.canPlace = (data) => {
@@ -170,10 +171,10 @@ class Qwirkle {
   }
 
   // this.maxClients = 4;
-  // this.player1 = null;
-  // this.player2 = null;
-  // this.player3 = null;
-  // this.player4 = null;
+  // this.player[1] = null;
+  // this.player[2] = null;
+  // this.player[3] = null;
+  // this.player[4] = null;
   onJoin(client) {
 //    console.log(`${client.sessionId} joined.`);
     let newPlayer = {
@@ -185,39 +186,39 @@ class Qwirkle {
 
     this.spielerOnlineGleich0++;
     console.log("this.spielerOnlineGleich0: " + this.spielerOnlineGleich0);
-    if ([this.player1, this.player2, this.player3, this.player4].some(p => p && p.id && (p.id == client.sessionId))) {
-      console.log(client + " - " + client.sessionId + " - " + this.player1.id + " - " + this.player2.id);
-      if (client.sessionId == this.player1.id) {
-      this.send(this.player1.client, {
+    if ([this.player[1], this.player[2], this.player[3], this.player[4]].some(p => p && p.id && (p.id == client.sessionId))) {
+      console.log(client + " - " + client.sessionId + " - " + this.player[1].id + " - " + this.player[2].id);
+      if (client.sessionId == this.player[1].id) {
+      this.send(this.player[1].client, {
         "type": "spielerDu",
         "data": 0
       });
     }
-    if (client.sessionId == this.player2.id) {
-      this.send(this.player2.client, {
+    if (client.sessionId == this.player[2].id) {
+      this.send(this.player[2].client, {
         "type": "spielerDu",
         "data": 1
       });
     }
-    if (this.player3 != null && client.sessionId == this.player3.id) {
-      this.send(this.player3.client, {
+    if (this.player[3] != null && client.sessionId == this.player[3].id) {
+      this.send(this.player[3].client, {
         "type": "spielerDu",
         "data": 2
       });
     }
-    if (this.player4 != null && client.sessionId == this.player4.id) {
-      this.send(this.player4.client, {
+    if (this.player[4] != null && client.sessionId == this.player[4].id) {
+      this.send(this.player[4].client, {
         "type": "spielerDu",
         "data": 3
       });
     }
-      // if (client.sessionId == this.player1.id) {
-      //   this.send(this.player2.client, {
+      // if (client.sessionId == this.player[1].id) {
+      //   this.send(this.player[2].client, {
       //     "type": "sendDataToRejoinedPlayer"
       //   });
       // }
       // else {
-      //   this.send(this.player1.client, {
+      //   this.send(this.player[1].client, {
       //     "type": "sendDataToRejoinedPlayer"
       //   });
       // }
@@ -229,23 +230,17 @@ class Qwirkle {
       return;
     }
 
-    console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
-    if (!this.player1) {
-      this.player1 = newPlayer;
-      spielerOnline = 0;
-      console.log("create this.spielerOnlineGleich0");
+    console.log(!this.player[1] + " - " + !this.player[2] + " - " + !this.player[3] + " - " + !this.player[4] + " - ")
+    if (!this.player[1]) {
+      this.player = [, newPlayer];
+      this.spielerOnline = 0;
+      console.log("create spielerOnlineGleich0");
       this.spielerOnlineGleich0 = 1;
-    } else if (!this.player2) {
-      this.player2 = newPlayer;
-    } else if (!this.player3) {
-      this.player3 = newPlayer;
-    } else if (!this.player4) {
-      this.player4 = newPlayer;
-    }
+    } else if (this.player.length < 5) this.player.push(newPlayer);
     spielerOnline++;
     console.log("spielerOnline: " + spielerOnline);
-        console.log(!this.player1 + " - " + !this.player2 + " - " + !this.player3 + " - " + !this.player4 + " - ")
-    if ((this.player1 != null || this.player1 != undefined) && (this.player2 != null || this.player2 != undefined)/* && spielerOnline > 1*/) {
+        console.log(!this.player[1] + " - " + !this.player[2] + " - " + !this.player[3] + " - " + !this.player[4] + " - ")
+    if ((this.player[1] != null || this.player[1] != undefined) && (this.player[2] != null || this.player[2] != undefined)/* && spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
       votes = {true:0, false:0};
@@ -258,25 +253,25 @@ class Qwirkle {
       //  T Miete: Typ, Farben, Wert(Geld wenn als Geld benutzt)
 
       if (spielerOnline > 2) {
-        this.send(this.player3.client, {
+        this.send(this.player[3].client, {
           "type": "spielerDu",
           "data": 2,
           newRound: true
         });
       }
       if (spielerOnline > 3) {
-        this.send(this.player4.client, {
+        this.send(this.player[4].client, {
           "type": "spielerDu",
           "data": 3,
           newRound: true
         });
       }
-      this.send(this.player1.client, {
+      this.send(this.player[1].client, {
         type: "spielerDu",
         data: 0,
         newRound: true
       });
-      this.send(this.player2.client, {
+      this.send(this.player[2].client, {
         type: "spielerDu",
         data: 1,
         newRound: true
@@ -297,71 +292,71 @@ class Qwirkle {
 
   onLeave(client) {
     //    if (!client.sessionId) {
-    // if (spielerOnline == 2 && client.sessionId === this.player1.id) console.log(`${client.sessionId + "(0)"} left.`);
+    // if (spielerOnline == 2 && client.sessionId === this.player[1].id) console.log(`${client.sessionId + "(0)"} left.`);
     // else console.log(`${client.sessionId + "(1)"} left.`);
     // this.broadcast(`${client.sessionId} left`);
-    // //if (this.player1 != undefined) console.log(client.sessionId + " - " + this.player1.id);
+    // //if (this.player[1] != undefined) console.log(client.sessionId + " - " + this.player[1].id);
     // if (Reihenfolge.includes(client.sessionId)) console.log("nothingSpacial");
     // else {
     //   console.log("war inaktiev");
     //   spielerOnline++;
-    //   if (this.player1 != null && client.sessionId == this.player1.id) this.player1 = null;
-    //   if (this.player2 != null && client.sessionId == this.player2.id) this.player2 = null;
-    //   if (this.player3 != null && client.sessionId == this.player3.id) this.player3 = null;
-    //   if (this.player4 != null && client.sessionId == this.player4.id) this.player4 = null;
+    //   if (this.player[1] != null && client.sessionId == this.player[1].id) this.player[1] = null;
+    //   if (this.player[2] != null && client.sessionId == this.player[2].id) this.player[2] = null;
+    //   if (this.player[3] != null && client.sessionId == this.player[3].id) this.player[3] = null;
+    //   if (this.player[4] != null && client.sessionId == this.player[4].id) this.player[4] = null;
     // }
-    // // if (this.player2 != undefined) console.log(this.player2);
+    // // if (this.player[2] != undefined) console.log(this.player[2]);
     // // else {
     // //   console.log("nur 1 Spieler");
-    // //   this.player1 = null;
+    // //   this.player[1] = null;
     // //   spielerOnline = 1;
     // // }
-    // if (this.player3 != undefined) console.log(this.player3.id);
-    // if (this.player4 != undefined) console.log(this.player4.id);
-    // if (spielerOnline == 4 && this.player3 != null && client.sessionId === this.player3.id) {
-    //   this.player3 = this.player4;
+    // if (this.player[3] != undefined) console.log(this.player[3].id);
+    // if (this.player[4] != undefined) console.log(this.player[4].id);
+    // if (spielerOnline == 4 && this.player[3] != null && client.sessionId === this.player[3].id) {
+    //   this.player[3] = this.player[4];
     //   console.log("spieler3 weg - aufrücken (4 Spieler)");
-    //   this.player4 = null;
+    //   this.player[4] = null;
     // }
-    // if (spielerOnline == 4 && this.player2 != null && client.sessionId === this.player2.id) {
+    // if (spielerOnline == 4 && this.player[2] != null && client.sessionId === this.player[2].id) {
     //   console.log("spieler2 weg - aufrücken (4 Spieler)");
-    //   this.player2 = this.player3;
-    //   this.player3 = this.player4;
-    //   this.player4 = null;
+    //   this.player[2] = this.player[3];
+    //   this.player[3] = this.player[4];
+    //   this.player[4] = null;
     // }
-    // if (spielerOnline == 4 && this.player1 != null && client.sessionId === this.player1.id) {
+    // if (spielerOnline == 4 && this.player[1] != null && client.sessionId === this.player[1].id) {
     //   console.log("spieler1 weg - aufrücken (4 Spieler)");
-    //   this.player1 = this.player2;
-    //   this.player2 = this.player3;
-    //   this.player4 = null;
+    //   this.player[1] = this.player[2];
+    //   this.player[2] = this.player[3];
+    //   this.player[4] = null;
     // }
-    // if (spielerOnline == 3 && this.player2 != null && client.sessionId === this.player2.id) {
+    // if (spielerOnline == 3 && this.player[2] != null && client.sessionId === this.player[2].id) {
     //   console.log("spieler2 weg- aufrücken (3 Spieler)");
-    //   this.player1 = this.player2;
-    //   this.player2 = this.player3;
-    //   //  this.player3 = null;
+    //   this.player[1] = this.player[2];
+    //   this.player[2] = this.player[3];
+    //   //  this.player[3] = null;
     // }
-    // if (spielerOnline == 3 && this.player1 != null && client.sessionId === this.player1.id) {
+    // if (spielerOnline == 3 && this.player[1] != null && client.sessionId === this.player[1].id) {
     //   console.log("spieler1 weg - aufrücken (3 Spieler)");
-    //   this.player1 = this.player2;
-    //   this.player2 = this.player3;
-    //   this.player3 = null;
+    //   this.player[1] = this.player[2];
+    //   this.player[2] = this.player[3];
+    //   this.player[3] = null;
     // }
-    // if (spielerOnline == 4 && this.player4 != null && client.sessionId === this.player4.id) this.player4 = null;
-    // if (spielerOnline == 3 && this.player3 != null && client.sessionId === this.player3.id) this.player3 = null;
-    // if (spielerOnline == 2 && this.player2 != null && client.sessionId === this.player2.id) this.player2 = null;
-    // if (spielerOnline == 2 && this.player2 != null && client.sessionId === this.player1.id) {
-    //   this.player1 = this.player2;
-    //   this.player2 = null;
+    // if (spielerOnline == 4 && this.player[4] != null && client.sessionId === this.player[4].id) this.player[4] = null;
+    // if (spielerOnline == 3 && this.player[3] != null && client.sessionId === this.player[3].id) this.player[3] = null;
+    // if (spielerOnline == 2 && this.player[2] != null && client.sessionId === this.player[2].id) this.player[2] = null;
+    // if (spielerOnline == 2 && this.player[2] != null && client.sessionId === this.player[1].id) {
+    //   this.player[1] = this.player[2];
+    //   this.player[2] = null;
     // }
-    // /*  if (client.sessionId === this.player1.id) this.player1 = null;
-    //   else if (client.sessionId === this.player2.id) this.player2 = null;
-    //   else if (client.sessionId === this.player3.id) this.player3 = null;
-    //   else this.player4 = null; */
+    // /*  if (client.sessionId === this.player[1].id) this.player[1] = null;
+    //   else if (client.sessionId === this.player[2].id) this.player[2] = null;
+    //   else if (client.sessionId === this.player[3].id) this.player[3] = null;
+    //   else this.player[4] = null; */
     // spielerOnline--;
-    if (this.player2 != undefined) this.spielerOnlineGleich0--;
-    //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; spielerOnline = 0; console.log("remove room");}
-    // /*  if (!this.player2) {
+    if (this.player[2] != undefined) this.spielerOnlineGleich0--;
+    //  if (this.spielerOnlineGleich0 != undefined && this.spielerOnlineGleich0 == 0) {this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");}
+    // /*  if (!this.player[2]) {
     //     Reihenfolge = [];
     //     var j, x, i;
     //     //  return beutel;
@@ -371,9 +366,9 @@ class Qwirkle {
     //     spielerOnline = 0;
     //   } */
     // //  }
-    // console.log(spielerOnline + " - " + this.player1 + "/" + this.player2 + "/" + this.player3 + "/" + this.player4 + "/");
+    // console.log(spielerOnline + " - " + this.player[1] + "/" + this.player[2] + "/" + this.player[3] + "/" + this.player[4] + "/");
     // if ((spielerOnline == NaN)) {
-    //   this.send(this.player1.client, {
+    //   this.send(this.player[1].client, {
     //     "type": "reloadPage"
     //   });
     // }
@@ -385,21 +380,21 @@ class Qwirkle {
 //      console.log("Adressant: " + data.message.adressant)
   //    this.broadcast({"type": "zahl", "data": data.message.data + 1})
       if (data.message.adressant == 0) {
-        this.send(this.player1.client, {"type": "zahl", "data": data.message.data + 1});
+        this.send(this.player[1].client, {"type": "zahl", "data": data.message.data + 1});
       }
     else if (data.message.adressant == 1) {
-        this.send(this.player2.client, {"type": "zahl", "data": data.message.data + 1});
+        this.send(this.player[2].client, {"type": "zahl", "data": data.message.data + 1});
       }
 
     else if (data.message.adressant == 2) {
-        this.send(this.player3.client, {"type": "zahl", "data": data.message.data + 1});
+        this.send(this.player[3].client, {"type": "zahl", "data": data.message.data + 1});
       }
       else {
-        this.send(this.player4.client, {"type": "zahl", "data": data.message.data + 1});
+        this.send(this.player[4].client, {"type": "zahl", "data": data.message.data + 1});
       }
     }*/
 
-    if (!(this.player1 && this.player2)) return this.broadcast("Es fehlt noch ein Spieler!");
+    if (!(this.player[1] && this.player[2])) return this.broadcast("Es fehlt noch ein Spieler!");
     /*  if (data.message.type == "stayActive") {
         AblageListe[1] = "stayActive";
         setTimeout(function () {
@@ -408,8 +403,8 @@ class Qwirkle {
       } */
       // TODO: spielerwechsel: check if right player initiates it
       // console.log(client);
-      // console.log(this.player1.client);
-      // console.log(this.player2.client);
+      // console.log(this.player[1].client);
+      // console.log(this.player[2].client);
       if (data.message.type == "vote") {
         this.voteFunc(data.message);
      }
@@ -441,14 +436,14 @@ class Qwirkle {
      else if (data.message.type == "spielerwechsel") this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
-      if (data.message.Empfänger == 0) this.send(this.player1.client, data.message);
-      if (data.message.Empfänger == 1) this.send(this.player2.client, data.message);
-      if (data.message.Empfänger == 2 /*&& this.player3.client == undefined == false*/ ) this.send(this.player3.client, data.message);
-      if (data.message.Empfänger == 3 /* && this.player4.client == undefined == false*/ ) this.send(this.player4.client, data.message);
+      if (data.message.Empfänger == 0) this.send(this.player[1].client, data.message);
+      if (data.message.Empfänger == 1) this.send(this.player[2].client, data.message);
+      if (data.message.Empfänger == 2 /*&& this.player[3].client == undefined == false*/ ) this.send(this.player[3].client, data.message);
+      if (data.message.Empfänger == 3 /* && this.player[4].client == undefined == false*/ ) this.send(this.player[4].client, data.message);
     } else {
       this.broadcast(data.message);
     }
-    if (data.message.type == "endGame" || data.message.type == "countingPoints" || (data.message == "" && data.message.includes("gewonnen"))) {this.player1 = null; this.player2 = null; this.player3 = null; this.player4 = null; spielerOnline = 0; console.log("remove room");}
+    if (data.message.type == "endGame" || data.message.type == "countingPoints" || (data.message == "" && data.message.includes("gewonnen"))) {this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");}
   }
   onDispose() {
     console.log("Dispose BasicRoom");

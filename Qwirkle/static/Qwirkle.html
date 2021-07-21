@@ -80,8 +80,8 @@
       layout();
     }
     if (message.type == "AnzahlSpieler") player.total = message.data;
-    if (message.type == "steinePlayer" && message.player == player.myNumber) {
-      player[message.player].steine = message.data;
+    if (message.type == "steinePlayer") {
+      player[player.myNumber].steine = message.data;
       layout();
     }
     if (message.type == "spielerDu") {
