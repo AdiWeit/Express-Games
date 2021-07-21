@@ -186,6 +186,12 @@
   function displayStein(stein, i, i1) {
     canvas.fillStyle = "black";
     canvas.fillRect(20 + 50*i, 20 + 50*player.total + 50*i1, 40, 40)
+    if (stein == "placeholder") {
+      canvas.font = "35px Arial";
+      canvas.fillStyle = "white"
+      canvas.fillText("?", 30 + 50*i, 30 + 20 + 50*player.total + 50*i1);
+    }
+    else {
     if (stein.colour) canvas.fillStyle = stein.colour;
     if (stein.name == "rectangle") canvas.fillRect(30 + 50*i, 30 + 50*player.total + 50*i1, 20, 20)
     else if (stein.name == "circle") {
@@ -212,6 +218,7 @@
       canvas.fill();
     }
   }
+}
   function readMouseMove(e) {
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY;
@@ -233,7 +240,8 @@
             player: player.myNumber
           }
         });
-        player[player.myNumber].steine.splice(selected.i, 1);
+        player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
+        layout();
       }
       else {
         room.send({

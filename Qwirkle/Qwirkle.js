@@ -90,16 +90,18 @@ class Qwirkle {
         this.getCards(i, 6);
       }
     }
-    this.getCards = (playerI, number) => {
+    this.getCards = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
         player[playerI].steine.push(beutel[0]);
         beutel.shift();
       }
+      if (!doNotSend) {
       this.broadcast({
       "type": "steinePlayer",
       "player": playerI,
       data: player[playerI].steine
       });
+    }
     }
     this.canPlace = (data) => {
       var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
@@ -147,6 +149,13 @@ class Qwirkle {
       return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
     }
     this.spielerwechsel = () => {
+      if (turntype == "newStein") {
+        this.broadcast({
+        "type": "steinePlayer",
+        "player": Reihenfolge,
+        data: player[Reihenfolge].steine
+        });
+      }
       turntype = "";
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
@@ -426,7 +435,7 @@ class Qwirkle {
      else if (data.message.type == "newStein" && !placeDirection.coords.length) {
        turntype = "newStein";
        player[data.message.player].steine.splice(data.message.steinI, 1);
-       this.getCards(data.message.player, 1);
+       this.getCards(data.message.player, 1, true);
      }
      else if (data.message.type == "spielerwechsel") this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
