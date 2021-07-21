@@ -149,13 +149,14 @@ class Qwirkle {
       return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
     }
     this.spielerwechsel = () => {
-      if (turntype == "newStein") {
-        this.broadcast({
-        "type": "steinePlayer",
-        "player": Reihenfolge,
-        data: player[Reihenfolge].steine
-        });
-      }
+      // if (turntype == "newStein") {
+      //   this.broadcast({
+      //   "type": "steinePlayer",
+      //   "player": Reihenfolge,
+      //   data: player[Reihenfolge].steine
+      //   });
+      // }
+      if (player[Reihenfolge].steine.length) this.getCards(Reihenfolge, 6 - player[Reihenfolge].steine.length);
       turntype = "";
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");

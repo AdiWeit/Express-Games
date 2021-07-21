@@ -232,7 +232,7 @@
         selected = {stein: player[player.myNumber].steine[i], i: i};
         layout();
       }
-      else if (i == player[player.myNumber].steine.length) {
+      else if (i == 6) {
         room.send({
           message: {
             "type": "newStein",
