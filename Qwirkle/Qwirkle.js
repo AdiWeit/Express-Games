@@ -111,36 +111,21 @@ class Qwirkle {
     }
     }
     this.canPlace = (data) => {
+      console.log("check if stein can be placed");
       var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
-      for (var i = data.coord.x + 1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i++) {
-
-      if (mode == "easy") points.now++;
-      if (mode == "easy" && i == data.coord.x + 1) points.now++;
-        if (!snake.right.shapes.includes(field[i][data.coord.y].stein.name)) snake.right.shapes.push(field[i][data.coord.y].stein.name);
-        if (!snake.right.colours.includes(field[i][data.coord.y].stein.colour)) snake.right.colours.push(field[i][data.coord.y].stein.colour);
-      }
-      for (var i = data.coord.x -1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i--) {
-        if (mode == "easy") points.now++;
-        if (mode == "easy" && i == data.coord.x - 1) points.now++;
-        if (!snake.left.shapes.includes(field[i][data.coord.y].stein.name)) snake.left.shapes.push(field[i][data.coord.y].stein.name);
-        if (!snake.left.colours.includes(field[i][data.coord.y].stein.colour)) snake.left.colours.push(field[i][data.coord.y].stein.colour);
-      }
-      for (var i = data.coord.y + -1; field[data.coord.x][i] && field[data.coord.x][i].stein; i--) {
-       if (mode == "easy") points.now++;
-       if (mode == "easy" && i == data.coord.y - 1) points.now++;
-        if (!snake.up.shapes.includes(field[data.coord.x][i].stein.name)) snake.up.shapes.push(field[data.coord.x][i].stein.name);
-        if (!snake.up.colours.includes(field[data.coord.x][i].stein.colour)) snake.up.colours.push(field[data.coord.x][i].stein.colour);
-      }
-      for (var i = data.coord.y + 1; field[data.coord.x][i] && field[data.coord.x][i].stein; i++) {
-        if (mode == "easy" && i == data.coord.y + 1) points.now++;
-        if (mode == "easy") points.now++;
-        if (!snake.down.shapes.includes(field[data.coord.x][i].stein.name)) snake.down.shapes.push(field[data.coord.x][i].stein.name);
-        if (!snake.down.colours.includes(field[data.coord.x][i].stein.colour)) snake.down.colours.push(field[data.coord.x][i].stein.colour);
-      }
+      this.checkStein(data.coord.x, data.coord.y, undefined, snake, true);
       var sameLine = false;
-      if (placeDirection.coords.length < 2) sameLine = true;
-      else if ((!(data.coord.x - placeDirection.coords[placeDirection.coords.length - 1].x) && placeDirection.string == 'y') || (!(data.coord.y - placeDirection.coords[placeDirection.coords.length - 1].y) && placeDirection.string == 'x')) sameLine = true;
+      var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
+      if (placeDirection.coords.length < 2) {
+        if (!placeDirection.coords.length && beginning) points.now++;
+        if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
+        else newPlaceDirection.string = "y";
+      }
+        if (!placeDirection.coords.length || ((!(data.coord.x - placeDirection.coords[placeDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - placeDirection.coords[placeDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
+      if (placeDirection.coords[0]) {
+        this.checkStein(placeDirection.coords[0].x, placeDirection.coords[0].y, newPlaceDirection, snake);
+      }
       console.log("in line " + placeDirection.string + " : " + sameLine);
       var rules = {
         right: {
@@ -164,6 +149,40 @@ class Qwirkle {
       console.log(rules);
       return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
     }
+    this.checkStein = (x, y, newPlaceDirection, snake, forRules) => {
+      for (var i = x + 1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i++) {
+        if (mode == "easy") points.now++;
+        if (mode == "easy" && i == x + 1) points.now++;
+        if (forRules) {
+        if (!snake.right.shapes.includes(field[i][y].stein.name)) snake.right.shapes.push(field[i][y].stein.name);
+        if (!snake.right.colours.includes(field[i][y].stein.colour)) snake.right.colours.push(field[i][y].stein.colour);
+      }
+      }
+      for (var i = x -1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i--) {
+        if (mode == "easy") points.now++;
+        if (mode == "easy" && i == x - 1) points.now++;
+        if (forRules) {
+        if (!snake.left.shapes.includes(field[i][y].stein.name)) snake.left.shapes.push(field[i][y].stein.name);
+        if (!snake.left.colours.includes(field[i][y].stein.colour)) snake.left.colours.push(field[i][y].stein.colour);
+      }
+      }
+      for (var i = y + -1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i--) {
+        if (mode == "easy") points.now++;
+        if (mode == "easy" && i == y - 1) points.now++;
+        if (forRules) {
+        if (!snake.up.shapes.includes(field[x][i].stein.name)) snake.up.shapes.push(field[x][i].stein.name);
+        if (!snake.up.colours.includes(field[x][i].stein.colour)) snake.up.colours.push(field[x][i].stein.colour);
+      }
+      }
+      for (var i = y + 1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i++) {
+        if (mode == "easy" && i == y + 1) points.now++;
+        if (mode == "easy") points.now++;
+        if (forRules) {
+        if (!snake.down.shapes.includes(field[x][i].stein.name)) snake.down.shapes.push(field[x][i].stein.name);
+        if (!snake.down.colours.includes(field[x][i].stein.colour)) snake.down.colours.push(field[x][i].stein.colour);
+      }
+      }
+    }
     this.spielerwechsel = () => {
       // if (turntype == "newStein") {
       //   this.broadcast({
@@ -173,6 +192,7 @@ class Qwirkle {
       //   });
       // }
       points.got[Reihenfolge] += points.now;
+      points.now = 0;
       this.broadcast({
          "type": "pointsPlayer",
          "player": Reihenfolge,
@@ -438,23 +458,6 @@ class Qwirkle {
          beginning = false;
        var stein = player[data.message.player].steine[data.message.steinI];
        stein.new = true;
-       if (data.message.coord.x == field.length - 1) {
-     field.push(new Array(field[data.message.coord.x].length));
-     // field.length++;
-    }
-    if (data.message.coord.x == 0) {
-     field.unshift(new Array(field[data.message.coord.x].length));
-     // field.length++;
-    }
-    // if (data.message.coord.y == 0 || data.message.coord.y == field[0].length - 1) field[0].length++;
-
-    if (data.message.coord.y == 0) {
-     field.map(x => x.unshift({}));
-    }
-    console.log(field[data.message.coord.x]);
-    if (data.message.coord.y == field[data.message.coord.x].length - 1) {
-      field.map(x => x.push({}));
-    }
        this.broadcast({
          "type": "placeStein",
          "coord": data.message.coord,
@@ -469,6 +472,24 @@ class Qwirkle {
        if (placeDirection.coords.length == 2) {
         if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
         else placeDirection.string = "y";
+       }
+       console.log("xFieldSize: " + field.length);
+       if (data.message.coord.x == field.length - 1) {
+         field.push(new Array(field[data.message.coord.x].length));
+         // field.length++;
+       }
+       if (data.message.coord.x == 0) {
+         field.unshift(new Array(field[data.message.coord.x].length));
+         // field.length++;
+       }
+       // if (data.message.coord.y == 0 || data.message.coord.y == field[0].length - 1) field[0].length++;
+
+       if (data.message.coord.y == 0) {
+         field.map(x => x.unshift({}));
+       }
+       console.log("yFieldSize: " + field[data.message.coord.x].length);
+       if (data.message.coord.y == field[data.message.coord.x].length - 1) {
+         field.map(x => x.push({}));
        }
      }
      else points.now = points.before;
