@@ -78,6 +78,11 @@
     if (message.type == "Reihenfolge")  {
       player.aktuell = message.data;
       layout();
+      for (var fieldX of field) {
+        for (var fieldXY of fieldX) {
+          if (fieldXY && fieldXY.stein) fieldXY.stein.new = false;
+        }
+      }
     }
     if (message.type == "AnzahlSpieler") player.total = message.data;
     if (message.type == "steinePlayer") {
@@ -97,14 +102,31 @@
       if (!field[message.coord.x][message.coord.y]) field[message.coord.x][message.coord.y] = {};
       field[message.coord.x][message.coord.y].stein = JSON.parse(JSON.stringify(message.stein));
       if (player.myNumber == message.player) player[player.myNumber].steine.splice(message.steinI, 1);
+      if (message.coord.x == field.length - 1) {
+    field.push(new Array(field[0].length));
+    // field.length++;
+   }
+   if (message.coord.x == 0) {
+    field.unshift(new Array(field[0].length));
+    // field.length++;
+   }
+   if (message.coord.y == 0 || message.coord.y == field[0].length - 1) textur.height += 50;
+   if (message.coord.x == 0 || message.coord.x == field.length - 1) textur.width += 50;
+
+   if (message.coord.y == 0) {
+    field.map(x => x.unshift({}));
+   }
+   if (message.coord.y == field[0].length - 1) {
+     field.map(x => x.push({}));
+   }
       layout();
     }
+    if (message.type == "pointsPlayer") player[message.player].points = message.data;
   });
-  var boardSize = {x: 10, y: 10};
+  // var boardSize = {x: 10, y: 10};
   var field = [];
-  for (var i = 0; i < boardSize.x; i++) {
-    field[i] = [];
-    field[i].length = boardSize.y;
+  for (var i = 0; i < 10; i++) {
+    field[i] = new Array(10);
   }
   function layout() {
     canvas.fillStyle = "#B45F04";
@@ -144,25 +166,28 @@
       }
     }
     canvas.fillStyle = "rgb(212, 161, 114)";
-    canvas.fillRect(10 + (boardSize.x)*50, 10 + 50*player.total, 10, 50*(boardSize.y));
-    canvas.fillRect(10, 10 + 50*player.total + (boardSize.x)*50, 50*(boardSize.y) + 10, 10);
+    canvas.fillRect(10 + (field.length)*50, 10 + 50*player.total, 10, 50*(field[0].length));
+    canvas.fillRect(10, 10 + 50*player.total + (field[0].length)*50, 50*(field.length) + 10, 10);
     // check winner
     // var highest = {};
     // for (var i = 0; i < Object.keys(pointsPlayer).length; i++) {
     //   if (!highest.number || pointsPlayer[Object.keys(pointsPlayer)[i]] > highest.number) {highest.number = pointsPlayer[Object.keys(pointsPlayer)[i]]; highest.player = Object.keys(pointsPlayer)[i];}
     // }
-    canvas.fillRect(10, 10 + 50*i, 10 + boardSize.x*50, 10);
-    for (var i = 0; i < boardSize.x + 1; i++) {
+    canvas.fillRect(10, 10 + 50*i, 10 + field.length*50, 10);
+    for (var i = 0; i < field.length + 1; i++) {
       canvas.fillRect(10 + 50*i, 10, 10, player.total*50);
     }
     for (var i = 0; i < player.total; i++) {
-      canvas.fillRect(10, 10 + 50*i, 10 + boardSize.x*50, 10);
+      canvas.fillRect(10, 10 + 50*i, 10 + field.length*50, 10);
       if (i == player.aktuell) {
         canvas.fillStyle = 'rgba(114, 190, 245, 1)';
         canvas.fillRect(10, 10 + 50*i, 60, 60);
       }
       canvas.fillStyle = player.colours[i];
       canvas.fillRect(20, 20 + 50*i, 40, 40);
+      canvas.font = "35px Arial";
+      canvas.fillStyle = "white"
+      if (player[i].points) canvas.fillText(player[i].points, 30, 20 + 50*i + 30);
       if (i == player.myNumber) {
         player[i].steine.forEach((stein, i1) => {
           if (selected.i != undefined && i1 == selected.i && player.aktuell == player.myNumber) {
@@ -172,7 +197,7 @@
           displayStein(stein, i1 + 2, -(player.total - i));
         });
       }
-      var verfügbar = boardSize.x - (pointsPlayer[i] + "").length - 1;
+      var verfügbar = field.length - (pointsPlayer[i] + "").length - 1;
       canvas.fillStyle = "rgb(212, 161, 114)";
     }
     var img = new Image();
@@ -184,6 +209,9 @@
   }
 
   function displayStein(stein, i, i1) {
+  // TODO: helleres Grün nutzen
+  canvas.fillStyle = "rgb(8, 255, 3)";
+  if (stein.new) canvas.fillRect(10 + 50*i, 10 + 50*(i1 + 2), 60, 60);
     canvas.fillStyle = "black";
     canvas.fillRect(20 + 50*i, 20 + 50*player.total + 50*i1, 40, 40)
     if (stein == "placeholder") {

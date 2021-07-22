@@ -7,6 +7,8 @@ var zählerListe = [];
 var votes;
 let mode;
 var turntype = "";
+var beginning = true;
+var points = {now: 0, before:0, got: [0, 0, 0, 0]};
 var field = [];
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
@@ -21,6 +23,9 @@ var steine = {
     {name: "spikes", points: [{x: 10, y: 30}, {x: 15, y: 10}, {x: 20, y: 30}, {x: 25, y: 10}, {x: 30, y: 30}]},
     {name: "butterfly", points: [{x: 10, y: 10}, {x: 10, y: 30}, {x: 20, y: 20}, {x: 30, y: 10}, {x: 30, y: 30}]},
     {name: "ring"},
+  ],
+  normal: [
+    {letter: "A", points:1, amount: 1}
   ]
 }
 var colours = ["red", "green", "blue", "yellow", "orange", "purple"];
@@ -88,10 +93,11 @@ class Qwirkle {
       // }
       for (var i = 0; i < spielerOnline; i++) {
         player[i].steine = [];
-        this.getCards(i, 6);
+        this.getSteine(i, 6);
       }
+      beginning = true;
     }
-    this.getCards = (playerI, number, doNotSend) => {
+    this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
         player[playerI].steine.push(beutel[0]);
         beutel.shift();
@@ -108,18 +114,27 @@ class Qwirkle {
       var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
       for (var i = data.coord.x + 1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i++) {
+
+      if (mode == "easy") points.now++;
+      if (mode == "easy" && i == data.coord.x + 1) points.now++;
         if (!snake.right.shapes.includes(field[i][data.coord.y].stein.name)) snake.right.shapes.push(field[i][data.coord.y].stein.name);
         if (!snake.right.colours.includes(field[i][data.coord.y].stein.colour)) snake.right.colours.push(field[i][data.coord.y].stein.colour);
       }
-      for (var i = data.coord.x + -1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i--) {
+      for (var i = data.coord.x -1; field[i] && field[i][data.coord.y] && field[i][data.coord.y].stein; i--) {
+        if (mode == "easy") points.now++;
+        if (mode == "easy" && i == data.coord.x - 1) points.now++;
         if (!snake.left.shapes.includes(field[i][data.coord.y].stein.name)) snake.left.shapes.push(field[i][data.coord.y].stein.name);
         if (!snake.left.colours.includes(field[i][data.coord.y].stein.colour)) snake.left.colours.push(field[i][data.coord.y].stein.colour);
       }
       for (var i = data.coord.y + -1; field[data.coord.x][i] && field[data.coord.x][i].stein; i--) {
+       if (mode == "easy") points.now++;
+       if (mode == "easy" && i == data.coord.y - 1) points.now++;
         if (!snake.up.shapes.includes(field[data.coord.x][i].stein.name)) snake.up.shapes.push(field[data.coord.x][i].stein.name);
         if (!snake.up.colours.includes(field[data.coord.x][i].stein.colour)) snake.up.colours.push(field[data.coord.x][i].stein.colour);
       }
       for (var i = data.coord.y + 1; field[data.coord.x][i] && field[data.coord.x][i].stein; i++) {
+        if (mode == "easy" && i == data.coord.y + 1) points.now++;
+        if (mode == "easy") points.now++;
         if (!snake.down.shapes.includes(field[data.coord.x][i].stein.name)) snake.down.shapes.push(field[data.coord.x][i].stein.name);
         if (!snake.down.colours.includes(field[data.coord.x][i].stein.colour)) snake.down.colours.push(field[data.coord.x][i].stein.colour);
       }
@@ -157,7 +172,14 @@ class Qwirkle {
       //   data: player[Reihenfolge].steine
       //   });
       // }
-      if (player[Reihenfolge].steine.length) this.getCards(Reihenfolge, 6 - player[Reihenfolge].steine.length);
+      points.got[Reihenfolge] += points.now;
+      this.broadcast({
+         "type": "pointsPlayer",
+         "player": Reihenfolge,
+         data: points.got[Reihenfolge]
+      });
+      if (player[Reihenfolge].steine.length) this.getSteine(Reihenfolge, 6 - player[Reihenfolge].steine.length);
+
       turntype = "";
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
@@ -405,16 +427,38 @@ class Qwirkle {
       // console.log(client);
       // console.log(this.player[1].client);
       // console.log(this.player[2].client);
+      points.before = JSON.parse(JSON.stringify(points.now));
       if (data.message.type == "vote") {
         this.voteFunc(data.message);
      }
      else if (data.message.type == "placeStein") {
+     points.now = 0;
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
          turntype = "placeStein";
+         beginning = false;
+       var stein = player[data.message.player].steine[data.message.steinI];
+       stein.new = true;
+       if (data.message.coord.x == field.length - 1) {
+     field.push(new Array(field[data.message.coord.x].length));
+     // field.length++;
+    }
+    if (data.message.coord.x == 0) {
+     field.unshift(new Array(field[data.message.coord.x].length));
+     // field.length++;
+    }
+    // if (data.message.coord.y == 0 || data.message.coord.y == field[0].length - 1) field[0].length++;
+
+    if (data.message.coord.y == 0) {
+     field.map(x => x.unshift({}));
+    }
+    console.log(field[data.message.coord.x]);
+    if (data.message.coord.y == field[data.message.coord.x].length - 1) {
+      field.map(x => x.push({}));
+    }
        this.broadcast({
          "type": "placeStein",
          "coord": data.message.coord,
-         stein: player[data.message.player].steine[data.message.steinI],
+         stein: stein,
          steinI: data.message.steinI,
          player: data.message.player
        });
@@ -427,11 +471,12 @@ class Qwirkle {
         else placeDirection.string = "y";
        }
      }
+     else points.now = points.before;
      }
      else if (data.message.type == "newStein" && !placeDirection.coords.length) {
        turntype = "newStein";
        player[data.message.player].steine.splice(data.message.steinI, 1);
-       this.getCards(data.message.player, 1, true);
+       this.getSteine(data.message.player, 1, true);
      }
      else if (data.message.type == "spielerwechsel") this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
