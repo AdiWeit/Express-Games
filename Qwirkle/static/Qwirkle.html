@@ -187,7 +187,14 @@
       canvas.fillRect(20, 20 + 50*i, 40, 40);
       canvas.font = "35px Arial";
       canvas.fillStyle = "white"
-      if (player[i].points) canvas.fillText(player[i].points, 30, 20 + 50*i + 30);
+      if (player[i].points) {
+        if (player[i].points < 10) canvas.fillText(player[i].points, 30, 20 + 50*i + 30);
+        else if (player[i].points < 100) canvas.fillText(player[i].points, 23, 20 + 50*i + 30);
+        else {
+          canvas.font = "23px Arial";
+          canvas.fillText(player[i].points, 23, 20 + 50*i + 30);
+        }
+      }
       if (i == player.myNumber) {
         player[i].steine.forEach((stein, i1) => {
           if (selected.i != undefined && i1 == selected.i && player.aktuell == player.myNumber) {
