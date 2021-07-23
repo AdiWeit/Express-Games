@@ -71,10 +71,9 @@
     }
   };
   var player = {colours: ["red", "green", "blue", "yellow"], 0: {}, 1: {}, 2: {}, 3: {}};
+  var mode = "";
   room.setOnMessageListener(function(message) {
-    // if (message.type == "selectedMode") {
-    //
-    // }
+    if (message.type == "selectedMode") mode = message.data;
     if (message.type == "Reihenfolge")  {
       player.aktuell = message.data;
       layout();
@@ -227,6 +226,7 @@
       canvas.fillText("?", 30 + 50*i, 30 + 20 + 50*player.total + 50*i1);
     }
     else {
+      if (mode == "easy") {
     if (stein.colour) canvas.fillStyle = stein.colour;
     if (stein.name == "rectangle") canvas.fillRect(30 + 50*i, 30 + 50*player.total + 50*i1, 20, 20)
     else if (stein.name == "circle") {
@@ -253,6 +253,14 @@
       canvas.fill();
     }
   }
+  else {
+    canvas.font = "35px Arial";
+    canvas.fillStyle = "white"
+    canvas.fillText(stein.letter, 28 + 50*i, 30 + 22 + 50*player.total + 50*i1);
+    canvas.font = "10px Arial";
+    canvas.fillText(stein.points, 28 + 23 + 50*i, 30 + 22 + 50*player.total + 50*i1 + 5);
+  }
+}
 }
   function readMouseMove(e) {
     xMaus = e.clientX + scrollX;

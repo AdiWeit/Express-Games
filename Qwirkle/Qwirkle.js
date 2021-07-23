@@ -25,7 +25,36 @@ var steine = {
     {name: "ring"},
   ],
   normal: [
-    {letter: "A", points:1, amount: 1}
+    {letter: "A", points:1, amount: 5},
+    {letter: "B", points:3, amount: 2},
+    {letter: "C", points:4, amount: 2},
+    {letter: "D", points:1, amount: 4},
+    {letter: "E", points:1, amount: 15},
+    {letter: "F", points:4, amount: 2},
+    {letter: "G", points:2, amount: 3},
+    {letter: "H", points:2, amount: 4},
+    {letter: "I", points:1, amount: 6},
+    {letter: "J", points:6, amount: 1},
+    {letter: "K", points:4, amount: 2},
+    {letter: "L", points:2, amount: 3},
+    {letter: "M", points:3, amount: 4},
+    {letter: "N", points:1, amount: 9},
+    {letter: "O", points:2, amount: 3},
+    {letter: "P", points:4, amount: 1},
+    {letter: "Q", points:10, amount: 1},
+    {letter: "R", points:1, amount: 6},
+    {letter: "S", points:1, amount: 7},
+    {letter: "T", points:1, amount: 6},
+    {letter: "U", points:1, amount: 6},
+    {letter: "V", points:6, amount: 1},
+    {letter: "W", points:3, amount: 1},
+    {letter: "X", points:8, amount: 1},
+    {letter: "Y", points:10, amount: 1},
+    {letter: "Z", points:3, amount: 1},
+    {letter: "Ä", points:6, amount: 1},
+    {letter: "Ö", points:8, amount: 1},
+    {letter: "Ü", points:6, amount: 1},
+    {letter: "?", points:0, amount: 2},
   ]
 }
 var colours = ["red", "green", "blue", "yellow", "orange", "purple"];
@@ -60,6 +89,7 @@ class Qwirkle {
     }
     this.setup = () => {
       beutel = [];
+      if (mode == "easy") {
       for (var i = 0; i < 106/steine[mode].length/6; i++) {
         for (var stein of steine[mode]) {
           colours = ["red", "green", "blue", "yellow", "orange", "purple"];
@@ -71,6 +101,14 @@ class Qwirkle {
           }
         }
       }
+    }
+    else {
+      for (var stein of steine.normal) {
+        for (var i = 0; i < stein.amount; i++) {
+          beutel.push(stein);
+        }
+      }
+    }
       for (i = beutel.length - 1; i > 0; i--) {
         j = Math.round(Math.random() * (i + 1));
         x = beutel[i];
@@ -112,6 +150,7 @@ class Qwirkle {
     }
     this.canPlace = (data) => {
       console.log("check if stein can be placed");
+      if (mode == "normal") points.now += player[data.player].steine[data.steinI].points;
       var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
       this.checkStein(data.coord.x, data.coord.y, undefined, snake, true);
@@ -147,11 +186,12 @@ class Qwirkle {
       };
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)
+      return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, snake, forRules) => {
       for (var i = x + 1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i++) {
         if (mode == "easy") points.now++;
+        else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x + 1) points.now++;
         if (forRules) {
         if (!snake.right.shapes.includes(field[i][y].stein.name)) snake.right.shapes.push(field[i][y].stein.name);
@@ -160,6 +200,7 @@ class Qwirkle {
       }
       for (var i = x -1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i--) {
         if (mode == "easy") points.now++;
+        else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x - 1) points.now++;
         if (forRules) {
         if (!snake.left.shapes.includes(field[i][y].stein.name)) snake.left.shapes.push(field[i][y].stein.name);
@@ -168,6 +209,7 @@ class Qwirkle {
       }
       for (var i = y + -1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i--) {
         if (mode == "easy") points.now++;
+        else points.now += field[x][i].stein.points;
         if (mode == "easy" && i == y - 1) points.now++;
         if (forRules) {
         if (!snake.up.shapes.includes(field[x][i].stein.name)) snake.up.shapes.push(field[x][i].stein.name);
@@ -176,6 +218,7 @@ class Qwirkle {
       }
       for (var i = y + 1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i++) {
         if (mode == "easy" && i == y + 1) points.now++;
+        else points.now += field[x][i].stein.points;
         if (mode == "easy") points.now++;
         if (forRules) {
         if (!snake.down.shapes.includes(field[x][i].stein.name)) snake.down.shapes.push(field[x][i].stein.name);
@@ -456,7 +499,7 @@ class Qwirkle {
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
          turntype = "placeStein";
          beginning = false;
-       var stein = player[data.message.player].steine[data.message.steinI];
+       var stein = JSON.parse(JSON.stringify(player[data.message.player].steine[data.message.steinI]));
        stein.new = true;
        this.broadcast({
          "type": "placeStein",
