@@ -558,5 +558,61 @@ class Qwirkle {
     console.log("Dispose BasicRoom");
   }
 }
+// scrape DUDEN
+const mongoose = require('mongoose');
+const puppeteer = require('puppeteer');
+const cheerio = require('cheerio');
+const db = mongoose.connection;
+const messageSchema = new mongoose.Schema({
+  title: String,
+  content: String,
+  mailAdress: String,
+  creationDate: Date
+});
+const Message = mongoose.model('Message', messageSchema);
+function initDB() {
+  db.on('error', console.error.bind(console, 'connection error:'));
+  // db.once('open', function() {
+  //   console.log("angeschlossen!");
+  // });
+  // mongoose.connect('mongodb+srv://mongoose:MM9pKwQLz49jCv2@cluster0.im29l.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true});
+}
+async function wordInDuden(word) {
+  initDB();
+const browser = await puppeteer.launch({
+  headless: false,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  // useUnifiedTopology: true
+});
+const page = await browser.newPage();
+await page.goto('https://www.duden.de/suchen/dudenonline/' + word);
 
+// await page.goto('https://www.duden.de/');
+var content = await page.content();
+var $ = cheerio.load(content);
+// console.log($('h2.vignette__title').contents().text().split('  ').map(x => replaceAll(x.toLowerCase().replace('\n', '').split('').filter(char => /[a-zßüÜöÖäÄ]/.test(char)).toString(), ',', '')).filter(x => x.length && !x.includes('\n')));
+var suggestionList = $('h2.vignette__title').contents().text().split('  ').map(x => replaceAll(x.toLowerCase().replace('\n', '').split('').filter(char => /[a-zßüÜöÖäÄ]/.test(char)).toString(), ',', '')).filter(x => x.length && !x.includes('\n'));
+await browser.close();
+await db.close();
+console.log(suggestionList);
+if (suggestionList.includes(word.toLowerCase())) return await true;
+else return await false;
+// await page.type('#edit-search-api-fulltext--2', word);
+// await Promise.all([
+//   page.click('button[class="form-asap__button"]'),
+//   page.waitForNavigation({
+//     waitUntil: 'load'
+//   })
+// ]);
+// console.log("new page loaded!");
+// var content = await page.content();
+// var $ = cheerio.load(content);
+}
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+}
+(async () => {
+  console.log(await wordInDuden("DAMPFLOKOMOTIV"));
+  console.log(await wordInDuden("DAMPFLOKOMOTIVE"));
+})()
 module.exports = Qwirkle;
