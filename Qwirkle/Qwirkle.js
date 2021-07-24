@@ -58,7 +58,7 @@ var steine = {
     {letter: "Ä", points:6, amount: 1},
     {letter: "Ö", points:8, amount: 1},
     {letter: "Ü", points:6, amount: 1},
-    {letter: "?", points:0, amount: 2},
+    {letter: "?", points:0, amount: 2, type: "joker"},
   ]
 }
 var colours = ["red", "green", "blue", "yellow", "orange", "purple"];
@@ -571,6 +571,11 @@ class Qwirkle {
          else player[data.message.player].aussetzen = true;
          this.spielerwechsel();
        })()
+     }
+     else if (data.message.type == "setLetter" && data.message.player == Reihenfolge && player[data.message.player].steine[data.message.steinI].type == "joker") {
+       console.log(data.message);
+       player[data.message.player].steine[data.message.steinI].letter = data.message.letter;
+       console.log(player[data.message.player].steine);
      }
      else if (data.message.type == "placeStein") {
      points.now = 0;

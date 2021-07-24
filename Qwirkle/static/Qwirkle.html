@@ -296,6 +296,20 @@
     for (var i = 0; i < 9; i++) {
       if (xMaus > 10 + 50*(1 + i) && xMaus < 10 + 50*(2 + i) && yMaus > 10 + 50*player.myNumber && yMaus < 10 + 50*(player.myNumber + 1)) {
         if (i - 1 >= 0 && i - 1 < player[player.myNumber].steine.length) {
+          if (player[player.myNumber].steine[i-1].letter == "?" && player[player.myNumber].steine[i-1].type == "joker") {
+            var letter = prompt("Was für einen Buchstaben wollen Sie für diesen Stein einsetzen?");
+            if (letter) {
+            room.send({
+              message: {
+                "type": "setLetter",
+                steinI: i - 1,
+                player: player.myNumber,
+                letter: letter
+              }
+            });
+            player[player.myNumber].steine[i - 1].letter = letter;
+          }
+          }
         selected = {stein: player[player.myNumber].steine[i], i: i - 1};
         layout();
       }
