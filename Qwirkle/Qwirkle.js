@@ -7,12 +7,16 @@ var zählerListe = [];
 var votes;
 let mode;
 var turntype = "";
+var newTiles = [];
+var currentWord = "";
 var beginning = true;
 var points = {now: 0, before:0, got: [0, 0, 0, 0]};
 var field = [];
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
 var placeDirection = {coords: [], string: ""};
+var newPlaceDirection;
+var snake;
 var steine = {
   easy: [
     {name: "rectangle"},
@@ -151,11 +155,11 @@ class Qwirkle {
     this.canPlace = (data) => {
       console.log("check if stein can be placed");
       if (mode == "normal") points.now += player[data.player].steine[data.steinI].points;
-      var snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
+      snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
-      this.checkStein(data.coord.x, data.coord.y, undefined, snake, true);
+      this.checkStein(data.coord.x, data.coord.y, undefined, true);
       var sameLine = false;
-      var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
+      newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
       if (placeDirection.coords.length < 2) {
         if (!placeDirection.coords.length && beginning) points.now++;
         if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
@@ -163,7 +167,7 @@ class Qwirkle {
       }
         if (!placeDirection.coords.length || ((!(data.coord.x - placeDirection.coords[placeDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - placeDirection.coords[placeDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
       if (placeDirection.coords[0]) {
-        this.checkStein(placeDirection.coords[0].x, placeDirection.coords[0].y, newPlaceDirection, snake);
+        this.checkStein(placeDirection.coords[0].x, placeDirection.coords[0].y, newPlaceDirection);
       }
       console.log("in line " + placeDirection.string + " : " + sameLine);
       var rules = {
@@ -188,7 +192,7 @@ class Qwirkle {
       console.log(rules);
       return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
     }
-    this.checkStein = (x, y, newPlaceDirection, snake, forRules) => {
+    this.checkStein = (x, y, newPlaceDirection, forRules) => {
       for (var i = x + 1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i++) {
         if (mode == "easy") points.now++;
         else points.now += field[i][y].stein.points;
@@ -226,6 +230,41 @@ class Qwirkle {
       }
       }
     }
+    this.getWord = (x, y) => {
+      // var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
+      // if (placeDirection.coords.length < 2) {
+      //   if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
+      //   else newPlaceDirection.string = "y";
+      // }
+      currentWord = "";
+      var direction = -1;
+      var sides = {number: 0, direction: ""};
+      for (var direc of Object.keys(snake)) {
+        if (snake[direc].shapes.length == 1) {
+          sides.numer++;
+          sides.direction = direc;
+        }
+      }
+      if (sides == 1 && (sides.direction == "left" || sides.direction == "right")) newPlaceDirection.string = "x";
+      else if (sides == 1) newPlaceDirection.string = "y";
+      if (newPlaceDirection.string == "x") {
+        for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
+          if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
+            direction = 1;
+          }
+          if (direction == 1) currentWord += field[i][y].stein.letter;
+        }
+      }
+      if (newPlaceDirection.string == "y") {
+        for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
+          if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
+            direction = 1;
+          }
+          if (direction == 1) currentWord += field[x][i].stein.letter;
+        }
+      }
+      console.log('"' + currentWord + '" gelegt');
+    }
     this.spielerwechsel = () => {
       // if (turntype == "newStein") {
       //   this.broadcast({
@@ -234,6 +273,23 @@ class Qwirkle {
       //   data: player[Reihenfolge].steine
       //   });
       // }
+      if (mode == "normal" && turntype == "placeStein") {
+        turntype = "protestTime";
+        this.broadcast({
+           "type": "timeForProtest"
+        });
+        (async () => {
+          await waitforme(7000);
+          console.log("time over");
+          if (turntype == "protestTime") {
+            turntype = "";
+            this.spielerwechsel();
+          }
+        })()
+        setTimeout(function () {
+        }, 7000);
+      }
+      else if (turntype != "protestTime") {
       points.got[Reihenfolge] += points.now;
       points.now = 0;
       this.broadcast({
@@ -242,17 +298,19 @@ class Qwirkle {
          data: points.got[Reihenfolge]
       });
       if (player[Reihenfolge].steine.length) this.getSteine(Reihenfolge, 6 - player[Reihenfolge].steine.length);
-
+      console.log("reset turn type");
       turntype = "";
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
       Reihenfolge++;
       if (Reihenfolge == spielerOnline) Reihenfolge = 0;
+      if (player[Reihenfolge].aussetzen) this.spielerwechsel();
       this.broadcast({
         "type": "Reihenfolge",
         "data": Reihenfolge
       });
     }
+  }
   }
 
   // this.maxClients = 4;
@@ -459,7 +517,6 @@ class Qwirkle {
     // }
     // console.log("spielerOnline: " + spielerOnline);
   }
-
   onMessage(client, data) {
     /*  if (data.message.type == "zahl") {
 //      console.log("Adressant: " + data.message.adressant)
@@ -494,9 +551,31 @@ class Qwirkle {
       if (data.message.type == "vote") {
         this.voteFunc(data.message);
      }
+     else if (data.message.type == "protest" && turntype == "protestTime") {
+       console.log("protest!");
+       turntype = "rejected";
+       (async () => {
+         if (!(await wordInDuden(currentWord))) {
+           this.broadcast({
+             "type": "removeTiles",
+             "tiles": newTiles,
+           });
+           for (var newTile of newTiles) {
+             console.log(field[newTile.x][newTile.y]);
+             // points.now -= field[newTile.x][newTile.y].stein.points;
+             delete field[newTile.x][newTile.y].stein;
+           }
+           points.now = 0;
+           beginning = true;
+         }
+         else player[data.message.player].aussetzen = true;
+         this.spielerwechsel();
+       })()
+     }
      else if (data.message.type == "placeStein") {
      points.now = 0;
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
+         newTiles.push({x: data.message.coord.x, y: data.message.coord.y});
          turntype = "placeStein";
          beginning = false;
        var stein = JSON.parse(JSON.stringify(player[data.message.player].steine[data.message.steinI]));
@@ -516,6 +595,7 @@ class Qwirkle {
         if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
         else placeDirection.string = "y";
        }
+       this.getWord(data.message.coord.x, data.message.coord.y);
        console.log("xFieldSize: " + field.length);
        if (data.message.coord.x == field.length - 1) {
          field.push(new Array(field[data.message.coord.x].length));
@@ -611,8 +691,9 @@ else return await false;
 function replaceAll(str, find, replace) {
     return str.replace(new RegExp(find, 'g'), replace);
 }
-(async () => {
-  console.log(await wordInDuden("DAMPFLOKOMOTIV"));
-  console.log(await wordInDuden("DAMPFLOKOMOTIVE"));
-})()
+function waitforme(milisec) {
+    return new Promise(resolve => {
+        setTimeout(() => { resolve('') }, milisec);
+    })
+}
 module.exports = Qwirkle;

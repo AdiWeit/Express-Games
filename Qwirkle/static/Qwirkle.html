@@ -72,6 +72,7 @@
   };
   var player = {colours: ["red", "green", "blue", "yellow"], 0: {}, 1: {}, 2: {}, 3: {}};
   var mode = "";
+  var protestTime = false;
   room.setOnMessageListener(function(message) {
     if (message.type == "selectedMode") mode = message.data;
     if (message.type == "Reihenfolge")  {
@@ -81,6 +82,19 @@
         for (var fieldXY of fieldX) {
           if (fieldXY && fieldXY.stein) fieldXY.stein.new = false;
         }
+      }
+    }
+    if (message.type == "timeForProtest") {
+      protestTime = true;
+      layout();
+      setTimeout(function () {
+        protestTime = false;
+        layout();
+      }, 7000);
+    }
+    if (message.type == "removeTiles") {
+      for (var newTile of message.tiles) {
+        delete field[newTile.x][newTile.y].stein;
       }
     }
     if (message.type == "AnzahlSpieler") player.total = message.data;
@@ -212,6 +226,16 @@
     img = new Image();
     img.src = 'https://adi.nicolaiweitkemper.de/Bilder/check.png';
     canvas.drawImage(img, 20 + 50*9, 20 + 50*player.myNumber, 40, 40);
+    if (protestTime) {
+      canvas.fillStyle = "white";
+      canvas.beginPath();
+      canvas.arc(20 + 20 + 50*1, 20 + 20 + 50*player.myNumber, 15, 2 * Math.PI, false);
+      canvas.fill();
+      canvas.fillStyle = "red";
+      canvas.beginPath();
+      canvas.arc(20 + 50*1 + 20, 20 + 20 + 50*player.myNumber, 9, 2 * Math.PI, false);
+      canvas.fill();
+    }
   }
 
   function displayStein(stein, i, i1) {
@@ -269,13 +293,13 @@
   document.onmousemove = readMouseMove
   var selected = {};
   function canvasClicked() {
-    for (var i = 0; i < 8; i++) {
-      if (xMaus > 10 + 50*(2 + i) && xMaus < 10 + 50*(3 + i) && yMaus > 10 + 50*player.myNumber && yMaus < 10 + 50*(player.myNumber + 1)) {
-        if (i < player[player.myNumber].steine.length) {
-        selected = {stein: player[player.myNumber].steine[i], i: i};
+    for (var i = 0; i < 9; i++) {
+      if (xMaus > 10 + 50*(1 + i) && xMaus < 10 + 50*(2 + i) && yMaus > 10 + 50*player.myNumber && yMaus < 10 + 50*(player.myNumber + 1)) {
+        if (i - 1 >= 0 && i - 1 < player[player.myNumber].steine.length) {
+        selected = {stein: player[player.myNumber].steine[i], i: i - 1};
         layout();
       }
-      else if (i == 6) {
+      else if (i == 7) {
         room.send({
           message: {
             "type": "newStein",
@@ -285,6 +309,14 @@
         });
         player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
         layout();
+      }
+      else if (i == 0 && protestTime) {
+        room.send({
+          message: {
+            "type": "protest",
+            player: player.myNumber
+          }
+        });
       }
       else {
         room.send({
