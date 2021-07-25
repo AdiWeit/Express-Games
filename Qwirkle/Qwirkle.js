@@ -256,9 +256,9 @@ class Qwirkle {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
             direction = 1;
           }
-          if (direction == 1 && (!JSON.stringify(fieldsGot).includes('"x":' + i + ',"y":' + y)/* || replace*/)) {
+          if (direction == 1/* && (!JSON.stringify(fieldsGot).includes('"x":' + i + ',"y":' + y)/* || replace)*/) {
             if (JSON.stringify(newTiles).includes('"x":' + i + ',"y":' + y)) {
-              console.log(i + " - " + y + " is new");
+              // console.log(i + " - " + y + " is new");
               newIncluded = true;
             }
             currentWords[currentWords.length - 1] += field[i][y].stein.letter;
@@ -269,26 +269,27 @@ class Qwirkle {
         if (!newIncluded) currentWords.pop();
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
-          console.log(currentWords);
-          console.log(i);
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
-            console.log(currentWords);
-            console.log("remove i " + i);
+            // console.log("remove i " + i);
             currentWords.splice(i, 1);
             i = 0;
           }
         }
 
       currentWords.push("");
+      direction = -1;
       newIncluded = false;
+      // console.log("check y");
         for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
           if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
+            // console.log("top reached: " + i);
             direction = 1;
           }
-          if (direction == 1 && !JSON.stringify(fieldsGot).includes('"x":' + x + ',"y":' + i)) {
+          if (direction == 1/* && !JSON.stringify(fieldsGot).includes('"x":' + x + ',"y":' + i)*/) {
+            // console.log("going down: " + i);
             if (JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + i)) {
               newIncluded = true;
-              console.log(x + " - " + i + " is new");
+              // console.log(x + " - " + i + " is new");
             }
             currentWords[currentWords.length - 1] += field[x][i].stein.letter;
             // fieldsGot.push({x: x, y: i});
@@ -297,15 +298,13 @@ class Qwirkle {
         if (!newIncluded) currentWords.pop();
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
-          console.log(currentWords);
-          console.log(i);
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
-            console.log(currentWords);
-            console.log("remove i " + i);
+            // console.log("remove i " + i);
             currentWords.splice(i, 1);
             i = 0;
           }
         }
+        currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
     this.spielerwechsel = () => {
       // if (turntype == "newStein") {
@@ -651,6 +650,7 @@ class Qwirkle {
          this.getWord(tile.x, tile.y, fieldsGot);
        }
        currentWords = currentWords.filter(x => x.length > 1);
+       console.log("filtered words: ");
        console.log(currentWords);
        console.log("xFieldSize: " + field.length);
        if (data.message.coord.x == field.length - 1) {
