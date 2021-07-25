@@ -8,7 +8,7 @@ var votes;
 let mode;
 var turntype = "";
 var newTiles = [];
-var currentWord = "";
+var currentWords = [];
 var beginning = true;
 var points = {now: 0, before:0, got: [0, 0, 0, 0]};
 var field = [];
@@ -190,11 +190,14 @@ class Qwirkle {
       };
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && turntype != "newStein" && sameLine && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
+      return data.player == Reihenfolge && turntype != "newStein" && (sameLine || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, forRules) => {
       for (var i = x + 1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i++) {
-        if (mode == "easy") points.now++;
+        if (mode == "easy") {
+        points.now++;
+        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        }
         else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x + 1) points.now++;
         if (forRules) {
@@ -203,7 +206,10 @@ class Qwirkle {
       }
       }
       for (var i = x -1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i--) {
-        if (mode == "easy") points.now++;
+        if (mode == "easy") {
+        points.now++;
+        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        }
         else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x - 1) points.now++;
         if (forRules) {
@@ -212,7 +218,10 @@ class Qwirkle {
       }
       }
       for (var i = y + -1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i--) {
-        if (mode == "easy") points.now++;
+        if (mode == "easy") {
+        points.now++;
+        if (Math.abs(i - y) + 1 == 6) points.now += 6;
+        }
         else points.now += field[x][i].stein.points;
         if (mode == "easy" && i == y - 1) points.now++;
         if (forRules) {
@@ -223,47 +232,80 @@ class Qwirkle {
       for (var i = y + 1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i++) {
         if (mode == "easy" && i == y + 1) points.now++;
         else points.now += field[x][i].stein.points;
-        if (mode == "easy") points.now++;
+        if (mode == "easy") {
+        points.now++;
+        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        }
         if (forRules) {
         if (!snake.down.shapes.includes(field[x][i].stein.name)) snake.down.shapes.push(field[x][i].stein.name);
         if (!snake.down.colours.includes(field[x][i].stein.colour)) snake.down.colours.push(field[x][i].stein.colour);
       }
       }
     }
-    this.getWord = (x, y) => {
+    this.getWord = (x, y, fieldsGot) => {
       // var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
       // if (placeDirection.coords.length < 2) {
       //   if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
       //   else newPlaceDirection.string = "y";
       // }
-      currentWord = "";
       var direction = -1;
-      var sides = {number: 0, direction: ""};
-      for (var direc of Object.keys(snake)) {
-        if (snake[direc].shapes.length == 1) {
-          sides.numer++;
-          sides.direction = direc;
-        }
-      }
-      if (sides == 1 && (sides.direction == "left" || sides.direction == "right")) newPlaceDirection.string = "x";
-      else if (sides == 1) newPlaceDirection.string = "y";
-      if (newPlaceDirection.string == "x") {
+      currentWords.push("");
+      // var replace = false;
+      var newIncluded = false;
         for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
             direction = 1;
           }
-          if (direction == 1) currentWord += field[i][y].stein.letter;
+          if (direction == 1 && (!JSON.stringify(fieldsGot).includes('"x":' + i + ',"y":' + y)/* || replace*/)) {
+            if (JSON.stringify(newTiles).includes('"x":' + i + ',"y":' + y)) {
+              console.log(i + " - " + y + " is new");
+              newIncluded = true;
+            }
+            currentWords[currentWords.length - 1] += field[i][y].stein.letter;
+            // replace = true;
+            // fieldsGot.push({x: i, y: y});
+          }
         }
-      }
-      if (newPlaceDirection.string == "y") {
+        if (!newIncluded) currentWords.pop();
+        currentWords.sort((a, b) => a.length - b.length);
+        for (var i = 0; i < currentWords.length; i++) {
+          console.log(currentWords);
+          console.log(i);
+          if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
+            console.log(currentWords);
+            console.log("remove i " + i);
+            currentWords.splice(i, 1);
+            i = 0;
+          }
+        }
+
+      currentWords.push("");
+      newIncluded = false;
         for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
           if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
             direction = 1;
           }
-          if (direction == 1) currentWord += field[x][i].stein.letter;
+          if (direction == 1 && !JSON.stringify(fieldsGot).includes('"x":' + x + ',"y":' + i)) {
+            if (JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + i)) {
+              newIncluded = true;
+              console.log(x + " - " + i + " is new");
+            }
+            currentWords[currentWords.length - 1] += field[x][i].stein.letter;
+            // fieldsGot.push({x: x, y: i});
+          }
         }
-      }
-      console.log('"' + currentWord + '" gelegt');
+        if (!newIncluded) currentWords.pop();
+        currentWords.sort((a, b) => a.length - b.length);
+        for (var i = 0; i < currentWords.length; i++) {
+          console.log(currentWords);
+          console.log(i);
+          if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
+            console.log(currentWords);
+            console.log("remove i " + i);
+            currentWords.splice(i, 1);
+            i = 0;
+          }
+        }
     }
     this.spielerwechsel = () => {
       // if (turntype == "newStein") {
@@ -298,8 +340,8 @@ class Qwirkle {
          data: points.got[Reihenfolge]
       });
       if (player[Reihenfolge].steine.length) this.getSteine(Reihenfolge, 6 - player[Reihenfolge].steine.length);
-      console.log("reset turn type");
       turntype = "";
+      newTiles = [];
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
       Reihenfolge++;
@@ -554,14 +596,17 @@ class Qwirkle {
      else if (data.message.type == "protest" && turntype == "protestTime") {
        console.log("protest!");
        turntype = "rejected";
+       var allInDuden = true;
        (async () => {
-         if (!(await wordInDuden(currentWord))) {
+         for (var currentWord of currentWords) {
+         if (!(await wordInDuden(currentWord))) allInDuden = false;
+         }
+         if (!allInDuden) {
            this.broadcast({
              "type": "removeTiles",
              "tiles": newTiles,
            });
            for (var newTile of newTiles) {
-             console.log(field[newTile.x][newTile.y]);
              // points.now -= field[newTile.x][newTile.y].stein.points;
              delete field[newTile.x][newTile.y].stein;
            }
@@ -600,7 +645,13 @@ class Qwirkle {
         if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
         else placeDirection.string = "y";
        }
-       this.getWord(data.message.coord.x, data.message.coord.y);
+       currentWords = [];
+       var fieldsGot = [];
+       for (var tile of newTiles) {
+         this.getWord(tile.x, tile.y, fieldsGot);
+       }
+       currentWords = currentWords.filter(x => x.length > 1);
+       console.log(currentWords);
        console.log("xFieldSize: " + field.length);
        if (data.message.coord.x == field.length - 1) {
          field.push(new Array(field[data.message.coord.x].length));
