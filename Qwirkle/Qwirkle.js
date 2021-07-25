@@ -154,7 +154,6 @@ class Qwirkle {
     }
     this.canPlace = (data) => {
       console.log("check if stein can be placed");
-      if (mode == "normal") points.now += player[data.player].steine[data.steinI].points;
       snake = {right: {shapes: [], colours: []}, left: {shapes: [], colours: []}, up: {shapes: [], colours: []}, down: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
       this.checkStein(data.coord.x, data.coord.y, undefined, true);
@@ -198,7 +197,6 @@ class Qwirkle {
         points.now++;
         if (Math.abs(i - x) + 1 == 6) points.now += 6;
         }
-        else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x + 1) points.now++;
         if (forRules) {
         if (!snake.right.shapes.includes(field[i][y].stein.name)) snake.right.shapes.push(field[i][y].stein.name);
@@ -210,7 +208,6 @@ class Qwirkle {
         points.now++;
         if (Math.abs(i - x) + 1 == 6) points.now += 6;
         }
-        else points.now += field[i][y].stein.points;
         if (mode == "easy" && i == x - 1) points.now++;
         if (forRules) {
         if (!snake.left.shapes.includes(field[i][y].stein.name)) snake.left.shapes.push(field[i][y].stein.name);
@@ -222,7 +219,6 @@ class Qwirkle {
         points.now++;
         if (Math.abs(i - y) + 1 == 6) points.now += 6;
         }
-        else points.now += field[x][i].stein.points;
         if (mode == "easy" && i == y - 1) points.now++;
         if (forRules) {
         if (!snake.up.shapes.includes(field[x][i].stein.name)) snake.up.shapes.push(field[x][i].stein.name);
@@ -231,7 +227,6 @@ class Qwirkle {
       }
       for (var i = y + 1; (forRules || newPlaceDirection.string != "y") && field[x][i] && field[x][i].stein; i++) {
         if (mode == "easy" && i == y + 1) points.now++;
-        else points.now += field[x][i].stein.points;
         if (mode == "easy") {
         points.now++;
         if (Math.abs(i - x) + 1 == 6) points.now += 6;
@@ -242,7 +237,7 @@ class Qwirkle {
       }
       }
     }
-    this.getWord = (x, y, fieldsGot) => {
+    this.getWord = (x, y) => {
       // var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
       // if (placeDirection.coords.length < 2) {
       //   if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
@@ -256,14 +251,13 @@ class Qwirkle {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
             direction = 1;
           }
-          if (direction == 1/* && (!JSON.stringify(fieldsGot).includes('"x":' + i + ',"y":' + y)/* || replace)*/) {
+          if (direction == 1) {
             if (JSON.stringify(newTiles).includes('"x":' + i + ',"y":' + y)) {
               // console.log(i + " - " + y + " is new");
               newIncluded = true;
             }
             currentWords[currentWords.length - 1] += field[i][y].stein.letter;
             // replace = true;
-            // fieldsGot.push({x: i, y: y});
           }
         }
         if (!newIncluded) currentWords.pop();
@@ -285,14 +279,13 @@ class Qwirkle {
             // console.log("top reached: " + i);
             direction = 1;
           }
-          if (direction == 1/* && !JSON.stringify(fieldsGot).includes('"x":' + x + ',"y":' + i)*/) {
+          if (direction == 1) {
             // console.log("going down: " + i);
             if (JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + i)) {
               newIncluded = true;
               // console.log(x + " - " + i + " is new");
             }
             currentWords[currentWords.length - 1] += field[x][i].stein.letter;
-            // fieldsGot.push({x: x, y: i});
           }
         }
         if (!newIncluded) currentWords.pop();
@@ -644,14 +637,25 @@ class Qwirkle {
         if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
         else placeDirection.string = "y";
        }
+       if (mode == "normal") {
        currentWords = [];
-       var fieldsGot = [];
        for (var tile of newTiles) {
-         this.getWord(tile.x, tile.y, fieldsGot);
+         this.getWord(tile.x, tile.y);
        }
        currentWords = currentWords.filter(x => x.length > 1);
        console.log("filtered words: ");
        console.log(currentWords);
+       for (var word of currentWords) {
+         for (var currentLetter of word) {
+           for (var stein of steine.normal) {
+             if (stein.letter == currentLetter) {
+               points.now += stein.points;
+               // console.log("add " + stein.points + " points letter " + currentLetter +" of word " + word);
+             }
+           }
+         }
+       }
+     }
        console.log("xFieldSize: " + field.length);
        if (data.message.coord.x == field.length - 1) {
          field.push(new Array(field[data.message.coord.x].length));
