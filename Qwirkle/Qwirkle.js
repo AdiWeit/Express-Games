@@ -300,7 +300,7 @@ class Qwirkle {
         currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
     this.spielerwechsel = () => {
-      inSpielerwechsel = true;
+      if (mode == "normal") inSpielerwechsel = true;
       // if (turntype == "newStein") {
       //   this.broadcast({
       //   "type": "steinePlayer",
@@ -570,7 +570,6 @@ class Qwirkle {
         this.send(this.player[4].client, {"type": "zahl", "data": data.message.data + 1});
       }
     }*/
-
     if (!(this.player[1] && this.player[2])) return this.broadcast("Es fehlt noch ein Spieler!");
     /*  if (data.message.type == "stayActive") {
         AblageListe[1] = "stayActive";
