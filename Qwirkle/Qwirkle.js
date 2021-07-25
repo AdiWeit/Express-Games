@@ -721,7 +721,7 @@ function initDB() {
 async function wordInDuden(word) {
   initDB();
 const browser = await puppeteer.launch({
-  headless: false,
+  headless: true,
   args: ['--no-sandbox', '--disable-setuid-sandbox'],
   // useUnifiedTopology: true
 });
