@@ -1,0 +1,664 @@
+<canvas id="textur" width="3310" height="790" style="opacity:1"></canvas>
+<input type="text" id="message" placeholder="message">
+<button type="button" id="submit" onclick="submit()" name="button">send</button>
+<meta charset="utf-8">
+<script>
+  window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/HeyDasIstMeinFisch/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+
+  let oldId = localStorage.getItem('CLIENTIDHeyDasIstMeinFisch');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDHeyDasIstMeinFisch', clientId);
+
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/HeyDasIstMeinFisch/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/HeyDasIstMeinFisch/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/HeyDasIstMeinFisch/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+
+  var canvas = textur.getContext('2d'); //Dimension
+  var spielerIch;
+  var Reihenfolge;
+  var ReihenfolgeBleibt = [];
+//  var player = [1, 2, 2, 3, 3, 4];
+  var Bild = new Image();
+  var xMaus = 0;
+  var yMaus = 0;
+  var field = [];
+  var fields = [];
+  var messages = [];
+//  var holeSpots = [[{x: 1, y: 0}, {x: 6, y: 1}, {x: 3, y: 2}, {x: 0, y: 3}, {x: 2, y: 3}, {x: 7, y: 3}, {x: 4, y: 4}, {x: 0, y: 5}, {x: 5, y: 5}, {x: 2, y: 6}, {x: 3, y: 6}, {x: 6, y: 6}, {x: 2, y: 8}]];
+  var fieldAktuell = 0;
+  var player = {firstPlayer: ""};
+  var playerList = [];
+  var points = {3: 10, 2: 20, 1: 34};
+  var pointsList = [];
+  for (var point of Object.keys(points)) {
+    for (var i = 0; i < points[point]; i++) {
+      pointsList.push(point);
+    }
+  }
+  for (var i = 0; i < 8; i++) {
+    field[i] = [];
+    for (var i1 = 0; i1 < 8; i1++) {
+      var index = Math.round(Math.random() * (pointsList.length - 1));
+      // var direction = Math.round(Math.random() *1);
+      // for (var i2 = 0; i2 < pointsList.length && (i1 > 0 && field[i][i1 - 1].points == pointsList[index]) || (i > 0 && field[i - 1][i1].points == pointsList[index]); i2++) {
+      //   if (pointsList[index] == 1 || (pointsList[index] == 2 && direction == 0)) index++;
+      //   else if (pointsList[index] == 2 || pointsList[index] == 3) index--;
+      // }
+      field[i][i1] = {player: false, hole: false, points: pointsList[index]};
+      pointsList.splice(index, 1);
+  }
+}
+fields.push(field);
+Layout();
+  var movePlayerInt;
+  var AblageListe = [];
+  var movementList = [];
+  room.setOnMessageListener(function(message) {
+    if (message.type == "movePlayer") {
+      fields[0][message.startPosition.y][message.startPosition.x].hole = true;
+      player[message.playerId].points = JSON.parse(player[message.playerId].points) + JSON.parse(fields[0][message.startPosition.y][message.startPosition.x].points);
+      if (!movementList[fieldAktuell]) movementList[fieldAktuell] = [];
+      movementList[fieldAktuell].push(JSON.parse(JSON.stringify(message)));
+      localStorage.setItem("movementListHeyDasIstMeinFisch", JSON.stringify(movementList));
+      setTimeout(function () {
+        audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
+        audio.currentTime = 32;
+        audio.play();
+        setTimeout(function () {
+          audio.pause();
+        }, 1000);
+      }, 200);
+      var movingStats = message;
+      var position = {x: message.startPosition.x, y: message.startPosition.y}
+      var placed = true;
+      // player[spielerIch].finished = false;
+      movePlayerInt = setInterval(function () {
+      if (position.x == movingStats.endPosition.x && position.y == movingStats.endPosition.y) {
+        clearInterval(movePlayerInt);
+        if (fields[fieldAktuell][position.y][position.x].hole) {
+          setTimeout(function () {
+            var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+            audio.play();
+            setTimeout(function () {
+              audio.pause();
+            }, 900);
+          }, 1333);
+        }
+        if (!fields[fieldAktuell][movingStats.endPosition.y][movingStats.endPosition.x].repeat && /*spielerIch == Reihenfolge[0] && !player[spielerIch].finished*/player[spielerIch].movement == "waitingForEndingMove") {
+          // setTimeout(function () {
+            Spielerwechsel();
+          // }, 1000);
+          // player[spielerIch].finished = true;
+        }
+        if (fields[fieldAktuell][movingStats.endPosition.y][movingStats.endPosition.x].repeat && player[spielerIch].movement == "waitingForEndingMove") {
+          spielerKommtDran();
+          ReihenfolgeList[fieldAktuell].push(JSON.parse(JSON.stringify(Reihenfolge)));
+          localStorage.setItem("ReihenfolgeListHeyDasIstMeinFisch", JSON.stringify(ReihenfolgeList));
+          room.send({
+            message: {
+              "type": "player",
+              data: player[spielerIch],
+              player: spielerIch,
+              firstPlayer: player.firstPlayer,
+              repeatField: true
+            }
+          });
+        }
+      }
+      else {
+        if (placed) fields[fieldAktuell][position.y][position.x].player = false;
+        placed = false;
+        position.x += movingStats.direction.x;
+        position.y += movingStats.direction.y;
+        if (fields[fieldAktuell][position.y][position.x] && !fields[fieldAktuell][position.y][position.x].player) {fields[fieldAktuell][position.y][position.x].player = movingStats.playerId; placed = true;}
+        Layout();
+        }
+      }, 222);
+    }
+    if (message.type == "spielerDu") {
+      spielerIch = message.data;
+      player[spielerIch] = {figuresPlaced: 0, lasthole: 0, roundsLeft: 4, points: 0}
+        if (message.newRound != true)
+       {
+        if (JSON.parse(localStorage.getItem('HeyDasIstMeinFischFields')) != undefined && JSON.parse(localStorage.getItem('HeyDasIstMeinFischFields')) != "undefined" && confirm("wollen sie die vorherige Runde weiterspielen?"))  {
+          fields = JSON.parse(localStorage.getItem('HeyDasIstMeinFischFields'));
+          Reihenfolge = JSON.parse(localStorage.getItem('HeyDasIstMeinFischReihenfolge'));
+          ReihenfolgeBleibt = JSON.parse(localStorage.getItem('HeyDasIstMeinFischReihenfolgeBliebt'));
+          fieldAktuell = JSON.parse(localStorage.getItem('HeyDasIstMeinFischFieldAktuell'));
+
+          // spielfeld:  spielerIch: spielerIch, playerList: playerList, movementList: movementList};
+          figurePlacement = JSON.parse(localStorage.getItem('figurePlacementHeyDasIstMeinFisch'));
+          ReihenfolgeList = JSON.parse(localStorage.getItem('ReihenfolgeListHeyDasIstMeinFisch'));
+          playerList = JSON.parse(localStorage.getItem('playerListHeyDasIstMeinFisch'));
+          movementList = JSON.parse(localStorage.getItem('movementListHeyDasIstMeinFisch'));
+          for (var i = 0; i < Object.keys(JSON.parse(localStorage.getItem('HeyDasIstMeinFischPlayer'))).length; i++) {
+            player[Object.keys(JSON.parse(localStorage.getItem('HeyDasIstMeinFischPlayer')))[i]] = JSON.parse(localStorage.getItem('HeyDasIstMeinFischPlayer'))[Object.keys(JSON.parse(localStorage.getItem('HeyDasIstMeinFischPlayer')))[i]];
+          }
+          Layout();
+        }
+        else {
+          room.send({
+            message: {
+              "type": "endGame",
+              alert: true
+            }
+          });
+        }
+      }
+      else {
+        if (!localStorage.getItem("nameOnlineGames")) {
+          player[spielerIch].name = prompt("Wie heißen sie? (Der name wird auf dem Gerät gespeichert und kann später noch geändert weden.)");
+          localStorage.setItem("nameOnlineGames", player[spielerIch].name);
+        }
+        else player[spielerIch].name = localStorage.getItem("nameOnlineGames");
+        setTimeout(function () {
+          room.send({
+            message: {
+              "type": "syncPlayerName",
+              name: player[spielerIch].name,
+              player: spielerIch
+            }
+          });
+        }, 1000);
+        player.syncedNames = 0;
+        //spieler[spielerIch].namesChanged = JSON.parse(localStorage.getItem("namesChangedMonopoly"));
+      }
+    }
+    if (message.type == "syncPlayerName") {
+      if (!player[message.player]) player[message.player] = {};
+      player[message.player].name = message.name;
+      player[message.player].realName = message.name
+      player.syncedNames++;
+      if (player.syncedNames == ReihenfolgeBleibt.length) {
+      //   for (var i = 0; JSON.parse(localStorage.getItem("namesChangedMonopoly")) && i < Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly"))).length; i++) {
+      //     for (var i1 = 0; i1 < AnzahlSpieler; i1++) {
+      //       if (Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i] == (spieler[i1].name)) spieler[i1].name = JSON.parse(localStorage.getItem("namesChangedMonopoly"))[Object.keys(JSON.parse(localStorage.getItem("namesChangedMonopoly")))[i]];
+      //     }
+      //   }
+      Layout();
+      }
+    }
+    if (message.type == "gewonnen") {
+      setTimeout(function () {
+        if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/HeyDasIstMeinFisch.html angucken.")) {
+          if (localStorage.getItem("playBacksHeyDasIstMeinFisch")) var replays = JSON.parse(localStorage.getItem("playBacksHeyDasIstMeinFisch"));
+          else var replays = {};
+          replays[prompt("Wie wollen sie ihr Replay nennen?")] = {spielfeld: figurePlacement, ReihenfolgeList: ReihenfolgeList, ReihenfolgeBleibt: ReihenfolgeBleibt, spielerIch: spielerIch, playerList: playerList, movementList: movementList};
+          localStorage.setItem("playBacksHeyDasIstMeinFisch", JSON.stringify(replays));
+        }
+      }, 2222);
+      showResults(message.data, 0);
+      /* removeGame(true);*/
+      room.send({
+        message: {
+          "type": "endGame",
+          alert: false
+        }
+      });
+    }
+    if (message.type == "endGame") {if (message.alert) alert("Da ein Spieler das aktuelle Spiel beendet hat, wird das Spiel beendet. Laden sie für ein neues Spiel die Seite neu!"); serverDatenLöschen(); }
+    if (message.type == "fields") {
+      fields = message.data;
+      if (player[spielerIch].movement == "waitingForOpponentPlacingPlayer") {figurePlacement[0] = JSON.parse(JSON.stringify(fields[0])); localStorage.setItem("figurePlacementHeyDasIstMeinFisch", JSON.stringify(figurePlacement));}
+      if (message.figurePlaced && ReihenfolgeBleibt[message.empfänger] == spielerIch) {
+        if (player[spielerIch].figuresPlaced > (4 - 1)) {
+          spielerKommtDran();
+        }
+        else player[spielerIch].movement = "placePlayer";
+        room.send({
+          message: {
+            "type": "player",
+            data: player[spielerIch],
+            player: spielerIch,
+            firstPlayer: player.firstPlayer
+          }
+        });
+      }
+      // Layout();
+      audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/table-sound-effects-all-sounds-youtubemp3free.org.mp3");
+      audio.currentTime = 26;
+      audio.play();
+      setTimeout(function () {
+        audio.pause();
+      }, 200);
+      // if (message.sound) {
+      //   var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/''PLOP''%20-%20Sound%20Effect%20(FREE).mp3")
+      // audio.play();
+      //  setTimeout(function () {
+      //     audio.pause();
+      //   }, 900);
+      // }
+      playerSynced = 0;
+    }
+    if (message.type == "messages") {
+      window.scroll(0, 0);
+      messages = message.data
+      textur.height = 777 + messages.length*44;
+      Layout();
+      if (!(spielerIch == message.sender) && !message.noAudio) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
+      AblageListe[1] = "warten Message angucken";
+      setTimeout(function () {
+        AblageListe[1] = "beendet";
+      }, 3777);
+    };
+    if (message.type == "player") {
+      player[message.player] = message.data;
+      playerSynced++;
+      if (message.firstPlayer != "") player.firstPlayer = message.firstPlayer;
+      Layout();
+      if ((message.repeatField || playerSynced == Object.keys(player).length - 2) && (player[spielerIch].movement == "movePlayer" || player[spielerIch].movement == "waitingForOpponent")) {
+        if (!playerList[fieldAktuell]) playerList[fieldAktuell] = [];
+        playerList[fieldAktuell].push(JSON.parse(JSON.stringify(player)))
+        localStorage.setItem("playerListHeyDasIstMeinFisch", JSON.stringify(playerList));
+        playerSynced = 0;
+      }
+    }
+    if (message.type == "Reihenfolge") {
+      if (player[spielerIch]) player[spielerIch].movement = "waitingForOpponent";
+      if (!Reihenfolge || message.join/* || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3]))*/) {
+        ReihenfolgeBleibt = message.data;
+        player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
+      }
+      if ((!Reihenfolge || message.join/* || (!Reihenfolge || !(Reihenfolge.includes(message.data[0])) || !(Reihenfolge.includes(message.data[1])) || (message.data[2] && !(Reihenfolge.includes(message.data[2]))) || !(message.data[3] && Reihenfolge.includes(message.data[3])))*/) && ReihenfolgeBleibt[0] == spielerIch) {player[spielerIch].movement = "placePlayer";}
+      Reihenfolge = message.data;
+      setTimeout(function () {
+        if (!ReihenfolgeList[fieldAktuell]) ReihenfolgeList[fieldAktuell] = [];
+        ReihenfolgeList[fieldAktuell].push(JSON.parse(JSON.stringify(Reihenfolge)));
+        localStorage.setItem("ReihenfolgeListHeyDasIstMeinFisch", JSON.stringify(ReihenfolgeList));
+      }, 1500);
+      if (Reihenfolge[0] == spielerIch && player[spielerIch].movement != "placePlayer") {
+        spielerKommtDran(); // debugcheck
+      }
+      room.send({
+        message: {
+          "type": "player",
+          data: player[spielerIch],
+          player: spielerIch,
+          firstPlayer: player.firstPlayer
+        }
+      });
+      //player = {};
+      // setTimeout(function () {
+      //   Layout();
+      // }, 1333);
+      localStorage.setItem("HeyDasIstMeinFischFields", JSON.stringify(fields));
+      localStorage.setItem("HeyDasIstMeinFischReihenfolge", JSON.stringify(Reihenfolge));
+      localStorage.setItem("HeyDasIstMeinFischReihenfolgeBliebt", JSON.stringify(ReihenfolgeBleibt));
+      localStorage.setItem("HeyDasIstMeinFischFieldAktuell", JSON.stringify(fieldAktuell));
+      localStorage.setItem("HeyDasIstMeinFischPlayer", JSON.stringify(player));
+    }
+  });
+  var figurePlacement = [];
+  var ReihenfolgeList = [];
+  var playerSynced = 0;
+  function serverDatenLöschen() {
+    // localStorage.clear("HeyDasIstMeinFischFields");
+    // localStorage.clear("HeyDasIstMeinFischReihenfolge");
+    // localStorage.clear("HeyDasIstMeinFischReihenfolgeBliebt");
+    // localStorage.clear("HeyDasIstMeinFischFieldAktuell");
+    // localStorage.clear("HeyDasIstMeinFischPlayer");
+    // localStorage.clear('CLIENTIDHeyDasIstMeinFisch')
+  }
+  function showResults(gewinner, times) {
+    if (spielerIch == gewinner) {
+      console.log("Du hast gewonnen!!!");
+      if (times == 0) audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
+        canvas.fillStyle = "green";
+        canvas.fillRect(0, 0, 1847, 973);
+        Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+        canvas.drawImage(Bild, 260, 0);
+    } else {
+      console.log("Du hast verloren!!!");
+      canvas.fillStyle = "red";
+      canvas.fillRect(0, 0, 1847, 973)
+      Bild.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg"
+      canvas.drawImage(Bild, 260, 0);
+      if (times == 0)  audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+    }
+    setTimeout(function () {
+      if (times < 5) showResults(gewinner, times + 1,);
+    }, 500);
+  }
+  function spielerKommtDran() {
+    var anzahlPlayer = {};
+    anzahlPlayer[spielerIch] = 0;
+    for (var i = 0; i <  8; i++) {
+      for (var i1 = 0; i1 <  8 + i; i1++) {
+        if (/*fieldAktuell == 3 && */fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && !fields[fieldAktuell][i][i1].hole) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
+      }
+    }
+    if (giveUp) {
+      Spielerwechsel(false);
+      //audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/Fail%20-%20N%C3%B6%C3%B6t.mp3").play();
+    }
+    else {
+      player[spielerIch].movement = "movePlayer";
+      var randomNumber = Math.floor(Math.random() * (player[spielerIch].cards.length - 1));
+      player[spielerIch].chosenCard = player[spielerIch].cards[randomNumber];
+      player[spielerIch].cards.splice(randomNumber, 1);
+      if (player[spielerIch].cards.length < 1) player[spielerIch].cards = [1, 2, 2, 3, 3, 4];
+      player[spielerIch].moving = undefined;
+      Layout();
+    }
+  }
+  // repeat: ⟲
+  function Layout() {
+   if (Bild.src == "") {
+    canvas.fillStyle = "blue"
+    canvas.fillRect(0, 0, textur.width, textur.height);
+    for (var i = 0; i < 8; i++) {
+      for (var i1 = 0; i1 < 8 + i; i1++) {
+        canvas.fillStyle = "#81F7F3";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[0]) canvas.fillStyle = "red";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[1]) canvas.fillStyle = "yellow";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[2]) canvas.fillStyle = "#00FF00";
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player == ReihenfolgeBleibt[3]) canvas.fillStyle = "blue";
+        if (player[spielerIch] && player[spielerIch].moving != undefined && player[spielerIch].movement == "movePlayer" && i + "" + i1 == player[spielerIch].moving[0] + "" + player[spielerIch].moving[1]) canvas.fillStyle = "#24D1DB";
+        if (fields[fieldAktuell][i][i1]) {
+          canvas.beginPath();
+          canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+          canvas.fill();
+          canvas.fillStyle = "black";
+          canvas.font = "50px Georgia";
+          canvas.fillText(fields[fieldAktuell][i][i1].points, 50 + 77*i1 - 9, 50 + 77*i + 13);
+          if (fields[fieldAktuell][i][i1].hole) {
+            canvas.fillStyle = "blue"
+            canvas.beginPath();
+            canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+            canvas.fill();
+          }
+        }
+      }
+    }
+  var plusCoordinates = [{x: 777, y: 0}, {x: 950, y: 0}, {x: 950, y: 200}, {x: 777, y: 200}];
+  var coloursLayout = ["red", "orange", "#00FF00", "blue"];
+  for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+    if (ReihenfolgeBleibt[i] == spielerIch) canvas.fillStyle = "#02A1FD";
+    if ((Reihenfolge[0] == ReihenfolgeBleibt[i] && player[ReihenfolgeBleibt[i]].movement != undefined && player[ReihenfolgeBleibt[i]].movement != "waitingForOpponentPlacingPlayer" && player[ReihenfolgeBleibt[i]].movement != "placePlayer") || (player[ReihenfolgeBleibt[i]] != undefined && player[ReihenfolgeBleibt[i]].movement == "placePlayer")) canvas.fillStyle = "#DF0101";
+    else if (ReihenfolgeBleibt[i] != spielerIch) canvas.fillStyle = "white";
+    canvas.fillRect(10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y, 66, 100);
+    canvas.font = "50px Georgia";
+    canvas.fillStyle = coloursLayout[i];//"green";
+    if (player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]] && player[ReihenfolgeBleibt[i]].cards) canvas.fillText(player[ReihenfolgeBleibt[i]].points ,33 + plusCoordinates[i].x, 77 + plusCoordinates[i].y);
+    canvas.fillStyle = "white";
+    canvas.font = "50px Georgia";
+    if (player[ReihenfolgeBleibt[i]]) canvas.fillText(player[ReihenfolgeBleibt[i]].name, 10 + plusCoordinates[i].x, 10 + plusCoordinates[i].y + 150);
+  }
+  showChat();
+  canvas.fillStyle = "white";
+  canvas.font = "44px Georgia";
+  if (player[spielerIch] != undefined && (4 - player[spielerIch].figuresPlaced) > 0) canvas.fillText("verbleibende Steine zum legen: " + (4 - player[spielerIch].figuresPlaced), 211, 755);
+}
+  canvas.fillText("aufgeben", 850, 450);
+  }
+  function showChat() {
+    for (var i = 0; i < messages.length; i++) {
+      canvas.fillStyle = "white";
+      canvas.font = "33px Georgia";
+      canvas.fillText(messages[messages.length - 1 - i], 1111, 33 + 44*i);
+    }
+  }
+
+  function Spielerwechsel(sound) {
+    var holes = 0;
+    var holesFilled = 0;
+    if (fieldAktuell == 3 && (player[spielerIch].roundsLeft > 0 || (player[ReihenfolgeBleibt[0]].lasthole > 0 || player[ReihenfolgeBleibt[1]].lasthole > 0 || (player[ReihenfolgeBleibt[2]] != undefined && player[ReihenfolgeBleibt[2]].lasthole > 0) || (player[ReihenfolgeBleibt[3]] != undefined && player[ReihenfolgeBleibt[3]].lasthole > 0)))) player[spielerIch].roundsLeft--;
+    var anzahlPlayer = {};
+    for (var i = 0; i <  8; i++) {
+      for (var i1 = 0; i1 <  8 + i; i1++) {
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].hole && fieldAktuell != 3) holes++;
+        if (fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined && fields[fieldAktuell][i][i1].player != false && fields[fieldAktuell][i][i1].hole) holesFilled++;
+        if (fieldAktuell == 3 && fields[fieldAktuell][i][i1] != undefined && fields[fieldAktuell][i][i1].player != undefined) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
+      }
+    }
+    gewonnenCheck();
+    // room.send({
+    //   message: {
+    //     "type": "fields",
+    //     data: fields,
+    //     sound: sound
+    //   }
+    // });
+    room.send({
+      message: {
+        "type": "Spielerwechsel",
+        data: Reihenfolge
+      }
+    });
+  }
+  function gewonnenCheck() {
+    var highest = {player: -1, anzahl: 0};
+    var anzahlPlayer = {};
+    for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+      if (player[ReihenfolgeBleibt[i]].lasthole > highest.anzahl) {highest.player = ReihenfolgeBleibt[i]; highest.anzahl = player[ReihenfolgeBleibt[i]].lasthole; }
+      anzahlPlayer[ReihenfolgeBleibt[i]] = 0;
+      anzahlPlayer[ReihenfolgeBleibt[i]] += player[ReihenfolgeBleibt[i]].lasthole;
+     }
+     for (var i = 0; i <  8; i++) {
+       for (var i1 = 0; i1 <  8; i1++) {
+         if (fields[fieldAktuell][i][i1] && fields[fieldAktuell][i][i1].player) anzahlPlayer[fields[fieldAktuell][i][i1].player]++;
+       }
+     }
+    if ((player[spielerIch].lasthole > 1 || (ReihenfolgeBleibt.length == 4 && fieldAktuell == 3 && anzahlPlayer[ReihenfolgeBleibt[0]] < 2 && anzahlPlayer[ReihenfolgeBleibt[1]] < 2 && anzahlPlayer[ReihenfolgeBleibt[2]] < 2 && anzahlPlayer[ReihenfolgeBleibt[3]] < 2 && player[spielerIch].lasthole > 0)) || /*(fieldAktuell + 1 >= colours.length && fields[fieldAktuell][4][6].player != false) || */(player[spielerIch].roundsLeft < 1 && highest.anzahl > 0)) {
+      var draw = false;//anzahlInLoch = {zahl: 0, player: ""};
+      for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+        if (ReihenfolgeBleibt[i] != highest.player && player[ReihenfolgeBleibt[i]].lasthole == highest.anzahl) draw = true;
+        //if (anzahlInLoch.zahl == 0 || player[ReihenfolgeBleibt[i]].lasthole == anzahlInLoch.zahl) anzahlInLoch.zahl = player[ReihenfolgeBleibt[i]].lasthole;
+        //else anzahlInLoch.zahl = -1;
+      }
+      if (draw/*anzahlInLoch.zahl != -1*/) {
+        highest.player = player.firstPlayer;
+      }
+      room.send({
+        message: {
+          type: "gewonnen",
+          data: highest.player/*,
+          siegDurch: "Niederlage"*/
+        }
+      });
+    }
+  }
+  function submit() {
+    messages.push(document.getElementById('message').value);
+    room.send({
+      message: {
+      type: "messages",
+      data: messages,
+      sender: spielerIch
+    }
+    });
+    window.scroll(0, 0);
+    // setTimeout(function () {
+    //     window.scroll(scrollX, 10000)
+    //     document.getElementById('message').select();
+    // }, 5000);
+  }
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY + 23;
+    //    console.log(xMaus + " - " + yMaus);
+  }
+  var giveUp = false;
+  document.onmousemove = readMouseMove
+    window.addEventListener('mousedown', function() {
+      console.log(checkClickedField());
+      if (xMaus > 850 && xMaus < 1010 && yMaus > 410 && yMaus < 470 && confirm("wollen sie wirklich aufgeben?")) {giveUp = true; Spielerwechsel(false);}
+      if (player[spielerIch].moving != undefined) {
+        var xTest = [player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1], player[spielerIch].moving[1]];
+      var yTest = [player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0], player[spielerIch].moving[0]];
+      var spielerPassiert = [false, false, false, false, false, false];
+      var direction = [{x: 1, y: 1}, {x: -1, y: -1}, {x: -1, y: 1}, {x: 1, y: -1}, {x: 1, y: 0}, {x: -1, y: 0}]
+      for (var i1 = 0; i1 < direction.length; i1++) {
+        while (fields[0][yTest[i1]] && fields[0][yTest[i1]][xTest[i1]] && !(checkClickedField()[0] == yTest[i1] && checkClickedField()[1] == xTest[i1])) {
+          xTest[i1] += direction[i1].x;
+          yTest[i1] += direction[i1].y;
+          if (fields[0][yTest[i1]] && fields[0][yTest[i1]][xTest[i1]] && (fields[0][yTest[i1]][xTest[i1]].player != false || fields[0][yTest[i1]][xTest[i1]].hole != false)) spielerPassiert[i1] = true;
+        }
+      }
+      // for (var i = 0; fields[0][xTest[0]][yTest[0]]; i++) {
+      //   xTest[0]++;
+      //   yTest[0]++;
+      //   if ((fields[fieldAktuell][yTest[0]]?[xTest[0]].player != false || fields[fieldAktuell]?[yTest[0]][xTest[0]].hole != false) && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[0]][xTest[0]].hole)) spielerPassiert[i1] = true;
+      // }
+      // for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+      //   xTest[1]--;
+      //   yTest[1]--;
+      //   if (fields[fieldAktuell][yTest[1]] && fields[fieldAktuell][yTest[1]][xTest[1]] && fields[fieldAktuell][yTest[1]][xTest[1]].player != false && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[1]][xTest[1]] && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[4]][xTest[4]].hole))) spielerPassiert[1] = true;
+      // }
+      // for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+      //   xTest[2]--;
+      //   yTest[2]++;
+      //   if (fields[fieldAktuell][yTest[2]] && fields[fieldAktuell][yTest[2]][xTest[2]] && fields[fieldAktuell][yTest[2]][xTest[2]].player != false && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[2]][xTest[2]].hole)) spielerPassiert[2] = true;
+      // }
+      // for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+      //   xTest[3]++;
+      //   yTest[3]--;
+      //   if (fields[fieldAktuell][yTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]] && fields[fieldAktuell][yTest[3]][xTest[3]].player != false && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[3]][xTest[3]].hole)) spielerPassiert[3] = true;
+      // }
+      // for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+      //   xTest[4]++;
+      //   if (fields[fieldAktuell][yTest[4]] && fields[fieldAktuell][yTest[4]][xTest[4]] && fields[fieldAktuell][yTest[4]][xTest[4]].player != false && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[4]][xTest[4]].hole)) spielerPassiert[4] = true;
+      // }
+      // for (var i = 0; i < player[spielerIch].chosenCard; i++) {
+      //   xTest[5]--;
+      //   if (fields[fieldAktuell][yTest[5]] && fields[fieldAktuell][yTest[5]][xTest[5]] && fields[fieldAktuell][yTest[5]][xTest[5]].player != false && !(fieldAktuell == 3 && fields[fieldAktuell][yTest[5]][xTest[5]].hole)) spielerPassiert[5] = true;
+      // }
+
+      // TODO: check moving direction and if playerPassiert == true
+      var playerDirections = [checkClickedField()[0] > player[spielerIch].moving[0] && checkClickedField()[1] > player[spielerIch].moving[1], checkClickedField()[0] < player[spielerIch].moving[0] && checkClickedField()[1] < player[spielerIch].moving[1], checkClickedField()[0] > player[spielerIch].moving[0] && checkClickedField()[1] < player[spielerIch].moving[1], checkClickedField()[0] < player[spielerIch].moving[0] && checkClickedField()[1] > player[spielerIch].moving[1], checkClickedField()[0] == player[spielerIch].moving[0] && checkClickedField()[1] > player[spielerIch].moving[1], checkClickedField()[0] == player[spielerIch].moving[0] && checkClickedField()[1] < player[spielerIch].moving[1]];
+      for (var i = 0; i < playerDirections.length; i++) {
+        if (player[spielerIch].movement == "movePlayer" && playerDirections[i] && !spielerPassiert[i]) {
+          player[spielerIch].movement = "waitingForEndingMove";
+          console.log("movingPlayer");
+          if (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].hole && player[ReihenfolgeBleibt[0]].lasthole == 0 && player[ReihenfolgeBleibt[1]].lasthole == 0 && (!player[ReihenfolgeBleibt[2]] || player[ReihenfolgeBleibt[2]].lasthole == 0) && (!player[ReihenfolgeBleibt[3]] || player[ReihenfolgeBleibt[3]].lasthole == 0)) player.firstPlayer = spielerIch;
+          // fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player;
+          // fields[fieldAktuell][player[spielerIch].moving[0]][player[spielerIch].moving[1]].player = false;
+          if (fieldAktuell == 3 && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].hole) {player[spielerIch].lasthole++;}
+        //  else Spielerwechsel(true);
+          // var direction = {x: 0, y: 0};
+          // if (xTest[0] + "" + yTest[0] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x++; direction.y++;}
+          // else if (xTest[1] + "" + yTest[1] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x--; direction.y--;}
+          // else if (xTest[2] + "" + yTest[2] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x--; direction.y++;}
+          // else if (xTest[3] + "" + yTest[3] == checkClickedField()[1] + "" + checkClickedField()[0]) {direction.x++; direction.y--;}
+          // else if (xTest[4] + "" + yTest[4] == checkClickedField()[1] + "" + checkClickedField()[0]) direction.x++;
+          // else direction.x--;
+          room.send({
+            message: {
+              "type": "movePlayer",
+              startPosition: {y: player[spielerIch].moving[0], x: player[spielerIch].moving[1]},
+              endPosition: {y: checkClickedField()[0], x: checkClickedField()[1]},
+              direction: direction[i],
+              playerId: spielerIch
+            }
+          });
+        }
+      }
+    }
+      if (player[spielerIch].movement == "movePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player == spielerIch) {
+        player[spielerIch].moving = checkClickedField();
+        Layout();
+      }
+      if (player[spielerIch].movement == "placePlayer" && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]] != undefined && fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player != undefined && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player && !fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].hole) {
+        fields[fieldAktuell][checkClickedField()[0]][checkClickedField()[1]].player = spielerIch;
+        player[spielerIch].figuresPlaced++;
+        player[spielerIch].movement = "waitingForOpponentPlacingPlayer";
+        for (var i = 0; i < ReihenfolgeBleibt.length; i++) {
+          if (ReihenfolgeBleibt[i] == spielerIch) var myNumber = i;
+        }
+        if (myNumber + 1 == ReihenfolgeBleibt.length) myNumber = -1;
+          player[spielerIch].movement = "waitingForOpponentPlacingPlayer";
+          Layout();
+          room.send({
+            message: {
+              "type": "fields",
+              data: fields,
+              figurePlaced: true,
+              empfänger: myNumber + 1
+            }
+          });
+          room.send({
+            message: {
+              "type": "player",
+              data: player[spielerIch],
+              player: spielerIch,
+              firstPlayer: player.firstPlayer
+            }
+          });
+        // Layout();
+      }
+    });
+    // canvas.arc(50 + 77*i1, 50 + 77*i, 33, 0, Math.PI * 2, false);
+    function checkClickedField() {
+      for (var i = 0; i <  8; i++) {
+        for (var i1 = 0; i1 <  8 + i; i1++) {
+          if (xMaus > 50 + 77*i1 && xMaus < 50 + 77*i1 + 66 && yMaus > 50 + 77*i && yMaus < 50 + 77*i + 66) return [i, i1];
+        }
+      }
+    }
+    document.onkeydown = function(event) {
+      if (event.key == "ArrowUp") window.scroll(scrollX, 0);
+      if (event.key == "Enter" && !(AblageListe[1] == "beendet")) {
+        window.scroll(scrollX, 742);
+      }
+    }
+  </script>
