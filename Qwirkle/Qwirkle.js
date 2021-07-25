@@ -300,6 +300,7 @@ class Qwirkle {
         currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
     this.spielerwechsel = () => {
+      inSpielerwechsel = true;
       // if (turntype == "newStein") {
       //   this.broadcast({
       //   "type": "steinePlayer",
@@ -319,9 +320,9 @@ class Qwirkle {
             turntype = "";
             this.spielerwechsel();
           }
+          await waitforme(3000);
+          inSpielerwechsel = await false;
         })()
-        setTimeout(function () {
-        }, 7000);
       }
       else if (turntype != "protestTime") {
       points.got[Reihenfolge] += points.now;
@@ -682,7 +683,7 @@ class Qwirkle {
        player[data.message.player].steine.splice(data.message.steinI, 1);
        this.getSteine(data.message.player, 1, true);
      }
-     else if (data.message.type == "spielerwechsel") this.spielerwechsel();
+     else if (data.message.type == "spielerwechsel" && !inSpielerwechsel && this.player[Reihenfolge + 1].client == client) this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player[1].client, data.message);
@@ -698,6 +699,7 @@ class Qwirkle {
     console.log("Dispose BasicRoom");
   }
 }
+var inSpielerwechsel = false;
 // scrape DUDEN
 const mongoose = require('mongoose');
 const puppeteer = require('puppeteer');
