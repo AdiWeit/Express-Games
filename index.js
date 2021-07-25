@@ -80,6 +80,11 @@ app.use('/guessTheValue/', guessTheValue);
 const zeichenbattle = require('./zeichenbattle/index.js');
 app.use('/zeichenbattle/', zeichenbattle);
 
+const HeyDasIstMeinFisch = require('./HeyDasIstMeinFisch/index.js');
+app.use('/HeyDasIstMeinFisch/', HeyDasIstMeinFisch);
+
+const Qwirkle = require('./Qwirkle/index.js');
+app.use('/Qwirkle/', Qwirkle);
 // const replica = require('./replica/index.js');
 // app.use('/replica/', replica);
 
