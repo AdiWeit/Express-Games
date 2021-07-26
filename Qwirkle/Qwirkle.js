@@ -300,7 +300,6 @@ class Qwirkle {
         currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
     this.spielerwechsel = () => {
-      if (mode == "normal") inSpielerwechsel = true;
       // if (turntype == "newStein") {
       //   this.broadcast({
       //   "type": "steinePlayer",
@@ -309,6 +308,7 @@ class Qwirkle {
       //   });
       // }
       if (mode == "normal" && turntype == "placeStein") {
+        inSpielerwechsel = true;
         turntype = "protestTime";
         this.broadcast({
            "type": "timeForProtest"

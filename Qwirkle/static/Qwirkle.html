@@ -241,7 +241,7 @@
   function displayStein(stein, i, i1) {
   // TODO: helleres Grün nutzen
   canvas.fillStyle = "rgb(8, 255, 3)";
-  if (stein.new) canvas.fillRect(10 + 50*i, 10 + 50*(i1 + 2), 60, 60);
+  if (stein.new) canvas.fillRect(10 + 50*i, 10 + 50*(i1 + player.total), 60, 60);
     canvas.fillStyle = "black";
     canvas.fillRect(20 + 50*i, 20 + 50*player.total + 50*i1, 40, 40)
     if (stein == "placeholder") {
