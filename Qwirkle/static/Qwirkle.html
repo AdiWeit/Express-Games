@@ -102,14 +102,27 @@
       player[player.myNumber].steine = message.data;
       layout();
     }
+    if (message.type == "fieldSync") {
+      message.data.forEach((x, i) => {
+        if (x) {
+        x.forEach((y, i1) => {
+          field[i][i1] = y;
+        });
+      }
+      });
+
+    }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
+      if (message.newRound) {
       room.send({
         message: {
           "type": "vote",
           "easyMode": confirm('Wollen Sie die einfache Version von Scrabble spielen?')
         }
       });
+    }
+    else player[player.myNumber].steine = [];
     }
     if (message.type == "placeStein") {
       if (!field[message.coord.x][message.coord.y]) field[message.coord.x][message.coord.y] = {};

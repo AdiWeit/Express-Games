@@ -332,14 +332,17 @@ class Qwirkle {
          "player": Reihenfolge,
          data: points.got[Reihenfolge]
       });
-      if (player[Reihenfolge].steine.length) this.getSteine(Reihenfolge, 6 - player[Reihenfolge].steine.length);
+      if (player[Reihenfolge].steine.length != undefined) this.getSteine(Reihenfolge, 6 - player[Reihenfolge].steine.length);
       turntype = "";
       newTiles = [];
       placeDirection = {coords: [], string: ""};
       console.log("changing playing player");
       Reihenfolge++;
       if (Reihenfolge == spielerOnline) Reihenfolge = 0;
-      if (player[Reihenfolge].aussetzen) this.spielerwechsel();
+      if (player[Reihenfolge].aussetzen) {
+        this.spielerwechsel();
+        player[Reihenfolge].aussetzen = false;
+      }
       this.broadcast({
         "type": "Reihenfolge",
         "data": Reihenfolge
@@ -365,31 +368,62 @@ class Qwirkle {
     this.spielerOnlineGleich0++;
     console.log("this.spielerOnlineGleich0: " + this.spielerOnlineGleich0);
     if ([this.player[1], this.player[2], this.player[3], this.player[4]].some(p => p && p.id && (p.id == client.sessionId))) {
-      console.log(client + " - " + client.sessionId + " - " + this.player[1].id + " - " + this.player[2].id);
-      if (client.sessionId == this.player[1].id) {
-      this.send(this.player[1].client, {
-        "type": "spielerDu",
-        "data": 0
+      this.player.forEach((playerNow, i) => {
+        if (playerNow.id == client.sessionId) {
+          this.send(this.player[i].client, {
+            "type": "spielerDu",
+            "data": (i - 1)
+          });
+          this.send(this.player[i].client, {
+            "type": "AnzahlSpieler",
+            "data": spielerOnline
+          });
+          this.send(this.player[i].client, {
+            "type": "selectedMode",
+            "data": mode
+          });
+          this.send(this.player[i].client, {
+            "type": "fieldSync",
+            "data": field
+          });
+          this.send(this.player[i].client, {
+            "type": "steinePlayer",
+            // "player": playerI,
+            data: player[i - 1].steine
+          });
+          points.got.forEach((points, i1) => {
+            this.send(this.player[i].client, {
+              "type": "pointsPlayer",
+              "player": i1,
+              data: points
+            });
+          });
+          this.send(this.player[i].client, {
+            "type": "Reihenfolge",
+            "data": Reihenfolge
+          });
+        }
       });
-    }
-    if (client.sessionId == this.player[2].id) {
-      this.send(this.player[2].client, {
-        "type": "spielerDu",
-        "data": 1
-      });
-    }
-    if (this.player[3] != null && client.sessionId == this.player[3].id) {
-      this.send(this.player[3].client, {
-        "type": "spielerDu",
-        "data": 2
-      });
-    }
-    if (this.player[4] != null && client.sessionId == this.player[4].id) {
-      this.send(this.player[4].client, {
-        "type": "spielerDu",
-        "data": 3
-      });
-    }
+    //   var rejoinedPlayer = -1;
+    //   if (client.sessionId == this.player[1].id) rejoinedPlayer = 1;
+    // if (client.sessionId == this.player[2].id) {
+    //   this.send(this.player[2].client, {
+    //     "type": "spielerDu",
+    //     "data": 1
+    //   });
+    // }
+    // if (this.player[3] != null && client.sessionId == this.player[3].id) {
+    //   this.send(this.player[3].client, {
+    //     "type": "spielerDu",
+    //     "data": 2
+    //   });
+    // }
+    // if (this.player[4] != null && client.sessionId == this.player[4].id) {
+    //   this.send(this.player[4].client, {
+    //     "type": "spielerDu",
+    //     "data": 3
+    //   });
+    // }
       // if (client.sessionId == this.player[1].id) {
       //   this.send(this.player[2].client, {
       //     "type": "sendDataToRejoinedPlayer"
@@ -400,9 +434,9 @@ class Qwirkle {
       //     "type": "sendDataToRejoinedPlayer"
       //   });
       // }
-      this.broadcast({
-        "type": "setAblageListe[4]AfterRejoin"
-      });
+      // this.broadcast({
+      //   "type": "setAblageListe[4]AfterRejoin"
+      // });
 
       console.warn("Rejoin, skipping usual onJoin…");
       return;
