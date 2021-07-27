@@ -625,7 +625,7 @@ class Qwirkle {
        var allInDuden = true;
        (async () => {
          for (var currentWord of currentWords) {
-         if (!(await wordInDuden(currentWord))) allInDuden = false;
+         if (!(await wordInDuden(currentWord)) && (!currentWord.includes('ss') || !(await wordInDuden(currentWord.replace('SS', 'ß'))))) allInDuden = false;
          }
          if (!allInDuden) {
            this.broadcast({
