@@ -93,8 +93,11 @@
       }, 7000);
     }
     if (message.type == "removeTiles") {
-      for (var newTile of message.tiles) {
-        delete field[newTile.x][newTile.y].stein;
+      for (var wrongWord of message.wrongWords) {
+        for (var newTile of message.wordIndexes[wrongWord]) {
+          console.log("remove " + newTile.x + " - " + newTile.y + "(" + field[newTile.x][newTile.y].stein.letter + ")");
+          if (field[newTile.x][newTile.y].stein.new) delete field[newTile.x][newTile.y].stein;
+        }
       }
     }
     if (message.type == "AnzahlSpieler") player.total = message.data;
@@ -110,7 +113,6 @@
         });
       }
       });
-
     }
     if (message.type == "spielerDu") {
       player.myNumber = message.data;

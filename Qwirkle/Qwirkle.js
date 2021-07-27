@@ -9,6 +9,7 @@ let mode;
 var turntype = "";
 var newTiles = [];
 var currentWords = [];
+var wordIndexes = {};
 var beginning = true;
 var points = {now: 0, before:0, got: [0, 0, 0, 0]};
 var field = [];
@@ -245,6 +246,7 @@ class Qwirkle {
       // }
       var direction = -1;
       currentWords.push("");
+      var wordNowIndexes = [];
       // var replace = false;
       var newIncluded = false;
         for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
@@ -257,20 +259,24 @@ class Qwirkle {
               newIncluded = true;
             }
             currentWords[currentWords.length - 1] += field[i][y].stein.letter;
+            wordNowIndexes.push({x: i, y: y});
             // replace = true;
           }
         }
         if (!newIncluded) currentWords.pop();
+        else wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
             // console.log("remove i " + i);
+            delete wordIndexes[currentWords[i]];
             currentWords.splice(i, 1);
             i = 0;
           }
         }
 
       currentWords.push("");
+      wordNowIndexes = [];
       direction = -1;
       newIncluded = false;
       // console.log("check y");
@@ -286,13 +292,18 @@ class Qwirkle {
               // console.log(x + " - " + i + " is new");
             }
             currentWords[currentWords.length - 1] += field[x][i].stein.letter;
+            wordNowIndexes.push({x: x, y: i});
           }
         }
         if (!newIncluded) currentWords.pop();
+        else {
+          wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
+        }
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
             // console.log("remove i " + i);
+            delete wordIndexes[currentWords[i]];
             currentWords.splice(i, 1);
             i = 0;
           }
@@ -623,18 +634,28 @@ class Qwirkle {
        console.log("protest!");
        turntype = "rejected";
        var allInDuden = true;
+       var wrongWords = [];
        (async () => {
          for (var currentWord of currentWords) {
-         if (!(await wordInDuden(currentWord)) && (!currentWord.includes('ss') || !(await wordInDuden(currentWord.replace('SS', 'ß'))))) allInDuden = false;
+           if (!(await wordInDuden(currentWord)) && (!currentWord.includes('ss') || !(await wordInDuden(currentWord.replace('SS', 'ß'))))) {
+             allInDuden = false;
+             wrongWords.push(currentWord);
+           }
          }
          if (!allInDuden) {
            this.broadcast({
              "type": "removeTiles",
-             "tiles": newTiles,
+             "wrongWords": wrongWords,
+             wordIndexes: wordIndexes
            });
-           for (var newTile of newTiles) {
-             // points.now -= field[newTile.x][newTile.y].stein.points;
-             delete field[newTile.x][newTile.y].stein;
+           for (var wrongWord of wrongWords) {
+             for (var newTile of wordIndexes[wrongWord]) {
+               console.log("remove " + newTile.x + " - " + newTile.y + "(" + field[newTile.x][newTile.y].stein.letter + ")");
+               if (JSON.stringify(newTiles).includes('"x":' + newTile.x + ',"y":' + newTile.y)) {
+                 console.log("really remove " + newTile.x + " - " + newTile.y + "(" + field[newTile.x][newTile.y].stein.letter + ")");
+                 delete field[newTile.x][newTile.y].stein;
+               }
+             }
            }
            points.now = 0;
            beginning = true;
@@ -673,12 +694,14 @@ class Qwirkle {
        }
        if (mode == "normal") {
        currentWords = [];
+       wordIndexes = {};
        for (var tile of newTiles) {
          this.getWord(tile.x, tile.y);
        }
        currentWords = currentWords.filter(x => x.length > 1);
        console.log("filtered words: ");
        console.log(currentWords);
+       console.log(wordIndexes);
        for (var word of currentWords) {
          for (var currentLetter of word) {
            for (var stein of steine.normal) {
