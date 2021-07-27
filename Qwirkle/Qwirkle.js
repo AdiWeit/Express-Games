@@ -713,21 +713,24 @@ class Qwirkle {
          }
        }
      }
-       console.log("xFieldSize: " + field.length);
        if (data.message.coord.x == field.length - 1) {
          field.push(new Array(field[data.message.coord.x].length));
          // field.length++;
        }
        if (data.message.coord.x == 0) {
          field.unshift(new Array(field[data.message.coord.x].length));
-         // field.length++;
+         for (var word of Object.keys(wordIndexes)) {
+           wordIndexes[word] = wordIndexes[word].map(val => ({x: val.x + 1, y: val.y}));
+         }
        }
        // if (data.message.coord.y == 0 || data.message.coord.y == field[0].length - 1) field[0].length++;
 
        if (data.message.coord.y == 0) {
          field.map(x => x.unshift({}));
+         for (var word of Object.keys(wordIndexes)) {
+           wordIndexes[word] = wordIndexes[word].map(val => ({x: val.x, y: val.y + 1}));
+         }
        }
-       console.log("yFieldSize: " + field[data.message.coord.x].length);
        if (data.message.coord.y == field[data.message.coord.x].length - 1) {
          field.map(x => x.push({}));
        }
