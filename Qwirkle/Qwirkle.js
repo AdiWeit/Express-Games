@@ -171,7 +171,13 @@ class Qwirkle {
       if (placeDirection.coords[0]) {
         this.checkStein(placeDirection.coords[0].x, placeDirection.coords[0].y, newPlaceDirection);
       }
+      var nextToOtherTile = false;
+      if (!newTiles.length) nextToOtherTile = true;
+      for (var tile of newTiles) {
+        if ((Math.abs(tile.x - data.coord.x) == 1 && newPlaceDirection.string == "x") || (Math.abs(tile.y - data.coord.y) == 1 && newPlaceDirection.string == "y")) nextToOtherTile = true;
+      }
       console.log("in line " + placeDirection.string + " : " + sameLine);
+      console.log("next to other: " + nextToOtherTile);
       var rules = {
         right: {
         sameColour: ((!snake.right.shapes.length || !snake.right.shapes.includes(player[data.player].steine[data.steinI].name)) && (!snake.right.colours.length || (snake.right.colours.includes(player[data.player].steine[data.steinI].colour) && snake.right.colours.length == 1))),
@@ -192,7 +198,7 @@ class Qwirkle {
       };
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && turntype != "newStein" && (sameLine || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
+      return data.player == Reihenfolge && turntype != "newStein" && ((sameLine && nextToOtherTile) || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.right.shapes.length && !snake.left.shapes.length && !snake.up.shapes.length && !snake.down.shapes.length) || beginning) && (((rules.right.sameColour || rules.right.sameShape) && (rules.left.sameColour || rules.left.sameShape) && (rules.up.sameColour || rules.up.sameShape) && (rules.down.sameColour || rules.down.sameShape)) || (mode == "normal" && (snake.right.shapes.length || snake.left.shapes.length || snake.up.shapes.length || snake.down.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, forRules) => {
       for (var i = x + 1; (forRules || newPlaceDirection.string != "x") && field[i] && field[i][y] && field[i][y].stein; i++) {
@@ -365,8 +371,8 @@ class Qwirkle {
       Reihenfolge++;
       if (Reihenfolge == spielerOnline) Reihenfolge = 0;
       if (player[Reihenfolge].aussetzen) {
-        this.spielerwechsel();
         player[Reihenfolge].aussetzen = false;
+        this.spielerwechsel();
       }
       this.broadcast({
         "type": "Reihenfolge",
@@ -739,6 +745,7 @@ class Qwirkle {
          for (var word of Object.keys(wordIndexes)) {
            wordIndexes[word] = wordIndexes[word].map(val => ({x: val.x + 1, y: val.y}));
          }
+           newTiles = newTiles.map(val => ({x: val.x + 1, y: val.y}));
        }
        // if (data.message.coord.y == 0 || data.message.coord.y == field[0].length - 1) field[0].length++;
 
@@ -747,6 +754,7 @@ class Qwirkle {
          for (var word of Object.keys(wordIndexes)) {
            wordIndexes[word] = wordIndexes[word].map(val => ({x: val.x, y: val.y + 1}));
          }
+           newTiles = newTiles.map(val => ({x: val.x, y: val.y + 1}));
        }
        if (data.message.coord.y == field[data.message.coord.x].length - 1) {
          field.map(x => x.push({}));
