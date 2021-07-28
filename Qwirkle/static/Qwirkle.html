@@ -92,6 +92,12 @@
         layout();
       }, 7000);
     }
+    if (message.type == "undo") {
+      if (message.player == player.myNumber) player[player.myNumber].steine.push(field[message.x][message.y].stein);
+      delete field[message.x][message.y].stein;
+      delete player[player.myNumber].steine[player[player.myNumber].steine.length - 1].new
+      layout();
+    }
     if (message.type == "removeTiles") {
       for (var wrongWord of message.wrongWords) {
         for (var newTile of message.wordIndexes[wrongWord]) {
@@ -251,6 +257,11 @@
       canvas.arc(20 + 50*1 + 20, 20 + 20 + 50*player.myNumber, 9, 2 * Math.PI, false);
       canvas.fill();
     }
+    else if (player.myNumber == player.aktuell) {
+      img = new Image();
+      img.src = 'https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png';
+      canvas.drawImage(img, 20 + 50 , 20 + 50*player.myNumber, 40, 40);
+    }
   }
 
   function displayStein(stein, i, i1) {
@@ -339,11 +350,18 @@
         player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
         layout();
       }
-      else if (i == 0 && protestTime) {
+      else if (!i && protestTime) {
         room.send({
           message: {
             "type": "protest",
             player: player.myNumber
+          }
+        });
+      }
+      else if (!i && player.myNumber == player.aktuell) {
+        room.send({
+          message: {
+            "type": "undo"
           }
         });
       }

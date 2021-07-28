@@ -11,6 +11,7 @@ var newTiles = [];
 var currentWords = [];
 var wordIndexes = {};
 var beginning = true;
+var firstPlacingRound = true;
 var points = {now: 0, before:0, got: [0, 0, 0, 0]};
 var field = [];
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
@@ -139,6 +140,7 @@ class Qwirkle {
         this.getSteine(i, 6);
       }
       beginning = true;
+      firstPlacingRound = true;
     }
     this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
@@ -310,6 +312,17 @@ class Qwirkle {
         }
         currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
+    this.getLetterPoints = () => {
+      for (var word of currentWords) {
+        for (var currentLetter of word) {
+          for (var stein of steine.normal) {
+            if (stein.letter == currentLetter) {
+              points.now += stein.points;
+            }
+          }
+        }
+      }
+    }
     this.spielerwechsel = () => {
       // if (turntype == "newStein") {
       //   this.broadcast({
@@ -318,6 +331,7 @@ class Qwirkle {
       //   data: player[Reihenfolge].steine
       //   });
       // }
+      if (turntype == "placeStein") firstPlacingRound = false;
       if (mode == "normal" && turntype == "placeStein") {
         inSpielerwechsel = true;
         turntype = "protestTime";
@@ -654,22 +668,34 @@ class Qwirkle {
                if (JSON.stringify(newTiles).includes('"x":' + newTile.x + ',"y":' + newTile.y)) {
                  console.log("really remove " + newTile.x + " - " + newTile.y + "(" + field[newTile.x][newTile.y].stein.letter + ")");
                  delete field[newTile.x][newTile.y].stein;
+                 newTiles.forEach((newTileNow, i) => {
+                   if (newTileNow.x == newTile.x && newTileNow.y == newTile.y) newTiles.splice(i, 1);
+                 });
+
                }
              }
            }
+           console.log(newTiles);
            points.now = 0;
+           currentWords = [];
+           wordIndexes = {};
+           if (newTiles.length) this.canPlace({steinI: 0, player: Reihenfolge, coord: newTiles[newTiles.length - 1]});
+           for (var tile of newTiles) {
+             this.getWord(tile.x, tile.y);
+           }
+           this.getLetterPoints();
            beginning = true;
          }
          else player[data.message.player].aussetzen = true;
          this.spielerwechsel();
        })()
      }
-     else if (data.message.type == "setLetter" && data.message.player == Reihenfolge && player[data.message.player].steine[data.message.steinI].type == "joker") {
+     else if (data.message.type == "setLetter" && this.player[Reihenfolge + 1].client == client && player[data.message.player].steine[data.message.steinI].type == "joker") {
        console.log(data.message);
        player[data.message.player].steine[data.message.steinI].letter = data.message.letter;
        console.log(player[data.message.player].steine);
      }
-     else if (data.message.type == "placeStein") {
+     else if (data.message.type == "placeStein" && this.player[Reihenfolge + 1].client == client) {
      points.now = 0;
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
          newTiles.push({x: data.message.coord.x, y: data.message.coord.y});
@@ -702,16 +728,7 @@ class Qwirkle {
        console.log("filtered words: ");
        console.log(currentWords);
        console.log(wordIndexes);
-       for (var word of currentWords) {
-         for (var currentLetter of word) {
-           for (var stein of steine.normal) {
-             if (stein.letter == currentLetter) {
-               points.now += stein.points;
-               // console.log("add " + stein.points + " points letter " + currentLetter +" of word " + word);
-             }
-           }
-         }
-       }
+       this.getLetterPoints();
      }
        if (data.message.coord.x == field.length - 1) {
          field.push(new Array(field[data.message.coord.x].length));
@@ -737,10 +754,34 @@ class Qwirkle {
      }
      else points.now = points.before;
      }
-     else if (data.message.type == "newStein" && !placeDirection.coords.length) {
+     else if (data.message.type == "newStein" && !placeDirection.coords.length && this.player[Reihenfolge + 1].client == client) {
        turntype = "newStein";
        player[data.message.player].steine.splice(data.message.steinI, 1);
        this.getSteine(data.message.player, 1, true);
+     }
+     else if (data.message.type == "undo" && this.player[Reihenfolge + 1].client == client) {
+       this.broadcast({
+         "type": "undo",
+         x: newTiles[newTiles.length - 1].x,
+         y: newTiles[newTiles.length - 1].y,
+         player: Reihenfolge
+       });
+       player[Reihenfolge].steine.push(field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein);
+       delete field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein;
+       newTiles.pop();
+       points.now = 0;
+       placeDirection.coords.pop();
+       if (placeDirection.coords.length < 2) placeDirection.string = "";
+       if (newTiles.length) this.canPlace({steinI: 0, player: Reihenfolge, coord: newTiles[newTiles.length - 1]});
+       else if (firstPlacingRound) beginning = true;
+       if (mode == "normal") {
+       currentWords = [];
+       wordIndexes = {};
+     }
+       for (var tile of newTiles) {
+         this.getWord(tile.x, tile.y);
+       }
+       if (mode == "normal") this.getLetterPoints();
      }
      else if (data.message.type == "spielerwechsel" && !inSpielerwechsel && this.player[Reihenfolge + 1].client == client) this.spielerwechsel();
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
