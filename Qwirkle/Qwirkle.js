@@ -160,20 +160,20 @@ class Qwirkle {
       console.log("check if stein can be placed");
       snake = {x: {shapes: [], colours: []}, y: {shapes: [], colours: []}};
       if (!field[data.coord.x]) field[data.coord.x] = [];
-      newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
-      if (placeDirection.coords.length < 2) {
-        if (!placeDirection.coords.length && beginning) points.now++;
-        if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
+      newPlaceDirection = {string: placeDirection.string, coords: newTiles};
+      if (newTiles.length < 2) {
+        if (!newTiles.length && beginning) points.now++;
+        if (newTiles[0] && (data.coord.x - newTiles[0].x)) newPlaceDirection.string = "x";
         else newPlaceDirection.string = "y";
       }
       noGap = false;
       this.checkStein(data.coord.x, data.coord.y, newPlaceDirection, true);
       var sameLine = false;
-        if (!placeDirection.coords.length || ((!(data.coord.x - placeDirection.coords[placeDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - placeDirection.coords[placeDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
-      if (placeDirection.coords[0]) {
-        this.checkStein(placeDirection.coords[0].x, placeDirection.coords[0].y, newPlaceDirection);
+        if (!newTiles.length || ((!(data.coord.x - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
+      if (newTiles[0]) {
+        this.checkStein(newTiles[0].x, newTiles[0].y, newPlaceDirection);
       }
-      if (!placeDirection.coords.length) noGap = true;
+      if (!newTiles.length) noGap = true;
       console.log("in line " + placeDirection.string + " : " + sameLine);
       console.log("noGap: " + noGap);
       var rules = {
@@ -191,12 +191,14 @@ class Qwirkle {
       return data.player == Reihenfolge && turntype != "newStein" && ((sameLine && noGap) || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.x.shapes.length && !snake.y.shapes.length) || beginning) && (((rules.x.sameColour || rules.x.sameShape) && (rules.x.sameColour || rules.x.sameShape) && (rules.y.sameColour || rules.y.sameShape) && (rules.y.sameColour || rules.y.sameShape)) || (mode == "normal" && (snake.x.shapes.length || snake.y.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, forRules) => {
+      var totalLength = {x: 0, y: 0};
       for (var i = x + 1; field[i] && field[i][y] && field[i][y].stein; i++) {
+        totalLength.x++;
         if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "x" && JSON.stringify(newTiles).includes('x":' + i + ',"y":' + y)) noGap = true;
         if (forRules || newPlaceDirection.string != "x") {
         if (mode == "easy") {
         points.now++;
-        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        // if (Math.abs(i - x) + 1 == 6) points.now += 6;
         }
         if (mode == "easy" && i == x + 1) points.now++;
         if (forRules) {
@@ -206,11 +208,12 @@ class Qwirkle {
       }
     }
       for (var i = x -1; field[i] && field[i][y] && field[i][y].stein; i--) {
+        totalLength.x++;
         if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "x" && JSON.stringify(newTiles).includes('x":' + i + ',"y":' + y)) noGap = true;
         if (forRules || newPlaceDirection.string != "x") {
         if (mode == "easy") {
         points.now++;
-        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        // if (Math.abs(i - x) + 1 == 6) points.now += 6;
         }
         if (mode == "easy" && i == x - 1) points.now++;
         if (forRules) {
@@ -220,11 +223,12 @@ class Qwirkle {
     }
       }
       for (var i = y + -1; field[x][i] && field[x][i].stein; i--) {
+        totalLength.y++;
           if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "y" && JSON.stringify(newTiles).includes('x":' + x + ',"y":' + i)) noGap = true;
         if (forRules || newPlaceDirection.string != "y") {
         if (mode == "easy") {
         points.now++;
-        if (Math.abs(i - y) + 1 == 6) points.now += 6;
+        // if (Math.abs(i - y) + 1 == 6) points.now += 6;
         }
         if (mode == "easy" && i == y - 1) points.now++;
         if (forRules) {
@@ -234,12 +238,13 @@ class Qwirkle {
       }
     }
       for (var i = y + 1; field[x][i] && field[x][i].stein; i++) {
+        totalLength.y++;
         if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "y" && JSON.stringify(newTiles).includes('x":' + x + ',"y":' + i)) noGap = true;
         if (forRules || newPlaceDirection.string != "y") {
         if (mode == "easy" && i == y + 1) points.now++;
         if (mode == "easy") {
         points.now++;
-        if (Math.abs(i - x) + 1 == 6) points.now += 6;
+        // if (Math.abs(i - x) + 1 == 6) points.now += 6;
         }
         if (forRules) {
         if (!snake.y.shapes.includes(field[x][i].stein.name)) snake.y.shapes.push(field[x][i].stein.name);
@@ -247,11 +252,23 @@ class Qwirkle {
       }
       }
     }
+    if (forRules) {
+    console.log("totalLength: ");
+    console.log(totalLength);
+    if (totalLength.x + 1 == 6) {
+      console.log("x-Achse quirkle!");
+      points.now += 6;
+    }
+    if (totalLength.y + 1 == 6) {
+      console.log("y-Achse quirkle!");
+      points.now += 6;
+    }
+  }
     }
     this.getWord = (x, y) => {
       // var newPlaceDirection = JSON.parse(JSON.stringify(placeDirection));
-      // if (placeDirection.coords.length < 2) {
-      //   if (placeDirection.coords[0] && (data.coord.x - placeDirection.coords[0].x)) newPlaceDirection.string = "x";
+      // if (newTiles.length < 2) {
+      //   if (newTiles[0] && (data.coord.x - newTiles[0].x)) newPlaceDirection.string = "x";
       //   else newPlaceDirection.string = "y";
       // }
       var direction = -1;
@@ -348,9 +365,9 @@ class Qwirkle {
         });
         (async () => {
           await waitforme(7000);
-          console.log("time over");
           if (turntype == "protestTime") {
             turntype = "";
+            console.log("time over!");
             this.spielerwechsel();
           }
           await waitforme(3000);
@@ -374,6 +391,7 @@ class Qwirkle {
       if (Reihenfolge == spielerOnline) Reihenfolge = 0;
       if (player[Reihenfolge].aussetzen) {
         player[Reihenfolge].aussetzen = false;
+        console.log("Spieler " + (Reihenfolge + 1) + " setzt aus!");
         this.spielerwechsel();
       }
       this.broadcast({
@@ -695,6 +713,7 @@ class Qwirkle {
            beginning = true;
          }
          else player[data.message.player].aussetzen = true;
+         console.log("Spielerwechsel nach Protest");
          this.spielerwechsel();
        })()
      }
@@ -706,7 +725,7 @@ class Qwirkle {
      else if (data.message.type == "placeStein" && this.player[Reihenfolge + 1].client == client) {
      points.now = 0;
        if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
-         newTiles.push({x: data.message.coord.x, y: data.message.coord.y});
+         newTiles.push(data.message.coord);
          turntype = "placeStein";
          beginning = false;
        var stein = JSON.parse(JSON.stringify(player[data.message.player].steine[data.message.steinI]));
@@ -721,9 +740,8 @@ class Qwirkle {
        if (!field[data.message.coord.x][data.message.coord.y]) field[data.message.coord.x][data.message.coord.y] = {};
        field[data.message.coord.x][data.message.coord.y].stein = player[data.message.player].steine[data.message.steinI];
        player[data.message.player].steine.splice(data.message.steinI, 1);
-       placeDirection.coords.push(data.message.coord);
-       if (placeDirection.coords.length == 2) {
-        if ((placeDirection.coords[1].x - placeDirection.coords[0].x)) placeDirection.string = "x";
+       if (newTiles.length == 2) {
+        if ((newTiles[1].x - newTiles[0].x)) placeDirection.string = "x";
         else placeDirection.string = "y";
        }
        if (mode == "normal") {
@@ -764,7 +782,7 @@ class Qwirkle {
      }
      else points.now = points.before;
      }
-     else if (data.message.type == "newStein" && !placeDirection.coords.length && this.player[Reihenfolge + 1].client == client) {
+     else if (data.message.type == "newStein" && !newTiles.length && this.player[Reihenfolge + 1].client == client) {
        turntype = "newStein";
        player[data.message.player].steine.splice(data.message.steinI, 1);
        this.getSteine(data.message.player, 1, true);
@@ -780,8 +798,7 @@ class Qwirkle {
        delete field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein;
        newTiles.pop();
        points.now = 0;
-       placeDirection.coords.pop();
-       if (placeDirection.coords.length < 2) placeDirection.string = "";
+       if (newTiles.length < 2) placeDirection.string = "";
        if (newTiles.length) this.canPlace({steinI: 0, player: Reihenfolge, coord: newTiles[newTiles.length - 1]});
        else if (firstPlacingRound) beginning = true;
        if (mode == "normal") {
@@ -793,7 +810,10 @@ class Qwirkle {
        }
        if (mode == "normal") this.getLetterPoints();
      }
-     else if (data.message.type == "spielerwechsel" && !inSpielerwechsel && this.player[Reihenfolge + 1].client == client) this.spielerwechsel();
+     else if (data.message.type == "spielerwechsel" && !inSpielerwechsel && this.player[Reihenfolge + 1].client == client) {
+       console.log("Spielerwechsel durch Spielerinput");
+       this.spielerwechsel();
+     }
     else if (/*data.message.type == "Gebot" || */data.message.type == "namenSpieler") {
     //  console.log("Empfänger" + data.message.Empfänger)
       if (data.message.Empfänger == 0) this.send(this.player[1].client, data.message);
