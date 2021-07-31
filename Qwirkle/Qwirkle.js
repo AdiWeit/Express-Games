@@ -191,6 +191,7 @@ class Qwirkle {
       return data.player == Reihenfolge && turntype != "newStein" && ((sameLine && noGap) || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.x.shapes.length && !snake.y.shapes.length) || beginning) && (((rules.x.sameColour || rules.x.sameShape) && (rules.x.sameColour || rules.x.sameShape) && (rules.y.sameColour || rules.y.sameShape) && (rules.y.sameColour || rules.y.sameShape)) || (mode == "normal" && (snake.x.shapes.length || snake.y.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, forRules) => {
+      console.log("check Stein " + x + " - " + y);
       var totalLength = {x: 0, y: 0};
       var pointsMiddle = 0;
       console.log(forRules + " - " + newPlaceDirection.string);
@@ -198,103 +199,6 @@ class Qwirkle {
       this.checkDirection({x: x - 1, y: y}, "x", {x: - 1, y: 0}, forRules, totalLength)
       this.checkDirection({x: x, y: y + 1}, "y", {x: 0, y: 1}, forRules, totalLength)
       this.checkDirection({x: x, y: y - 1}, "y", {x: 0, y: - 1}, forRules, totalLength)
-    //   for (var i = x + 1; field[i] && field[i][y] && field[i][y].stein; i++) {
-    //     totalLength.x++;
-    //     if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "x" && JSON.stringify(newTiles).includes('x":' + i + ',"y":' + y)) noGap = true;
-    //     if (forRules || newPlaceDirection.string != "x") {
-    //     if (mode == "easy") {
-    //     points.now++;
-    //     console.log("nach rechts: + 1 Punkt");
-    //     // if (Math.abs(i - x) + 1 == 6) points.now += 6;
-    //     if (i == x + 1 && !(field[x - 1] && field[x - 1][y] && field[x - 1][y].stein && field[x + 1] && field[x + 1][y] && field[x + 1][y].stein)) {
-    //       points.now++;
-    //       console.log("+ 1 für Ecke " + x + " - " + y + "(jezt einen weiter rechts)");
-    //     }
-    //     else if (i == x + 1 && !pointsMiddle) {
-    //       console.log("point placed stone (in middle)");
-    //       points.now++;
-    //       pointsMiddle++;
-    //     }
-    //     }
-    //     if (forRules) {
-    //     if (!snake.x.shapes.includes(field[i][y].stein.name)) snake.x.shapes.push(field[i][y].stein.name);
-    //     if (!snake.x.colours.includes(field[i][y].stein.colour)) snake.x.colours.push(field[i][y].stein.colour);
-    //   }
-    //   }
-    // }
-    //   for (var i = x -1; field[i] && field[i][y] && field[i][y].stein; i--) {
-    //     totalLength.x++;
-    //     if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "x" && JSON.stringify(newTiles).includes('x":' + i + ',"y":' + y)) noGap = true;
-    //     if (forRules || newPlaceDirection.string != "x") {
-    //     if (mode == "easy") {
-    //     points.now++;
-    //     console.log("nach links: + 1 Punkt");
-    //     // if (Math.abs(i - x) + 1 == 6) points.now += 6;
-    //     if (i == x - 1 && !(field[x - 1] && field[x - 1][y] && field[x - 1][y].stein && field[x + 1] && field[x + 1][y] && field[x + 1][y].stein)) {
-    //       points.now++;
-    //       console.log("+ 1 für " + x + " - " + y + "(jezt einen weiter links)");
-    //     }
-    //     else if (i == x - 1 && !pointsMiddle) {
-    //       console.log("point placed stone (in middle)");
-    //       points.now++;
-    //       pointsMiddle++;
-    //     }
-    //     }
-    //     if (forRules) {
-    //     if (!snake.x.shapes.includes(field[i][y].stein.name)) snake.x.shapes.push(field[i][y].stein.name);
-    //     if (!snake.x.colours.includes(field[i][y].stein.colour)) snake.x.colours.push(field[i][y].stein.colour);
-    //   }
-    // }
-    //   }
-    //   for (var i = y + -1; field[x][i] && field[x][i].stein; i--) {
-    //     totalLength.y++;
-    //       if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "y" && JSON.stringify(newTiles).includes('x":' + x + ',"y":' + i)) noGap = true;
-    //     if (forRules || newPlaceDirection.string != "y") {
-    //     if (mode == "easy") {
-    //     points.now++;
-    //     console.log("nach oben: + 1 Punkt");
-    //     // if (Math.abs(i - y) + 1 == 6) points.now += 6;
-    //     if (i == y - 1 && !(field[x] && field[x][y - 1] && field[x][y - 1].stein && field[x] && field[x][y + 1] && field[x][y + 1].stein)) {
-    //       points.now++;
-    //       console.log("+ 1 für " + x + " - " + y + "(jezt einen weiter oben)");
-    //     }
-    //     else if (i == y - 1 && !pointsMiddle) {
-    //       console.log("point placed stone (in middle)");
-    //       points.now++;
-    //       pointsMiddle++;
-    //     }
-    //     }
-    //     if (forRules) {
-    //     if (!snake.y.shapes.includes(field[x][i].stein.name)) snake.y.shapes.push(field[x][i].stein.name);
-    //     if (!snake.y.colours.includes(field[x][i].stein.colour)) snake.y.colours.push(field[x][i].stein.colour);
-    //   }
-    //   }
-    // }
-    //   for (var i = y + 1; field[x][i] && field[x][i].stein; i++) {
-    //     totalLength.y++;
-    //     if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == "y" && JSON.stringify(newTiles).includes('x":' + x + ',"y":' + i)) noGap = true;
-    //     if (forRules || newPlaceDirection.string != "y") {
-    //     if (mode == "easy") {
-    //       if (i == y + 1 && !(field[x] && field[x][y - 1] && field[x][y - 1].stein && field[x] && field[x][y + 1] && field[x][y + 1].stein)) {
-    //         points.now++;
-    //         console.log("+ 1 für " + x + " - " + y + "(jezt einen weiter unten)");
-    //       }
-    //       else if (i == y + 1 && !pointsMiddle) {
-    //         console.log("point placed stone (in middle)");
-    //         points.now++;
-    //         pointsMiddle++;
-    //       }
-    //       console.log("nach unten: + 1 Punkt");
-    //       points.now++;
-    //     // if (Math.abs(i - x) + 1 == 6) points.now += 6;
-    //     }
-    //     if (forRules) {
-    //     if (!snake.y.shapes.includes(field[x][i].stein.name)) snake.y.shapes.push(field[x][i].stein.name);
-    //     if (!snake.y.colours.includes(field[x][i].stein.colour)) snake.y.colours.push(field[x][i].stein.colour);
-    //   }
-    //   }
-    // }
-    // if (forRules) {
     console.log("totalLength: ");
     console.log(totalLength);
     if (totalLength.x + 1 == 6) {
@@ -309,20 +213,22 @@ class Qwirkle {
     }
     this.checkDirection = (i, axis, direction, forRules, totalLength) => {
       // console.log(field[i.x] && field[i.x][i.y] && field[i.x][i.y].stein);
+      console.log("forRules: " + forRules);
+      console.log("newPlaceDirection: " + newPlaceDirection.string);
+      console.log("Richtung: " + axis + ", direction: " + direction[axis]);
       var startingI = JSON.parse(JSON.stringify(i));
       for (var i = i; field[i.x] && field[i.x][i.y] && field[i.x][i.y].stein; i[axis] += direction[axis]) {
         totalLength[axis]++;
         if (forRules && mode == "easy" && newPlaceDirection && newPlaceDirection.string == axis && JSON.stringify(newTiles).includes('x":' + i.x + ',"y":' + i.y)) noGap = true;
         if (forRules || newPlaceDirection.string != axis) {
-          console.log("forRules: " + forRules);
-          console.log("newPlaceDirection: " + newPlaceDirection.string);
         if (mode == "easy") {
         points.now++;
-        console.log("Richtung: " + axis + ", direction: " + direction[axis] + " --> + 1 Punkt");
+        console.log(i.x + " - " + i.y + " --> ein Punkt");
         // if (Math.abs(i - x) + 1 == 6) points.now += 6;
-        console.log("check field " + (startingI.x - direction.x - 1) + " - " + (startingI.y - direction.y - 1) + " and " + (i.x - direction.x + 1) + " - " + (i.y - direction.y + 1));
+        console.log("ausgansgspunkt: " + (startingI.x - direction.x) + " - " + (startingI.y - direction.y));
+        console.log("check field " + (startingI.x - direction.x - direction.x) + " - " + (startingI.y - direction.y - direction.y) + " and " + (i.x - direction.x + direction.x) + " - " + (i.y - direction.y + direction.y));
         console.log(startingI[axis] + " - " + direction[axis] + " - " + i[axis]);
-        if (i[axis] == startingI[axis] && !(field[startingI.x - direction.x - 1] && field[startingI.x - direction.x - 1][startingI.y - direction.y - 1] && field[startingI.x - direction.x - 1][startingI.y - direction.y - 1].stein && field[startingI.x - direction.x + 1] && field[i.x - direction.x + 1][i.y - direction.y + 1] && field[i.x - direction.x + 1][i.y - direction.y + 1].stein)) {
+        if (i[axis] == startingI[axis] && !(field[startingI.x - direction.x - direction[axis]] && field[startingI.x - direction.x - direction[axis]][startingI.y - direction.y - direction[axis]] && field[startingI.x - direction.x - direction[axis]][startingI.y - direction.y - direction[axis]].stein && field[startingI.x - direction.x + direction[axis]] && field[i.x - direction.x + direction[axis]][i.y - direction.y + direction[axis]] && field[i.x - direction.x + direction[axis]][i.y - direction.y + direction[axis]].stein)) {
           points.now++;
           console.log("+ 1 für Ecke " + i.x + " - " + i.y + "(jezt einen weiter rechts)");
         }
