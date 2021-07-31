@@ -256,8 +256,10 @@ class Qwirkle {
       var wordNowIndexes = [];
       // var replace = false;
       var newIncluded = false;
+      var hadToGoUp = false;
         for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
+            if (i != x) hadToGoUp = true;
             direction = 1;
           }
           if (direction == 1) {
@@ -265,13 +267,13 @@ class Qwirkle {
               // console.log(i + " - " + y + " is new");
               newIncluded = true;
             }
-            currentWords[currentWords.length - 1] += field[i][y].stein.letter;
+            if (!hadToGoUp) currentWords[currentWords.length - 1] += field[i][y].stein.letter;
             wordNowIndexes.push({x: i, y: y});
             // replace = true;
           }
         }
         if (!newIncluded) currentWords.pop();
-        else wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
+        else if (!hadToGoUp)  wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
@@ -286,10 +288,12 @@ class Qwirkle {
       wordNowIndexes = [];
       direction = -1;
       newIncluded = false;
+      hadToGoUp = false;
       // console.log("check y");
         for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
           if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
             // console.log("top reached: " + i);
+            if (i != y) hadToGoUp = true;
             direction = 1;
           }
           if (direction == 1) {
@@ -298,12 +302,12 @@ class Qwirkle {
               newIncluded = true;
               // console.log(x + " - " + i + " is new");
             }
-            currentWords[currentWords.length - 1] += field[x][i].stein.letter;
+            if (!hadToGoUp) currentWords[currentWords.length - 1] += field[x][i].stein.letter;
             wordNowIndexes.push({x: x, y: i});
           }
         }
         if (!newIncluded) currentWords.pop();
-        else {
+        else if (!hadToGoUp)  {
           wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         }
         currentWords.sort((a, b) => a.length - b.length);
@@ -315,7 +319,7 @@ class Qwirkle {
             i = 0;
           }
         }
-        currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
+        // currentWords = currentWords.filter((c, index) => currentWords.indexOf(c) === index);
     }
     this.getLetterPoints = () => {
       for (var word of currentWords) {
