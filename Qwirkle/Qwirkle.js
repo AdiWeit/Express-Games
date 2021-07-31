@@ -166,12 +166,13 @@ class Qwirkle {
         if (newTiles[0] && (data.coord.x - newTiles[0].x)) newPlaceDirection.string = "x";
         else newPlaceDirection.string = "y";
       }
+      console.log("newPlaceDirection: " + newPlaceDirection.string);
       noGap = false;
       this.checkStein(data.coord.x, data.coord.y, newPlaceDirection, true);
       var sameLine = false;
         if (!newTiles.length || ((!(data.coord.x - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
-      if (newTiles[0]) {
-        this.checkStein(newTiles[0].x, newTiles[0].y, newPlaceDirection);
+      for (var newTile of newTiles) {
+        this.checkStein(newTile.x, newTile.y, newPlaceDirection);
       }
       if (!newTiles.length) noGap = true;
       console.log("in line " + placeDirection.string + " : " + sameLine);
@@ -194,7 +195,6 @@ class Qwirkle {
       console.log("check Stein " + x + " - " + y);
       var totalLength = {x: 0, y: 0};
       var pointsMiddle = 0;
-      console.log(forRules + " - " + newPlaceDirection.string);
       this.checkDirection({x: x + 1, y: y}, "x", {x: 1, y: 0}, forRules, totalLength)
       this.checkDirection({x: x - 1, y: y}, "x", {x: - 1, y: 0}, forRules, totalLength)
       this.checkDirection({x: x, y: y + 1}, "y", {x: 0, y: 1}, forRules, totalLength)
@@ -213,9 +213,6 @@ class Qwirkle {
     }
     this.checkDirection = (i, axis, direction, forRules, totalLength) => {
       // console.log(field[i.x] && field[i.x][i.y] && field[i.x][i.y].stein);
-      console.log("forRules: " + forRules);
-      console.log("newPlaceDirection: " + newPlaceDirection.string);
-      console.log("Richtung: " + axis + ", direction: " + direction[axis]);
       var startingI = JSON.parse(JSON.stringify(i));
       for (var i = i; field[i.x] && field[i.x][i.y] && field[i.x][i.y].stein; i[axis] += direction[axis]) {
         totalLength[axis]++;
@@ -223,14 +220,17 @@ class Qwirkle {
         if (forRules || newPlaceDirection.string != axis) {
         if (mode == "easy") {
         points.now++;
-        console.log(i.x + " - " + i.y + " --> ein Punkt");
+        console.log(i.x + " - " + i.y + " --> 1 Punkt");
         // if (Math.abs(i - x) + 1 == 6) points.now += 6;
-        console.log("ausgansgspunkt: " + (startingI.x - direction.x) + " - " + (startingI.y - direction.y));
-        console.log("check field " + (startingI.x - direction.x - direction.x) + " - " + (startingI.y - direction.y - direction.y) + " and " + (i.x - direction.x + direction.x) + " - " + (i.y - direction.y + direction.y));
-        console.log(startingI[axis] + " - " + direction[axis] + " - " + i[axis]);
+        if (i[axis] == startingI[axis]) {
+          console.log("forRules: " + forRules);
+          console.log("Richtung: " + axis + ", direction: " + direction[axis]);
+          console.log("ausgansgspunkt: " + (startingI.x - direction.x) + " - " + (startingI.y - direction.y));
+          console.log("check field " + (startingI.x - direction.x - direction.x) + " - " + (startingI.y - direction.y - direction.y) + " and " + (i.x - direction.x + direction.x) + " - " + (i.y - direction.y + direction.y));
+        }
         if (i[axis] == startingI[axis] && !(field[startingI.x - direction.x - direction[axis]] && field[startingI.x - direction.x - direction[axis]][startingI.y - direction.y - direction[axis]] && field[startingI.x - direction.x - direction[axis]][startingI.y - direction.y - direction[axis]].stein && field[startingI.x - direction.x + direction[axis]] && field[i.x - direction.x + direction[axis]][i.y - direction.y + direction[axis]] && field[i.x - direction.x + direction[axis]][i.y - direction.y + direction[axis]].stein)) {
           points.now++;
-          console.log("+ 1 für Ecke " + i.x + " - " + i.y + "(jezt einen weiter rechts)");
+          console.log("1 Punkt für Ecke bzw. Rand " + i.x + " - " + i.y + "(jezt einen weiter rechts)");
         }
         else if (i[axis] == i[axis] + direction[axis] && !pointsMiddle) {
           console.log("point placed stone (in middle)");
