@@ -251,24 +251,31 @@ class Qwirkle {
       //   if (newTiles[0] && (data.coord.x - newTiles[0].x)) newPlaceDirection.string = "x";
       //   else newPlaceDirection.string = "y";
       // }
+      console.log("check words from letter " + field[x][y].stein.letter + " at position " + x + " - " + y);
       var direction = -1;
       currentWords.push("");
       var wordNowIndexes = [];
       // var replace = false;
       var newIncluded = false;
       var hadToGoUp = false;
-      for (var highest = x; field[highest] && field[highest][y] && field[highest][y].stein; highest++) {}
+      var highestNew = {};
+      for (var highest = x; field[highest] && field[highest][y] && field[highest][y].stein; highest--) {
+        if (JSON.stringify(newTiles).includes('"x":' + highest + ',"y":' + y)) highestNew = {x: highest, y: y};
+      }
+      console.log(highestNew);
         for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
             if (i != x) hadToGoUp = true;
             direction = 1;
+            console.log("topReached: " + i);
           }
           if (direction == 1) {
+            console.log("going down");
             if (JSON.stringify(newTiles).includes('"x":' + i + ',"y":' + y)) {
               // console.log(i + " - " + y + " is new");
               newIncluded = true;
             }
-            if (!hadToGoUp || !JSON.stringify(newTiles).includes('"x":' + highest + ',"y":' + y)) {
+            if ((x == highestNew.x && y == highestNew.y)) {
               currentWords[currentWords.length - 1] += field[i][y].stein.letter;
               console.log("add letter " + field[i][y].stein.letter + " to wordNowIndexes");
               wordNowIndexes.push({x: i, y: y});
@@ -280,7 +287,7 @@ class Qwirkle {
           console.log("remove word " + currentWords[currentWords.length - 1]);
           currentWords.pop();
         }
-        else if (!hadToGoUp)  wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
+        else /*if (!hadToGoUp)*/  wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
           if (currentWords[currentWords.length - 1].includes(currentWords[i]) && currentWords[i].length < currentWords[currentWords.length - 1].length) {
@@ -296,24 +303,29 @@ class Qwirkle {
       direction = -1;
       newIncluded = false;
       hadToGoUp = false;
-      for (var highest = y; field[x] && field[x][highest] && field[x][highest].stein; highest++) {}
+      highestNew = {};
+      for (var highest = y; field[x] && field[x][highest] && field[x][highest].stein; highest--) {
+        if (JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + highest)) highestNew = {x: x, y: highest};
+      }
+      console.log(highestNew);
       // console.log("check y");
         for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
           if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
-            // console.log("top reached: " + i);
+            console.log("top reached: " + i);
             if (i != y) hadToGoUp = true;
             direction = 1;
           }
           if (direction == 1) {
-            // console.log("going down: " + i);
+            console.log("going down: " + i);
             if (JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + i)) {
               newIncluded = true;
               // console.log(x + " - " + i + " is new");
             }
-            console.log("check ");
-            console.log(newTiles);
-            console.log(" includes " + x + " - " + highest);
-            if (!hadToGoUp || !JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + highest)) {
+            // console.log("check ");
+            // console.log(newTiles);
+            // console.log(" includes " + x + " - " + highest);
+            console.log("check if " + x + " - " + y + " is highest new tile");
+            if ((x == highestNew.x && y == highestNew.y)) {
               currentWords[currentWords.length - 1] += field[x][i].stein.letter;
               console.log("add letter " + field[x][i].stein.letter + " to wordNowIndexes");
               wordNowIndexes.push({x: x, y: i});
@@ -324,7 +336,7 @@ class Qwirkle {
           console.log("remove word " + currentWords[currentWords.length - 1]);
           currentWords.pop();
         }
-        else if (!hadToGoUp)  {
+        else /*if (!hadToGoUp)*/  {
           wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         }
         currentWords.sort((a, b) => a.length - b.length);
@@ -755,6 +767,7 @@ class Qwirkle {
        console.log("filtered words: ");
        console.log(currentWords);
        console.log(wordIndexes);
+       if (JSON.stringify(Object.keys(wordIndexes).sort()) != JSON.stringify(currentWords.sort())) console.warn("error: wordIndexes List and currentWords are not the same!");
        this.getLetterPoints();
      }
        if (data.message.coord.x == field.length - 1) {
