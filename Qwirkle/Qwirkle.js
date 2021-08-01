@@ -257,6 +257,7 @@ class Qwirkle {
       // var replace = false;
       var newIncluded = false;
       var hadToGoUp = false;
+      for (var highest = x; field[highest] && field[highest][y] && field[highest][y].stein; highest++) {}
         for (var i = x; field[i] && field[i][y] && field[i][y].stein; i += direction) {
           if (direction == -1 && !(field[i - 1] && field[i - 1][y] && field[i - 1][y].stein)) {
             if (i != x) hadToGoUp = true;
@@ -267,12 +268,18 @@ class Qwirkle {
               // console.log(i + " - " + y + " is new");
               newIncluded = true;
             }
-            if (!hadToGoUp) currentWords[currentWords.length - 1] += field[i][y].stein.letter;
-            wordNowIndexes.push({x: i, y: y});
+            if (!hadToGoUp || !JSON.stringify(newTiles).includes('"x":' + highest + ',"y":' + y)) {
+              currentWords[currentWords.length - 1] += field[i][y].stein.letter;
+              console.log("add letter " + field[i][y].stein.letter + " to wordNowIndexes");
+              wordNowIndexes.push({x: i, y: y});
             // replace = true;
           }
+          }
         }
-        if (!newIncluded) currentWords.pop();
+        if (!newIncluded || currentWords[currentWords.length - 1].length == 1) {
+          console.log("remove word " + currentWords[currentWords.length - 1]);
+          currentWords.pop();
+        }
         else if (!hadToGoUp)  wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         currentWords.sort((a, b) => a.length - b.length);
         for (var i = 0; i < currentWords.length; i++) {
@@ -289,6 +296,7 @@ class Qwirkle {
       direction = -1;
       newIncluded = false;
       hadToGoUp = false;
+      for (var highest = y; field[x] && field[x][highest] && field[x][highest].stein; highest++) {}
       // console.log("check y");
         for (var i = y; field[x] && field[x][i] && field[x][i].stein; i += direction) {
           if (direction == -1 && !(field[x] && field[x][i - 1] && field[x][i - 1].stein)) {
@@ -302,11 +310,20 @@ class Qwirkle {
               newIncluded = true;
               // console.log(x + " - " + i + " is new");
             }
-            if (!hadToGoUp) currentWords[currentWords.length - 1] += field[x][i].stein.letter;
-            wordNowIndexes.push({x: x, y: i});
+            console.log("check ");
+            console.log(newTiles);
+            console.log(" includes " + x + " - " + highest);
+            if (!hadToGoUp || !JSON.stringify(newTiles).includes('"x":' + x + ',"y":' + highest)) {
+              currentWords[currentWords.length - 1] += field[x][i].stein.letter;
+              console.log("add letter " + field[x][i].stein.letter + " to wordNowIndexes");
+              wordNowIndexes.push({x: x, y: i});
+          }
           }
         }
-        if (!newIncluded) currentWords.pop();
+        if (!newIncluded || currentWords[currentWords.length - 1].length == 1) {
+          console.log("remove word " + currentWords[currentWords.length - 1]);
+          currentWords.pop();
+        }
         else if (!hadToGoUp)  {
           wordIndexes[currentWords[currentWords.length - 1]] = wordNowIndexes;
         }
