@@ -72,23 +72,18 @@ var zählerListe = [];
 var messages = [];
 var viewingMessages = false;
 if (localStorage.getItem("aufstellungenStratego") != undefined && localStorage.getItem("aufstellungenStratego") != "undefined") {
-var app = new Vue({
-  el: '#app',
-  data: {
-    db: Object.keys(JSON.parse(localStorage.getItem("aufstellungenStratego")))
-  }
-})
+var app;
 }
-else {
-  kathegorien.style.display = "none";
-  aufstellungsText.innerHTML = "Keine gespeicherte Aufstellungen";
-  var app = new Vue({
-    el: '#app',
-    data: {
-      db: []
-    }
-  })
-}
+// else {
+//   kathegorien.style.display = "none";
+//   aufstellungsText.innerHTML = "Keine gespeicherte Aufstellungen";
+//   var app = new Vue({
+//     el: '#app',
+//     data: {
+//       db: []
+//     }
+//   })
+// }
 // Ausschreiben
 for (var i = 0; i < spielfeld.length; i++) {
   AblageListe[0][i] = [];
@@ -182,7 +177,7 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
   };
 
-
+var fastGame = [];
   // listen to patches coming from the server
   room.setOnMessageListener(function(message) {
     if (message.type == "endGame" && message.alert != false) {removeGame(false, false); alert("somebody doesn't want to continue playing, so the game ends!")}
@@ -244,6 +239,53 @@ spielfeld = JSON.parse(JSON.stringify(AblageListe[0]));
     }
     if (message.type == "player1") {myId = idsBleibt[0]; opponentId = idsBleibt[1];}
     if (message.type == "player2") {myId = idsBleibt[1]; opponentId = idsBleibt[0];}
+    if ((message.type == "player1" || message.type == "player2") && !message.rejoin) {
+      fastGame = [];
+      room.send({
+        message: {
+          "type": "vote",
+          small: confirm("Wollen sie eine schnelle Runde mit weniger Figuren spielen?")
+        }
+      });
+    }
+    if (message.type == "vote") {
+      fastGame.push(message.small);
+      if (fastGame.length >= 2 && !(fastGame.includes(false))) {
+        player = [{number: 0, anzahl: 1}, {number: 1, anzahl: /*1*/1},{number: 2, anzahl: /*8*/2},{number: 3, anzahl: /*5*/2},{number: 4, anzahl: /*4*/2},{number: 5, anzahl: /*4*/2},{number: 6, anzahl: /*4*/2},{number: 7, anzahl: /*3*/3},{number: 8, anzahl: /*2*/2},{number: 9, anzahl: /*1*/1}, {number: 10, anzahl: /*1*/1}, {number: 11, anzahl: /*6*/4}];
+        mode = "short";
+      }
+      if (/* && fastGame.length >= 2*/ localStorage.getItem("aufstellungenStratego") != undefined && localStorage.getItem("aufstellungenStratego") != "undefined" && JSON.parse(localStorage.getItem("aufstellungenStratego"))[mode]) {
+      app = new Vue({
+       el: '#app',
+       data: {
+         db: Object.keys(JSON.parse(localStorage.getItem("aufstellungenStratego"))[mode])// Object.keys(JSON.parse(localStorage.getItem("aufstellungenStratego")[mode]))
+       }
+     })
+    }
+    else if (document.getElementById('kathegorien') && fastGame.length >= 2) {
+      aufstellungsText.innerHTML = "Keine gespeicherte Aufstellungen";
+      kathegorien.style.display = "none";
+    }
+    var items = document.querySelectorAll("#kathegorien"),
+        tab = [], liIndex;
+
+
+            for(i = 0; i < items.length; i++){
+                tab.push(items[i].innerHTML);
+            }
+
+
+            for(var i = 0; i < items.length; i++){
+
+                items[i].onclick = function(){
+
+                    liIndex = tab.indexOf(this.innerHTML);
+                    console.log(this.innerText + " INDEX = " + liIndex);
+                    if (roundStatus[0] == "placePlayer") aufstellungLaden(JSON.parse(localStorage.getItem("aufstellungenStratego"))[mode][this.innerText]);
+                };
+
+            }
+  }
     if (message.type == "positionBefore") {
       setTimeout(function () {
         if (myId == ids[0]) {
@@ -542,18 +584,20 @@ function aufstellungSpeichern() {
   }
   fieldSave.player = player;
   var aufstellungen = {};
-  if (JSON.parse(localStorage.getItem("aufstellungenStratego")) != undefined) aufstellungen = JSON.parse(localStorage.getItem("aufstellungenStratego"));
+  if (localStorage.getItem("aufstellungenStratego") != "undefined" && JSON.parse(localStorage.getItem("aufstellungenStratego")) != undefined) aufstellungen = JSON.parse(localStorage.getItem("aufstellungenStratego"));
   var name = selectNameFieldSave(0);
   if (name != "do not save") {
-  aufstellungen[name/*prompt("Wie wollen sie die Aufstellung nennen?")*/] = fieldSave;
+  if (!aufstellungen[mode]) aufstellungen[mode] = {};
+  aufstellungen[mode][name/*prompt("Wie wollen sie die Aufstellung nennen?")*/] = fieldSave;
   localStorage.setItem('aufstellungenStratego', JSON.stringify(aufstellungen));
 }
   return fieldSave;
 }
 var name;
+var mode = "normal";
 function selectNameFieldSave(i) {
   name = prompt("Wie wollen sie die Aufstellung nennen?");
-  if (app._data.db.includes(name)) {
+  if (app && app._data.db.includes(name)) {
     if (!confirm("Sie haben eine Aufstellung bereits so genannt! Sind sie sich sicher, dass sie die andere Aufstellung mit dieser überschrieben wollen? Dann klicken sie bitte auf OK. Falls nicht, klicken sie bitte auf abbrechen/cancel!")) {
       if (confirm("Wollen sie die Aufstellung dennoch unter einem anderen Namen speichern?")) selectNameFieldSave(i + 1);
       else return "do not save";
@@ -1285,23 +1329,4 @@ if (navigator.userAgent.match(/Android/i) ||
   console.log("PC");
 }
 
-var items = document.querySelectorAll("#kathegorien"),
-    tab = [], liIndex;
-
-
-        for(i = 0; i < items.length; i++){
-            tab.push(items[i].innerHTML);
-        }
-
-
-        for(var i = 0; i < items.length; i++){
-
-            items[i].onclick = function(){
-
-                liIndex = tab.indexOf(this.innerHTML);
-                console.log(this.innerText + " INDEX = " + liIndex);
-                if (roundStatus[0] == "placePlayer") aufstellungLaden(JSON.parse(localStorage.getItem("aufstellungenStratego"))[this.innerText]);
-            };
-
-        }
 </script>
