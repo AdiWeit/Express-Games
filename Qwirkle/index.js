@@ -82,7 +82,7 @@ function addBroadcast(obj) {
 }
 
 function addMessage(clientId, obj) {
-  console.log("sending message to ", clientId);
+  // console.log("sending message to ", clientId);
   if (messageQueue[clientId] == undefined) {
   //  console.log("nicht gepusht weil leave");
   }

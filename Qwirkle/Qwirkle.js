@@ -8,13 +8,13 @@ var noGap
 var votes;
 let mode;
 var turntype = "";
-var newTiles = [];
+var newTiles;
 var currentWords = [];
 var wordIndexes = {};
 var beginning = true;
 var firstPlacingRound = true;
 var points = {now: 0, before:0, got: [0, 0, 0, 0]};
-var field = [];
+var field;
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
 var placeDirection = {coords: [], string: ""};
@@ -142,6 +142,10 @@ class Qwirkle {
       }
       beginning = true;
       firstPlacingRound = true;
+      turntype = "";
+      field = [];
+      newTiles = [];
+      points = {now: 0, before:0, got: [0, 0, 0, 0]};
     }
     this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
