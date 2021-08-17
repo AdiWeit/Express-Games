@@ -76,6 +76,7 @@
   room.setOnMessageListener(function(message) {
     if (message.type == "selectedMode") mode = message.data;
     if (message.type == "Reihenfolge")  {
+      if (message.data == player.myNumber) new Audio('http://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3').play();
       player.aktuell = message.data;
       layout();
       for (var fieldX of field) {
