@@ -94,7 +94,10 @@
       }, 7000);
     }
     if (message.type == "undo") {
-      if (message.player == player.myNumber) player[player.myNumber].steine.push(field[message.x][message.y].stein);
+      if (message.player == player.myNumber) {
+        player[player.myNumber].steine.push(field[message.x][message.y].stein);
+        if (player[player.myNumber].steine[player[player.myNumber].steine.length - 1].type == "joker") player[player.myNumber].steine[player[player.myNumber].steine.length - 1].letter = "?";
+      }
       delete field[message.x][message.y].stein;
       delete player[player.myNumber].steine[player[player.myNumber].steine.length - 1].new
       layout();

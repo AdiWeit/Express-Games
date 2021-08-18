@@ -61,7 +61,7 @@ var steine = {
     {letter: "Ä", points:6, amount: 1},
     {letter: "Ö", points:8, amount: 1},
     {letter: "Ü", points:6, amount: 1},
-    {letter: "?", points:0, amount: 2, type: "joker"},
+    {letter: "?", points:0, amount: 90, type: "joker"},
   ]
 }
 var colours = ["red", "green", "blue", "yellow", "#B45F04", "purple"];
@@ -871,6 +871,7 @@ class Qwirkle {
          player: Reihenfolge
        });
        player[Reihenfolge].steine.push(field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein);
+       if (player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].type == "joker") player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].letter = "?";
        delete field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein;
        newTiles.pop();
        points.now = 0;
