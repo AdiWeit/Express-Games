@@ -13,7 +13,7 @@ var currentWords = [];
 var wordIndexes = {};
 var beginning = true;
 var firstPlacingRound = true;
-var points = {now: 0, before:0, got: [0, 0, 0, 0]};
+var points = {now: 0, required: 0, before:0, got: [0, 0, 0, 0]};
 var field;
 var player = {0: {}, 1: {}, 2: {}, 3:{}};
 var beutel = [];
@@ -75,16 +75,22 @@ class Qwirkle {
     this.send = sendReceiver;
     this.player = [];
     this.voteFunc = (data) => {
+      if (data.pointsToWin) points.required += data.pointsToWin;
+      console.log("pointsRequired: " + points.required);
       votes[data.easyMode]++;
       var voteConverter = {0: false, 1: true};
       if (votes.true + votes.false >= spielerOnline) {
+        console.log(spielerOnline);
+        if (data.pointsToWin) points.required = Math.round(points.required/spielerOnline);
+        console.log("pointsRequired: " + points.required);
         if (votes.true > votes.false) mode = "easy";
         else if (votes.true < votes.false) mode = "normal";
         if (mode) {
           console.log(mode + " wins vote!");
           this.broadcast({
             type: "selectedMode",
-            data: mode
+            data: mode,
+            pointsToWin: points.required
           });
           this.setup();
         }
@@ -145,7 +151,7 @@ class Qwirkle {
       turntype = "";
       field = [];
       newTiles = [];
-      points = {now: 0, before:0, got: [0, 0, 0, 0]};
+      points = {now: 0, required: 0, before:0, got: [0, 0, 0, 0]};
     }
     this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
@@ -444,6 +450,12 @@ class Qwirkle {
       }
       else if (turntype != "protestTime") {
       points.got[Reihenfolge] += points.now;
+      if (points.got[Reihenfolge] >= points.required) {
+        this.broadcast({
+           "type": "winner",
+           "player": Reihenfolge,
+        });
+      }
       points.now = 0;
       this.broadcast({
          "type": "pointsPlayer",
