@@ -151,7 +151,6 @@ class Qwirkle {
       turntype = "";
       field = [];
       newTiles = [];
-      points = {now: 0, required: 0, before:0, got: [0, 0, 0, 0]};
     }
     this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
@@ -455,6 +454,7 @@ class Qwirkle {
            "type": "winner",
            "player": Reihenfolge,
         });
+        this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");
       }
       points.now = 0;
       this.broadcast({
@@ -587,6 +587,7 @@ class Qwirkle {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
       votes = {true:0, false:0};
+      points = {now: 0, required: 0, before:0, got: [0, 0, 0, 0]};
       this.broadcast({
         "type": "AnzahlSpieler",
         "data": spielerOnline
@@ -912,7 +913,7 @@ class Qwirkle {
     } else {
       this.broadcast(data.message);
     }
-    if (data.message.type == "endGame" || data.message.type == "countingPoints" || (data.message == "" && data.message.includes("gewonnen"))) {this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");}
+    if (data.message.type == "endGame" || data.message.type == "winner" || (data.message == "" && data.message.includes("gewonnen"))) {this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");}
   }
   onDispose() {
     console.log("Dispose BasicRoom");
