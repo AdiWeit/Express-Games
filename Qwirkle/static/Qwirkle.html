@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<script src="https://adi.nicolaiweitkemper.de/Database2/js.js"></script>
 <div style="display:none;" id="settings">
   <input id="pointsToWin" value="50" type="text" placeholder="points to win">
   <input id="easyModeCheck" type="checkbox"> Version mit Farben und Formen (Qwirkle)
@@ -47,6 +49,24 @@
       if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
+    // recognize connection lost
+    dbGet("connectionCheck", "is").then(result => {
+      if (!player.hasConnection) {
+        console.log("connection regained! All data, including the missed data, will be sent to this device!");
+        room.send({
+          message: {
+            "type": "getAllData",
+            playerId: player.id
+          }
+        });
+      }
+      player.hasConnection = true;
+    }).catch(function(e) {
+        if (e.message == "Failed to fetch") {
+          player.hasConnection = false;
+          console.log("connection lost! Trying to regain...");
+        }
+      });
   }
 
   function sendMessage(obj) {
@@ -75,7 +95,7 @@
       sendMessage(msg);
     }
   };
-  var player = {colours: ["red", "green", "blue", "yellow"], 0: {}, 1: {}, 2: {}, 3: {}};
+  var player = {hasConnection: true, colours: ["red", "green", "blue", "yellow"], 0: {}, 1: {}, 2: {}, 3: {}};
   var mode = "";
   var protestTime = false;
   function confirmVote() {
@@ -150,9 +170,11 @@
     if (message.type == "endGame") alert("somebody doesn't want to continue playing, so the game ends!");
     if (message.type == "spielerDu") {
       player.myNumber = message.data;
+      player.id = message.id;
       if (message.newRound) {
         settings.style.display = "inline";
     }
+    else if (message.connectionLost) console.log("all information received");
     else if (!confirm('You quit the round. Do you want to rejoin?')) {
       room.send({
         message: {

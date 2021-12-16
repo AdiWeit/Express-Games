@@ -74,6 +74,46 @@ class Qwirkle {
     this.broadcast = broadcastReceiver;
     this.send = sendReceiver;
     this.player = [];
+    this.everythingToPlayer = (playerId, connectionLost) => {
+      this.player.forEach((playerNow, i) => {
+      if (playerNow.id == playerId) {
+        this.send(this.player[i].client, {
+          "type": "spielerDu",
+          connectionLost: connectionLost,
+          "data": (i - 1),
+          id: playerNow.id
+        });
+        this.send(this.player[i].client, {
+          "type": "AnzahlSpieler",
+          "data": spielerOnline
+        });
+        this.send(this.player[i].client, {
+          "type": "selectedMode",
+          "data": mode
+        });
+        this.send(this.player[i].client, {
+          "type": "fieldSync",
+          "data": field
+        });
+        this.send(this.player[i].client, {
+          "type": "steinePlayer",
+          // "player": playerI,
+          data: player[i - 1].steine
+        });
+        points.got.forEach((points, i1) => {
+          this.send(this.player[i].client, {
+            "type": "pointsPlayer",
+            "player": i1,
+            data: points
+          });
+        });
+        this.send(this.player[i].client, {
+          "type": "Reihenfolge",
+          "data": Reihenfolge
+        });
+      }
+    });
+    }
     this.voteFunc = (data) => {
       if (data.pointsToWin) points.required += data.pointsToWin;
       console.log("pointsRequired: " + points.required);
@@ -499,42 +539,7 @@ class Qwirkle {
     this.spielerOnlineGleich0++;
     console.log("this.spielerOnlineGleich0: " + this.spielerOnlineGleich0);
     if ([this.player[1], this.player[2], this.player[3], this.player[4]].some(p => p && p.id && (p.id == client.sessionId))) {
-      this.player.forEach((playerNow, i) => {
-        if (playerNow.id == client.sessionId) {
-          this.send(this.player[i].client, {
-            "type": "spielerDu",
-            "data": (i - 1)
-          });
-          this.send(this.player[i].client, {
-            "type": "AnzahlSpieler",
-            "data": spielerOnline
-          });
-          this.send(this.player[i].client, {
-            "type": "selectedMode",
-            "data": mode
-          });
-          this.send(this.player[i].client, {
-            "type": "fieldSync",
-            "data": field
-          });
-          this.send(this.player[i].client, {
-            "type": "steinePlayer",
-            // "player": playerI,
-            data: player[i - 1].steine
-          });
-          points.got.forEach((points, i1) => {
-            this.send(this.player[i].client, {
-              "type": "pointsPlayer",
-              "player": i1,
-              data: points
-            });
-          });
-          this.send(this.player[i].client, {
-            "type": "Reihenfolge",
-            "data": Reihenfolge
-          });
-        }
-      });
+      this.everythingToPlayer(client.sessionId);
     //   var rejoinedPlayer = -1;
     //   if (client.sessionId == this.player[1].id) rejoinedPlayer = 1;
     // if (client.sessionId == this.player[2].id) {
@@ -600,25 +605,29 @@ class Qwirkle {
         this.send(this.player[3].client, {
           "type": "spielerDu",
           "data": 2,
-          newRound: true
+          newRound: true,
+          id: this.player[3].id
         });
       }
       if (spielerOnline > 3) {
         this.send(this.player[4].client, {
           "type": "spielerDu",
           "data": 3,
-          newRound: true
+          newRound: true,
+          id: this.player[4].id
         });
       }
       this.send(this.player[1].client, {
         type: "spielerDu",
         data: 0,
-        newRound: true
+        newRound: true,
+        id: this.player[1].id
       });
       this.send(this.player[2].client, {
         type: "spielerDu",
         data: 1,
-        newRound: true
+        newRound: true,
+        id: this.player[2].id
       });
       Reihenfolge = Math.floor(Math.random() * spielerOnline);
       turntype = "";
@@ -748,7 +757,8 @@ class Qwirkle {
       // console.log(this.player[1].client);
       // console.log(this.player[2].client);
       points.before = JSON.parse(JSON.stringify(points.now));
-      if (data.message.type == "vote") {
+      if (data.message.type == "getAllData") this.everythingToPlayer(data.message.playerId, true);
+      else if (data.message.type == "vote") {
         this.voteFunc(data.message);
      }
      else if (data.message.type == "protest" && turntype == "protestTime") {
