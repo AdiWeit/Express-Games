@@ -109,6 +109,7 @@
     settings.style.display = "none";
   }
   room.setOnMessageListener(function(message) {
+    if (message.type == "noRevenge") alert("Somebody doesn't want to play a revenge so you have to reload the page to play another round")
     if (message.type == "winner") {
       setTimeout(function () {
         winnerScreen(message.player, 0);
@@ -119,7 +120,9 @@
       if (message.pointsToWin) alert("reach " + message.pointsToWin + " points to win!");
     }
     if (message.type == "Reihenfolge")  {
-      if (message.data == player.myNumber) new Audio('http://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3').play();
+      if (message.data == player.myNumber) {
+        new Audio('http://adi.nicolaiweitkemper.de/Sounds/Elevator-ding-dong-sound-effect%20(Spielerwechsel).mp3').play();
+      }
       player.aktuell = message.data;
       layout();
       for (var fieldX of field) {
@@ -159,6 +162,12 @@
       layout();
     }
     if (message.type == "fieldSync") {
+      if (!message.data.length) {
+        field = [];
+        for (var i = 0; i < 10; i++) {
+          field[i] = new Array(10);
+        }
+      }
       message.data.forEach((x, i) => {
         if (x) {
         x.forEach((y, i1) => {
@@ -212,7 +221,15 @@
   function winnerScreen(gewinner, times) {
     if (times == 0) {
       setTimeout(function () {
-        alert("Please relaod the page to play an other round!");
+        var revengeB = confirm("Do you want a revenge?");
+          room.send({
+            message: {
+              "type": "revenge",
+              playerNumber: player.myNumber,
+              revenge: revengeB
+            }
+          });
+        if (!revengeB) alert("Please relaod the page to play an other round with other people!");
       }, 5000);
     }
     if (player.myNumber == gewinner) {
@@ -325,12 +342,6 @@
       var verfügbar = field.length - (pointsPlayer[i] + "").length - 1;
       canvas.fillStyle = "rgb(212, 161, 114)";
     }
-    var img = new Image();
-    img.src = 'https://adi.nicolaiweitkemper.de/Bilder/trash.png';
-    canvas.drawImage(img, 20 + 50*8, 20 + 50*player.myNumber, 40, 40);
-    img = new Image();
-    img.src = 'https://adi.nicolaiweitkemper.de/Bilder/check.png';
-    canvas.drawImage(img, 20 + 50*9, 20 + 50*player.myNumber, 40, 40);
     if (protestTime) {
       canvas.fillStyle = "white";
       canvas.beginPath();
@@ -342,6 +353,13 @@
       canvas.fill();
     }
     else if (player.myNumber == player.aktuell) {
+      console.log("showing buttons");
+      var img = new Image();
+      img.src = 'https://adi.nicolaiweitkemper.de/Bilder/trash.png';
+      canvas.drawImage(img, 20 + 50*8, 20 + 50*player.myNumber, 40, 40);
+      img = new Image();
+      img.src = 'https://adi.nicolaiweitkemper.de/Bilder/check.png';
+      canvas.drawImage(img, 20 + 50*9, 20 + 50*player.myNumber, 40, 40);
       img = new Image();
       img.src = 'https://adi.nicolaiweitkemper.de/Bilder/zeichenBattle/leftArrow.png';
       canvas.drawImage(img, 20 + 50 , 20 + 50*player.myNumber, 40, 40);

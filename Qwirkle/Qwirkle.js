@@ -20,6 +20,8 @@ var beutel = [];
 var placeDirection = {coords: [], string: ""};
 var newPlaceDirection;
 var snake;
+var revenge = [0, 0, 0, 0];
+var playerBattle = 0;
 var steine = {
   easy: [
     {name: "rectangle"},
@@ -191,6 +193,7 @@ class Qwirkle {
       turntype = "";
       field = [];
       newTiles = [];
+      revenge = [0, 0, 0, 0];
     }
     this.getSteine = (playerI, number, doNotSend) => {
       for (var i1 = 0; i1 < number; i1++) {
@@ -494,7 +497,6 @@ class Qwirkle {
            "type": "winner",
            "player": Reihenfolge,
         });
-        this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");
       }
       points.now = 0;
       this.broadcast({
@@ -539,6 +541,7 @@ class Qwirkle {
     this.spielerOnlineGleich0++;
     console.log("this.spielerOnlineGleich0: " + this.spielerOnlineGleich0);
     if ([this.player[1], this.player[2], this.player[3], this.player[4]].some(p => p && p.id && (p.id == client.sessionId))) {
+      this.spielerOnlineGleich0--;
       this.everythingToPlayer(client.sessionId);
     //   var rejoinedPlayer = -1;
     //   if (client.sessionId == this.player[1].id) rejoinedPlayer = 1;
@@ -591,6 +594,7 @@ class Qwirkle {
     if ((this.player[1] != null || this.player[1] != undefined) && (this.player[2] != null || this.player[2] != undefined)/* && spielerOnline > 1*/) {
       // für mehr als 2 Spieler:    setTimeout( () =>  { },1000);
       console.log("Mehr als 1 Spieler");
+      playerBattle = spielerOnline;
       votes = {true:0, false:0};
       points = {now: 0, required: 0, before:0, got: [0, 0, 0, 0]};
       this.broadcast({
@@ -752,7 +756,6 @@ class Qwirkle {
           AblageListe[1] = "abgebrochen";
         }, 500);
       } */
-      // TODO: spielerwechsel: check if right player initiates it
       // console.log(client);
       // console.log(this.player[1].client);
       // console.log(this.player[2].client);
@@ -760,6 +763,25 @@ class Qwirkle {
       if (data.message.type == "getAllData") this.everythingToPlayer(data.message.playerId, true);
       else if (data.message.type == "vote") {
         this.voteFunc(data.message);
+     }
+     else if (data.message.type == "revenge") {
+       revenge[data.message.playerNumber] = data.message.revenge;
+       console.log("revenge: " + revenge.reduce((a, b) => a + b));
+       if (playerBattle != this.spielerOnlineGleich0 || !data.message.revenge) {
+         this.player[1] = null; this.player[2] = null; this.player[3] = null; this.player[4] = null; spielerOnline = 0; console.log("remove room");
+         this.broadcast({"type": "noRevenge"});
+       }
+       if (revenge.reduce((a, b) => a + b) == playerBattle) {
+         points = {now: 0, required: points.required, before:0, got: [0, 0, 0, 0]};
+         this.setup();
+         console.log("sending data to players");
+         console.log(this.player);
+         for (var thePlayer of this.player) {
+           console.log(thePlayer);
+           if (thePlayer) console.log("data to " + thePlayer.id);
+           if (thePlayer) this.everythingToPlayer(thePlayer.id, true);
+         }
+       }
      }
      else if (data.message.type == "protest" && turntype == "protestTime") {
        console.log("protest!");
