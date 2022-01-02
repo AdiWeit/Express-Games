@@ -158,7 +158,7 @@
       mode = "";
       playerReadyList = 0;
       setTimeout(function () {
-        if (!inRound && readyB.style.display == "none") confirmVote();
+        if (!inRound && readyB.style.display == "none" && voting.style.display == "inline") confirmVote();
       }, 40000);
     }
     if (message.type == "AnzahlSpieler") {winner = -1; player.total = message.data; pointsRequiredT.value = 5*player.total/*10 + (player.total - 2)*2;*/; vote = []; voting.style.display = "inline"; confirmVoteB.style.display = "inline"; player.points = [];}
@@ -186,7 +186,7 @@
     }
     //if (message.type == "size") {playerReadyList = 0; wrongAnswers = 0; tips = 0; }
     if (message.type == "size"/* && mode == "normal"*/) {
-      textur.height = message.highest;
+      if (mode != "differentShapes") textur.height = message.highest;
       if (tips == -1 && wrongAnswers == -1/*player.points.length == 0*/) inRound = true;
       size = message.data;
       if (message.layout || mode == "normal") {layout(undefined, canvas); layout(undefined, samecheckCanvas);}
@@ -388,7 +388,7 @@ newShapes++;
       data = {width: [], height: []}
       var volumen = (Math.round(Math.random() *166) + 210)*(Math.round(Math.random() *122) + 50);
       var width = Math.round(Math.random() *122) + 50;
-      var highest = 0;
+      highest = 0;
       var volumes = [];
       for (var i = 0; i < amount; i++) {
         data.width.push(width - Math.round(Math.random() *50) + 1);
@@ -448,6 +448,7 @@ newShapes++;
   }
   function newShapesFinished(highest, colours) {
     console.log("new shape created!");
+    if (mode == "differentShapes") highest = 150;
     room.send({
       message: {
         "type": "size",
@@ -682,7 +683,7 @@ newShapes++;
 }
   var speed = 10;
   var shapeReached = [];
-  var highest;
+  var highest = 150;
   var visualisationFinished = 0;
   function layout(point, canvas) {
     canvas.fillStyle = "#FFBF00";
