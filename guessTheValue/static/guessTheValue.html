@@ -1,21 +1,96 @@
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  outline: none;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+.wrapper{
+  width: 450px;
+  background: #FFBF00;
+  padding: 30px;
+  /* box-shadow: 0px 0px 10px rgba(0,0,0,0.1); */
+}
+.wrapper .input-data{
+  height: 40px;
+  width: 100%;
+  position: relative;
+}
+.wrapper .input-data input{
+  height: 100%;
+  width: 100%;
+  border: none;
+  font-size: 17px;
+  border-bottom: 2px solid silver;
+}
+.input-data input:focus ~ label,
+.input-data input:valid ~ label{
+  transform: translateY(-20px);
+  font-size: 15px;
+  color: #4158d0;
+}
+.wrapper .input-data label{
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  color: grey;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.input-data .underline{
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  bottom: 0;
+}
+.input-data .underline:before{
+  position: absolute;
+  content: "";
+  height: 100%;
+  width: 100%;
+  background: #4158d0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+.input-data input:focus ~ .underline:before,
+.input-data input:valid ~ .underline:before{
+  transform: scaleX(1);
+}
+</style>
 <div id="voting">
-  <input type="text" id="amountOfGlasses" onchange="if (modeSelction.value == 'field' && value > 50) value = 50;" placeholder="glasses to compare at the same time" value="3">
-  <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
+  <div class="wrapper">
+         <div class="input-data">
+            <input id="amountOfGlasses" onchange="if (modeSelction.value == 'field' && value > 50) value = 50;" type="text" value="3" required>
+            <div class="underline"></div>
+            <label>objects to compare at the same time</label>
+         </div>
+      </div>
+      <div class="wrapper">
+         <div class="input-data">
+            <input id="pointsRequiredT" type="text" required>
+            <div class="underline"></div>
+            <label>points for win</label>
+         </div>
+      </div>
   <br>
-  <select id="modeSelction" value="differentShapes" onchange="modeSelectionChanged(value);">
+  <select style="font-size: 20px; left: 29px; position: absolute;" id="modeSelction" onchange="modeSelectionChanged(value);">
     <option value="normal">normal</option>
     <option value="differentShapes">different shapes</option>
     <option value="field">field</option>
   </select>
   <br>
-  <button type="button" id="confirmVoteB" onclick="confirmVote();" name="button">this is my vote!</button>
+  <button type="button" style="font-size: 20px; left: 28px; top: 10px; position: relative;" id="confirmVoteB" onclick="confirmVote();" name="button">this is my vote!</button>
 </div>
-<button type="button" id="readyB" onclick="playerReady();" name="button">ready!</button>
+<button style="font-size: 40px;" type="button" id="readyB" onclick="playerReady();" name="button">ready!</button>
 <canvas id="textur" width="1844" onclick="canvasClicked();" height="700"></canvas>
 <canvas id="checkTextur" width="1844" height="700"></canvas>
 <canvas id="samecheckTextur" width="1844" height="700"></canvas>
 <script>
+  modeSelction.value = "differentShapes";
   checkTextur.style.display = "none";
   samecheckTextur.style.display = "none";
   readyB.style.display = "none";
