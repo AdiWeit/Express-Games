@@ -3,7 +3,7 @@
   <input type="text" id="amountOfGlasses" onchange="if (modeSelction.value == 'field' && value > 50) value = 50;" placeholder="glasses to compare at the same time" value="3">
   <input type="text" id="pointsRequiredT" placeholder="points for win" value="5">
   <br>
-  <select id="modeSelction" onchange="modeSelectionChanged(value);">
+  <select id="modeSelction" value="differentShapes" onchange="modeSelectionChanged(value);">
     <option value="normal">normal</option>
     <option value="differentShapes">different shapes</option>
     <option value="field">field</option>
@@ -469,7 +469,7 @@ newShapes++;
         }
       });
       setTimeout(function () {
-        alert("Please relaod the page to play an other round!");
+        alert("Please relaod the page to play another round!");
       }, 3333);
     }
     if (player.myNumber == gewinner) {
@@ -538,7 +538,7 @@ newShapes++;
         }
       });
       setTimeout(function () {
-        alert("Please relaod the page to play an other round!");
+        alert("Please relaod the page to play another round!");
       }, 3333);
     }
     if (player.myNumber == gewinner) {
@@ -580,9 +580,9 @@ newShapes++;
     }
     if (i == highestMult.i) canvas.fillStyle = "#40FF00";
     else canvas.fillStyle = "red";
-    canvas.fillRect(20 + 10 + 188*i + time, 20 + (highest.number - size.height[i]) + size.height[i] - i1, 1, 1);
+    canvas.fillRect(20 + 10 + 188*i, 20 + (highest.number - size.height[i]) + size.height[i] - i1, size.width[i] - 10, 1);
     time++;
-    if (time == size.width[i] - 10) {i1++; time = 0;}
+    i1++;
     if (i1 == size.height[i] + 1) {
       console.log("finishedResult " + i);
       visualisationFinished++;
@@ -598,7 +598,11 @@ newShapes++;
       if (highestTime < time) {
         highestTime = time;
       }
-      if (!inRound || (!loading.restarted && loading.boolean)) showResults(time, i1, i, highestTime);
+      if (!inRound || (!loading.restarted && loading.boolean)) {
+        setTimeout(function () {
+          showResults(time, i1, i, highestTime);
+        }, size.width[i]);
+      }
       if ((!loading.restarted && loading.boolean)) loading.restarted = true;
     }
   }
