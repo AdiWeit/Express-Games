@@ -66,7 +66,7 @@
          <div class="input-data">
             <input id="amountOfGlasses" onchange="if (modeSelction.value == 'field' && value > 50) value = 50;" type="text" value="3" required>
             <div class="underline"></div>
-            <label>objects to compare at the same time</label>
+            <label>objects/lines to compare at the same time</label>
          </div>
       </div>
       <div class="wrapper">
@@ -731,14 +731,15 @@ newShapes++;
     }
     var changedColours = {red: "green", blue: "yellow"};
     var colourCoordinates = {red: 2, blue: 1};
+    var side = {red: -1, blue: 1};
     canvas.fillStyle = colour;
-    canvas.fillRect((50*5 - 5)/colourCoordinates[colour] + 33, 520, 40, 20);
+    canvas.fillRect((50*5 + side[colour]*50)/colourCoordinates[colour], 20 + 10*size[0].length, 40, 20);
     canvas.fillStyle = changedColours[colour];
-    canvas.fillRect((50*5 - 5)/colourCoordinates[colour] + 33, 540, 40, 20);
+    canvas.fillRect((50*5 + side[colour]*50)/colourCoordinates[colour], 40 + 10*size[0].length, 100, 20);
 
     canvas.fillStyle = "#FFBF00";
     canvas.font = "21px Georgia";
-    canvas.fillText(time, (50*5 - 5)/colourCoordinates[colour] + 33, 520 + 30);
+    canvas.fillText(time, (50*5 + side[colour]*50)/colourCoordinates[colour], 20 + 10*size[0].length + 30);
 
     canvas.fillStyle = changedColours[colour];
     canvas.fillRect(10 + i*10, 10 + i1*10, 10, 10);
@@ -747,7 +748,7 @@ newShapes++;
       i = 0;
       i1++;
     }
-    if (time < colours[colour]) {
+    if (time < colours[colour] - 1) {
       if (!size[i][i1  + 1]) speed = 500;
       if (visualisationFinished == 1) speed = 10;
         setTimeout(function () {
@@ -804,14 +805,14 @@ newShapes++;
       }
     }
     canvas.fillStyle = "red";
-    canvas.fillRect((50*5 - 5)/2 + 33, 520, 40, 40);
+    canvas.fillRect((50*5 - 50)/2, /*520*/20 + 10*size[0].length, 100, 40);
     canvas.fillStyle = "blue";
-    canvas.fillRect((50*5 - 5) + 33, 520, 40, 40);
+    canvas.fillRect((50*5 + 50), /*520*/20 + 10*size[0].length, 100, 40);
   }
   }
   function readMouseMove(e) {
     xMaus = e.clientX + scrollX + textur.getBoundingClientRect().left;
-    yMaus = e.clientY + scrollY + textur.getBoundingClientRect().top + 23;
+    yMaus = e.clientY + scrollY + textur.getBoundingClientRect().top// + 23;
     //    console.log(xMaus + " - " + yMaus);
   }
   document.onmousemove = readMouseMove
@@ -897,10 +898,10 @@ newShapes++;
   }
   function checkSelected() {
       for (var i = 0; i < amount; i++) {
-        if (xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/  && yMaus < 250) return i;
+        if (mode != "field" && xMaus > 20 + 188*i && xMaus < 20 + 188*i + 188/*size.width[i]*/) return i;
       }
-      if (mode == "field" && xMaus > (50*5 - 5)/2 + 33 && xMaus < (50*5 - 5)/2 + 33 + 40 && yMaus > 520 && yMaus < 660) return {colour: "red", coordinate: 0.5};
-      if (mode == "field" && xMaus > (50*5 - 5) + 33 && xMaus < (50*5 - 5) + 33 + 40 && yMaus > 520 && yMaus < 660) return {colour: "blue", coordinate: 1};
+      if (mode == "field" && xMaus > (50*5 - 50)/2 && xMaus < (50*5 - 50)/2 + 100 && yMaus > 20 + 10*size[0].length && yMaus < 20 + 10*size[0].length + 40) return {colour: "red", coordinate: 0.5};
+      if (mode == "field" && xMaus > (50*5 + 50) && xMaus < (50*5 + 50) + 100 && yMaus > 20 + 10*size[0].length && yMaus < 20 + 10*size[0].length + 40) return {colour: "blue", coordinate: 1};
   }
 
 </script>
