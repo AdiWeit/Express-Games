@@ -5,172 +5,6 @@
   <link rel="stylesheet" type="text/css" href="https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/base.css">
 </head>
 <body>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
-
-    import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
-
-
-    class BasicWorldDemo {
-      constructor() {
-        this._Initialize();
-      }
-
-      _Initialize() {
-        this._threejs = new THREE.WebGLRenderer({
-          antialias: true,
-        });
-        this._threejs.shadowMap.enabled = true;
-        this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
-        this._threejs.setPixelRatio(window.devicePixelRatio);
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-
-        document.body.appendChild(this._threejs.domElement);
-
-        window.addEventListener('resize', () => {
-          this._OnWindowResize();
-        }, false);
-
-        const fov = 60;
-        const aspect = 1920 / 1080;
-        const near = 1.0;
-        const far = 1000.0;
-        this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this._camera.position.set(75, 20, 0);
-
-        this._scene = new THREE.Scene();
-
-        let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-        light.position.set(20, 100, 10);
-        light.target.position.set(0, 0, 0);
-        light.castShadow = true;
-        light.shadow.bias = -0.001;
-        light.shadow.mapSize.width = 2048;
-        light.shadow.mapSize.height = 2048;
-        light.shadow.camera.near = 0.1;
-        light.shadow.camera.far = 500.0;
-        light.shadow.camera.near = 0.5;
-        light.shadow.camera.far = 500.0;
-        light.shadow.camera.left = 100;
-        light.shadow.camera.right = -100;
-        light.shadow.camera.top = 100;
-        light.shadow.camera.bottom = -100;
-        this._scene.add(light);
-
-        light = new THREE.AmbientLight(0x101010);
-        this._scene.add(light);
-
-        const controls = new OrbitControls(
-          this._camera, this._threejs.domElement);
-        controls.target.set(0, 20, 0);
-        controls.update();
-
-        const loader = new THREE.CubeTextureLoader();
-        const texture = loader.load([
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/posx.jpg',
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negx.jpg',
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posy.jpg',
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negy.jpg',
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posz.jpg',
-            'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negz.jpg',
-        ]);
-        this._scene.background = texture;
-
-        const plane = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 100, 10, 10),
-            new THREE.MeshStandardMaterial({
-                color: 'rgb(201, 115, 60)',
-              }));
-        plane.castShadow = false;
-        plane.receiveShadow = true;
-        plane.rotation.x = -Math.PI / 2;
-        this._scene.add(plane);
-
-        const box = new THREE.Mesh(
-          new THREE.BoxGeometry(2, 2, 2),
-          new THREE.MeshStandardMaterial({
-              color: 0xFFFFFF,
-          }));
-        box.position.set(0, 1, 0);
-        box.castShadow = true;
-        box.receiveShadow = true;
-        this._scene.add(box);
-
-        // for (let x = -8; x < 8; x++) {
-        //   for (let y = -8; y < 8; y++) {
-        //     const box = new THREE.Mesh(
-        //       new THREE.BoxGeometry(2, 2, 2),
-        //       new THREE.MeshStandardMaterial({
-        //           color: 0x808080,
-        //       }));
-        //     box.position.set(Math.random() + x * 5, Math.random() * 4.0 + 2.0, Math.random() + y * 5);
-        //     box.castShadow = true;
-        //     box.receiveShadow = true;
-        //     this._scene.add(box);
-        //   }
-        // }
-
-        // const box = new THREE.Mesh(
-        //   new THREE.SphereGeometry(2, 32, 32),
-        //   new THREE.MeshStandardMaterial({
-        //       color: 0xFFFFFF,
-        //       wireframe: true,
-        //       wireframeLinewidth: 4,
-        //   }));
-        // box.position.set(0, 0, 0);
-        // box.castShadow = true;
-        // box.receiveShadow = true;
-        // this._scene.add(box);
-
-        this._RAF();
-        // my code
-        const geometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
-        var material = new THREE.MeshBasicMaterial( { color: 'hsl(0, 0%, 0%)' } );
-        var sphere = new THREE.Mesh( geometry, material );
-        sphere.position.set(0/*x*/, 5/*y*/, 0/*z*/);
-        // // sphere.castShadow = true;
-        // sphere.receiveShadow = true;
-        this._scene.add( sphere );
-        var sphere = new THREE.Mesh( geometry, material );
-        sphere.position.set(0/*x*/, 25/*y*/, 0/*z*/);
-        this._scene.add( sphere );
-        var material = new THREE.MeshBasicMaterial( { color: 'hsl(0, 0%, 100%)' } );
-        var sphere = new THREE.Mesh( geometry, material );
-        sphere.position.set(0/*x*/, 15/*y*/, 0/*z*/);
-        // // sphere.castShadow = true;
-        // sphere.receiveShadow = true;
-        this._scene.add( sphere );
-        var sphere = new THREE.Mesh( geometry, material );
-        sphere.position.set(0/*x*/, 35/*y*/, 0/*z*/);
-        this._scene.add( sphere );
-        const cylinderGeometry = new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ );
-        const newMaterial = new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} );
-        const cylinder = new THREE.Mesh( cylinderGeometry, newMaterial );
-        cylinder.position.set(0/*x*/, 20/*y*/, 0/*z*/) /*position of middle*/;
-        this._scene.add( cylinder );
-      }
-
-      _OnWindowResize() {
-        this._camera.aspect = window.innerWidth / window.innerHeight;
-        this._camera.updateProjectionMatrix();
-        this._threejs.setSize(window.innerWidth, window.innerHeight);
-      }
-
-      _RAF() {
-        requestAnimationFrame(() => {
-          this._threejs.render(this._scene, this._camera);
-          this._RAF();
-        });
-      }
-    }
-
-
-    let _APP = null;
-
-    window.addEventListener('DOMContentLoaded', () => {
-      _APP = new BasicWorldDemo();
-    });
-  </script>
 </body>
 </html>
 <meta charset="utf-8">
@@ -187,14 +21,236 @@
 
 <link href="https://adi.nicolaiweitkemper.de/JS_Grafik/TEST.css" rel="stylesheet" type="text/css"> -->
 
-<canvas id="textur" width="1582" height="750"></canvas>
+<canvas id="textur" width="1582" style="display:none" height="750"></canvas>
 <select name="course" id="modi">
   <option value="Plätchen">Plätchen</option>
   <option value="runterrutschen" selected="">runterrutschen</option>
 </select>
 
 
-<script>
+<script type = "module">
+// 3D part
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+
+
+class BasicWorldDemo {
+  constructor() {
+    this._Initialize();
+  }
+
+  _Initialize() {
+    this._threejs = new THREE.WebGLRenderer({
+      antialias: true,
+    });
+    this._threejs.shadowMap.enabled = true;
+    this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
+    this._threejs.setPixelRatio(window.devicePixelRatio);
+    this._threejs.setSize(window.innerWidth, window.innerHeight);
+
+    document.body.appendChild(this._threejs.domElement);
+
+    window.addEventListener('resize', () => {
+      this._OnWindowResize();
+    }, false);
+
+    const fov = 60;
+    const aspect = 1920 / 1080;
+    const near = 1.0;
+    const far = 1000.0;
+    this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    this._camera.position.set(75, 20, 0);
+
+    this._scene = new THREE.Scene();
+
+    let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+    light.position.set(20, 100, 10);
+    light.target.position.set(0, 0, 0);
+    light.castShadow = true;
+    light.shadow.bias = -0.001;
+    light.shadow.mapSize.width = 2048;
+    light.shadow.mapSize.height = 2048;
+    light.shadow.camera.near = 0.1;
+    light.shadow.camera.far = 500.0;
+    light.shadow.camera.near = 0.5;
+    light.shadow.camera.far = 500.0;
+    light.shadow.camera.left = 100;
+    light.shadow.camera.right = -100;
+    light.shadow.camera.top = 100;
+    light.shadow.camera.bottom = -100;
+    this._scene.add(light);
+
+    light = new THREE.AmbientLight(0x101010);
+    this._scene.add(light);
+
+    const controls = new OrbitControls(
+      this._camera, this._threejs.domElement);
+    controls.target.set(0, 20, 0);
+    controls.update();
+
+    const loader = new THREE.CubeTextureLoader();
+    const texture = loader.load([
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/posx.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negx.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posy.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negy.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posz.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negz.jpg',
+    ]);
+    this._scene.background = texture;
+
+    const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100, 10, 10),
+        new THREE.MeshStandardMaterial({
+            color: 'rgb(201, 115, 60)',
+          }));
+    plane.castShadow = false;
+    plane.receiveShadow = true;
+    plane.rotation.x = -Math.PI / 2;
+    this._scene.add(plane);
+
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(2, 2, 2),
+      new THREE.MeshStandardMaterial({
+          color: 0xFFFFFF,
+      }));
+    box.position.set(0, 1, 0);
+    box.castShadow = true;
+    box.receiveShadow = true;
+    this._scene.add(box);
+
+    // for (let x = -8; x < 8; x++) {
+    //   for (let y = -8; y < 8; y++) {
+    //     const box = new THREE.Mesh(
+    //       new THREE.BoxGeometry(2, 2, 2),
+    //       new THREE.MeshStandardMaterial({
+    //           color: 0x808080,
+    //       }));
+    //     box.position.set(Math.random() + x * 5, Math.random() * 4.0 + 2.0, Math.random() + y * 5);
+    //     box.castShadow = true;
+    //     box.receiveShadow = true;
+    //     this._scene.add(box);
+    //   }
+    // }
+
+    // const box = new THREE.Mesh(
+    //   new THREE.SphereGeometry(2, 32, 32),
+    //   new THREE.MeshStandardMaterial({
+    //       color: 0xFFFFFF,
+    //       wireframe: true,
+    //       wireframeLinewidth: 4,
+    //   }));
+    // box.position.set(0, 0, 0);
+    // box.castShadow = true;
+    // box.receiveShadow = true;
+    // this._scene.add(box);
+
+    this._RAF();
+    // my code
+    const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
+    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 1/*radius top*/, 1/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
+    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} )};
+    var sphere;
+    var direction = 1;
+    this.load3dLayout = (Felder) => {
+      for (var i = 0; i < Felder.length; i++) {
+        // for (var i1 = 0; i1 < Felder[0].length; i1++) {
+          for (var i2 = 0; i2 < Felder[0][0].length; i2++) {
+            // if (!i1) {
+            const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
+            console.log(i + " - " + i2);
+            cylinder.position.set(13*i - 13*1.5/*x*/, 20/*y*/, 13*i2 - 13*1.5/*z*/) /*position of middle*/;
+            cylinder.selectable = true;
+            this._scene.add( cylinder );
+          // }
+          }
+        // }
+      }
+      // sphere = new THREE.Mesh( sphereGeometry, materials.blue );
+      // sphere.position.set(0/*x*/, 5/*y*/, 0/*z*/);
+      // // // sphere.castShadow = true;
+      // // sphere.receiveShadow = true;
+      // this._scene.add( sphere );
+      // sphere = new THREE.Mesh( sphereGeometry, materials.blue );
+      // sphere.position.set(0/*x*/, 25/*y*/, 0/*z*/);
+      // this._scene.add( sphere );
+      // sphere = new THREE.Mesh( sphereGeometry, materials.red );
+      // sphere.position.set(0/*x*/, 15/*y*/, 0/*z*/);
+      // this._scene.add( sphere );
+      // sphere = new THREE.Mesh( sphereGeometry, materials.red );
+      // sphere.position.set(0/*x*/, 35/*y*/, 0/*z*/);
+      // this._scene.add( sphere );
+      // const cylinder = new THREE.Mesh( cylinderGeometry, materials.brownIsh);
+      // cylinder.position.set(0/*x*/, 20/*y*/, 0/*z*/) /*position of middle*/;
+      // this._scene.add( cylinder );
+    }
+  }
+
+  _OnWindowResize() {
+    this._camera.aspect = window.innerWidth / window.innerHeight;
+    this._camera.updateProjectionMatrix();
+    this._threejs.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  _RAF() {
+    requestAnimationFrame(() => {
+      this._threejs.render(this._scene, this._camera);
+      this._RAF();
+    });
+  }
+}
+// detect obj at mouse position
+const raycaster = new THREE.Raycaster();
+var clickMouse = new THREE.Vector2();
+const moveMouse = new THREE.Vector2();
+var click = {state: "up", mouseMove: 0};
+window.addEventListener('mousedown', event => {
+  click.state = "down";
+});
+// document.addEventListener('touchmove', touch);
+// document.addEventListener('touchstart', touch);
+document.addEventListener('touchstart', touch);
+function touch(ev) {
+  if (ev.type == "touchstart") {
+    xMaus = ev.touches[0]["pageX"];
+    yMaus = ev.touches[0]["pageY"];
+    objClicked();
+  }
+}
+window.addEventListener('click', event => {
+  objClicked();
+})
+function objClicked() {
+  clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
+  clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(clickMouse, _APP._camera);
+  const found = raycaster.intersectObjects(_APP._scene.children);
+  if (click.mouseMove < 5 && found[0]?.object.selectable) found[0].object.position.set(found[0].object.position.x, found[0].object.position.y + 10, found[0].object.position.z);
+  click = {state: "up", mouseMove: 0};
+}
+let _APP = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  _APP = new BasicWorldDemo();
+  console.log(_APP);
+});
+setTimeout(function () {
+  var Felder = [];
+  for (var i = 0; i < 4; i++) {
+    Felder[i] = [];
+    for (var i1 = 0; i1 < 4; i1++) {
+      Felder[i][i1] = [];
+      for (var i2 = 0; i2 < 4; i2++) {
+        Felder[i][i1][i2] = "Test";
+      }
+    }
+  }
+  _APP.load3dLayout(Felder)
+}, 5000);
+
+  var gerät = "";
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
     navigator.userAgent.match(/iPhone/i) ||
@@ -230,7 +286,7 @@
   var Zustand = "none"
   var zählerM2 = ""
   var SpielerId;
-
+  3
   async function sendJson(url = "/", body = {}) {
     const rawResponse = await fetch(url, {
       method: 'POST',
@@ -634,7 +690,10 @@
       FolgenMouseOrKeyDown();
     }
   }
+  var xMaus;
+  var yMaus;
   function readMouseMove(e) {
+    if (click.state == "down") click.mouseMove++;
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY;
     if (gerät == "Handy") yMaus -= 10;
