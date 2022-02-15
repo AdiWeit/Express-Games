@@ -33,7 +33,7 @@ class vierGewinnt  {
 
   onMessage(client, data) {
 
-    if (!(this.player1 && this.player2)) return this.broadcast("Es fehlt noch ein Spieler!");
+    // if (!(this.player1 && this.player2)) return this.broadcast("Es fehlt noch ein Spieler!");
 /*    if (client === this.player1.id) {
       if (!rules[data.message]) {
         return this.broadcast(`${client} sagt: ${data.message}`);
@@ -84,6 +84,7 @@ class vierGewinnt  {
     //     this.broadcast(this.resultString(result));
     //   }
     // }
+    if (data.type == "3DsetStone") this.broadcast(data)
     if (data.message == "Spielerwechsel") {
     console.log(data.message);
     console.log(Reihenfolge[0] == "player1");

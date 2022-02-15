@@ -25,6 +25,7 @@
 <select name="course" id="modi">
   <option value="Plätchen">Plätchen</option>
   <option value="runterrutschen" selected="">runterrutschen</option>
+  <option value="3D" selected="">3D</option>
 </select>
 
 
@@ -100,24 +101,22 @@ class BasicWorldDemo {
     ]);
     this._scene.background = texture;
 
-    const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 100, 10, 10),
-        new THREE.MeshStandardMaterial({
-            color: 'rgb(201, 115, 60)',
-          }));
-    plane.castShadow = false;
-    plane.receiveShadow = true;
-    plane.rotation.x = -Math.PI / 2;
-    this._scene.add(plane);
+    // const plane = new THREE.Mesh(
+    //     new THREE.PlaneGeometry(100, 100, 10, 10),
+    //     new THREE.MeshStandardMaterial({
+    //         color: 'rgb(201, 115, 60)',
+    //       }));
+    // plane.castShadow = false;
+    // plane.receiveShadow = true;
+    // plane.rotation.x = -Math.PI / 2;
+    // this._scene.add(plane);
 
     const box = new THREE.Mesh(
-      new THREE.BoxGeometry(2, 2, 2),
+      new THREE.BoxGeometry(4*13, 1.75, 4*13),
       new THREE.MeshStandardMaterial({
-          color: 0xFFFFFF,
+          color: 'rgb(201, 115, 60)',
       }));
-    box.position.set(0, 1, 0);
-    box.castShadow = true;
-    box.receiveShadow = true;
+    box.position.set(0, 0, 0);
     this._scene.add(box);
 
     // for (let x = -8; x < 8; x++) {
@@ -149,14 +148,14 @@ class BasicWorldDemo {
     this._RAF();
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
-    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 1/*radius top*/, 1/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
+    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 5/*radius top*/, 5/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
     var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} )};
     var sphere;
     var direction = 1;
     this.load3dLayout = (Felder) => {
       for (var i = 0; i < Felder.length; i++) {
         // for (var i1 = 0; i1 < Felder[0].length; i1++) {
-          for (var i2 = 0; i2 < Felder[0][0].length; i2++) {
+          for (var i2 = 0; i2 < Felder[0].length; i2++) {
             // if (!i1) {
             const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
             console.log(i + " - " + i2);
@@ -184,6 +183,71 @@ class BasicWorldDemo {
       // const cylinder = new THREE.Mesh( cylinderGeometry, materials.brownIsh);
       // cylinder.position.set(0/*x*/, 20/*y*/, 0/*z*/) /*position of middle*/;
       // this._scene.add( cylinder );
+    }
+    this.objClicked = () => {
+      if (Start && SpielerId == SpielerIds[0] && document.getElementById('modi').value == "3D") {
+      clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
+      clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(clickMouse, _APP._camera);
+      const found = raycaster.intersectObjects(_APP._scene.children);
+      var stabPos = found[0]?.object.position;
+      if (click.mouseMove < 5 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]?.length < 4) {
+      click = {state: "up", mouseMove: 0};
+      if (selected.ball) {
+        if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
+          room.send({
+            type: '3DsetStone',
+            stabPos: found[0]?.object.position,
+            player: SpielerId
+          });
+        }
+        else {
+          _APP.destroySelected();
+        }
+      }
+      if (!selected.stab || JSON.stringify(found[0]?.object.position) != JSON.stringify(selected.stab.position)) {
+      selected.stab = found[0]?.object;
+        selected.stab.material = materials.blue;
+      selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
+      selected.ball.position.set(stabPos.x/*x*/, 50/*y*/, stabPos.z/*z*/);
+      this._scene.add( selected.ball );
+    }
+    }
+    else click = {state: "up", mouseMove: 0};
+    }
+    }
+    this.destroySelected = () => {
+      selected.ball.geometry.dispose();
+      selected.ball.material.dispose();
+      this._scene.remove(selected.ball);
+      selected.stab.material = materials.brownIsh;
+    }
+    this.stoneSelected = (stabPos, player) => {
+      var field = Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]
+    if (SpielerId == SpielerIds[0]) {
+      _APP.destroySelected();
+      selected = {ball: null, stab: null};
+      room.send({
+        message: "Spielerwechsel"
+      });
+      sphere = new THREE.Mesh( sphereGeometry, materials.blue);
+      // 13*i - 13*1.5/*x*/, 20/*y*/, 13*i2 - 13*1.5/*z*/
+      field.push("blue");
+    }
+    else {
+      sphere = new THREE.Mesh( sphereGeometry, materials.red);
+      field.push("red");
+    }
+      sphere.position.set(stabPos.x/*x*/, 50/*y*/, stabPos.z/*z*/);
+      this._scene.add( sphere );
+      this.fallingStone(sphere, field);
+    }
+    this.fallingStone = (sphere, field) => {
+      sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
+      setTimeout(function () {
+        if (sphere.position.y > -5 + 10*field.length) _APP.fallingStone(sphere, field);
+      }, 10);
     }
   }
 
@@ -215,21 +279,13 @@ function touch(ev) {
   if (ev.type == "touchstart") {
     xMaus = ev.touches[0]["pageX"];
     yMaus = ev.touches[0]["pageY"];
-    objClicked();
+    _APP.objClicked();
   }
 }
 window.addEventListener('click', event => {
-  objClicked();
+  _APP.objClicked();
 })
-function objClicked() {
-  clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
-  clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(clickMouse, _APP._camera);
-  const found = raycaster.intersectObjects(_APP._scene.children);
-  if (click.mouseMove < 5 && found[0]?.object.selectable) found[0].object.position.set(found[0].object.position.x, found[0].object.position.y + 10, found[0].object.position.z);
-  click = {state: "up", mouseMove: 0};
-}
+var selected = {stab: null, ball: null};
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -237,19 +293,15 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log(_APP);
 });
 setTimeout(function () {
-  var Felder = [];
-  for (var i = 0; i < 4; i++) {
-    Felder[i] = [];
-    for (var i1 = 0; i1 < 4; i1++) {
-      Felder[i][i1] = [];
-      for (var i2 = 0; i2 < 4; i2++) {
-        Felder[i][i1][i2] = "Test";
-      }
-    }
+Felder = [];
+for (var i = 0; i < 4; i++) {
+  Felder[i] = [];
+  for (var i1 = 0; i1 < 4; i1++) {
+    Felder[i][i1] = [];
   }
-  _APP.load3dLayout(Felder)
-}, 5000);
-
+}
+_APP.load3dLayout(Felder);
+}, 1000);
   var gerät = "";
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
@@ -358,10 +410,13 @@ setTimeout(function () {
     return 'Are you sure you want to leave?';
   };
   room.setOnMessageListener(function(message) {
-    if (message.includes("player1")) {
+    if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.player);
+    else if (message.includes("player1")) {
       SpielerId = message.replace("player1", "");
+      console.log(SpielerId);
     } else if (message.includes("player2")) {
       SpielerId = message.replace("player2", "");
+      console.log(SpielerId);
     } else if (message.includes("player")) {
       if (SpielerIds.length == 0) {
         Ablage = message.toString().split('player');
@@ -381,6 +436,7 @@ setTimeout(function () {
       }
       SpielerIds = message.toString().split('player');
       SpielerIds.shift();
+      console.log(SpielerIds);
       KoordinatenY = 65;
       KoordinatenX = 300;
       if (SpielerIds[0] == SpielerId) {
@@ -389,11 +445,11 @@ setTimeout(function () {
         document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (" + Farben[1] + ")"
       }
     } else if (message.includes("Spielmodus:")) {
-      Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
       document.getElementById('modi').value = message.replace("Spielmodus:", "");
       if (message == undefined) {
         document.getElementById('modi').value = "runterrutschen";
       }
+      modi.value = "3D";
       selectedMode = [];
       room.send({
         message: "voteModeRutschen: " + confirm('Do you want to play "runterrutschen"?')
@@ -422,6 +478,18 @@ setTimeout(function () {
         else {
           alert("Voting results gamemode " + modeSelected);
           document.getElementById('modi').value = modeSelected;
+          modi.value = '3D';
+          if (modi.value != "3D") Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+          else {
+            // Felder = [];
+            // for (var i = 0; i < 4; i++) {
+            //   Felder[i] = [];
+            //   for (var i1 = 0; i1 < 4; i1++) {
+            //     Felder[i][i1] = [];
+            //   }
+            // }
+            // _APP.load3dLayout(Felder);
+          }
           KoordinatenY = 65;
           KoordinatenX = 300;
           canvas.fillStyle = 'white'; //Farbe
@@ -729,7 +797,7 @@ setTimeout(function () {
       Gewinncheck();
     }
     }
-    if (document.getElementById('modi').value != "Plätchen" && checkfieldMouseDown() && Felder[JSON.parse(checkfieldMouseDown()[0])] == "-") B(checkfieldMouseDown()[0] + "-0")
+    if (document.getElementById('modi').value == "runterrutschen" && checkfieldMouseDown() && Felder[JSON.parse(checkfieldMouseDown()[0])] == "-") B(checkfieldMouseDown()[0] + "-0")
   }
 
   window.addEventListener('mousedown', function() {
