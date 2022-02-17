@@ -611,13 +611,13 @@ _APP.load3dLayout(Felder);
   }
   var keyDirectionBefore;
   function checkWinningLoop(i, i1, i2, direction) {
-    if (direction == "start") winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyz1: [{x: i, y: i2, z: i1}], xyz2: [{x: i, y: i2, z: i1}], xyz3: [{x: i, y: i2, z: i1}], xyz4: [{x: i, y: i2, z: i1}]};
+    if (direction == "start") winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
     else {
       console.log(direction);
       winningDirec[direction].push({x: i, y: i2, z: i1});
     }
     objFelder[i][i1][i2].winChecked.push(direction);
-    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 0, 1], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyz1: [1, 1, 1], xyz2: [1, 1, -1], xyz3: [-1, 1, 1], xyz4: [1, -1, 1]};
+    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 0, 1], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyzRightUp: [1, 1, 1], xyzRightDown: [1, 1, -1], xyzLeftUp: [-1, 1, 1], xyzLeftDown: [1, -1, 1]};
     for (var i3 = 0; i3 < Object.keys(directions).length; i3++) {
       var keyDirection = Object.keys(directions)[i3];
       if (!i3 && direction != "start" && keyDirectionBefore != direction) keyDirection = direction;
@@ -639,110 +639,6 @@ _APP.load3dLayout(Felder);
       keyDirectionBefore = keyDirection;
     }
     }
-
-
-    // if (objFelder[i + 1] && objFelder[i + 1][i1][i2]?.winChecked != "x" && objFelder[i + 1][i1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1, i2, "x");
-    // }
-    // if (objFelder[i - 1] && objFelder[i - 1][i1][i2]?.winChecked != "x" && objFelder[i - 1][i1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1, i2, "x");
-    // }
-    // if (objFelder[i][i1 + 1] && objFelder[i][i1 + 1][i2]?.winChecked != "z" && objFelder[i][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 + 1, i2, "z");
-    // }
-    // if (objFelder[i][i1 - 1] && objFelder[i][i1 - 1][i2]?.winChecked != "z" && objFelder[i][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 - 1, i2, "z");
-    // }
-    // if (objFelder[i][i1][i2 + 1]?.winChecked != "y" && objFelder[i][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1, i2 + 1, "y");
-    // }
-    // if (objFelder[i][i1][i2 - 1]?.winChecked != "y" && objFelder[i][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1, i2 - 1, "y");
-    // }
-    // // diagonal
-    // // xy
-    // // oben rechts (x + y)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1] && !objFelder[i + 1][i1][i2 + 1]?.winChecked && objFelder[i + 1][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1, i2 + 1, "xyRight");
-    // }
-    // // unten links (x + y)
-    // if (objFelder[i - 1] && objFelder[i - 1][i1] && !objFelder[i - 1][i1][i2 - 1]?.winChecked && objFelder[i - 1][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1, i2 - 1, "xyRight");
-    // }
-    // // unten rechts (x + y)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1] && !objFelder[i + 1][i1][i2 - 1]?.winChecked && objFelder[i + 1][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1, i2 - 1, "xyleft");
-    // }
-    // // oben links (x + y)
-    // if (objFelder[i - 1] && objFelder[i - 1][i1] && !objFelder[i - 1][i1][i2 + 1]?.winChecked && objFelder[i - 1][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1, i2 + 1, "xyLeft");
-    // }
-    // // oben hinten (z + y)
-    // if (objFelder[i][i1 + 1] && !objFelder[i][i1 + 1][i2 + 1]?.winChecked && objFelder[i][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 + 1, i2 + 1, "zyRight");
-    // }
-    // // unten hinten (z + y)
-    // if (objFelder[i][i1 + 1] && !objFelder[i][i1 + 1][i2 - 1]?.winChecked && objFelder[i][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 + 1, i2 - 1, "zyLeft");
-    // }
-    // // unten vorne (z + y)
-    // if (objFelder[i][i1 - 1] && !objFelder[i][i1 - 1][i2 - 1]?.winChecked && objFelder[i][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 - 1, i2 - 1, "zyRight");
-    // }
-    // // oben vorne (z + y)
-    // if (objFelder[i][i1 - 1] && !objFelder[i][i1 - 1][i2 + 1]?.winChecked && objFelder[i][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i, i1 - 1, i2 + 1, "zyLeft");
-    // }
-    // // xz
-    // // oben rechts (x + z)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2]?.winChecked && objFelder[i + 1][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 + 1, i2, "xzRight");
-    // }
-    // // oben links (x + z)
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2]?.winChecked && objFelder[i - 1][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 + 1, i2, "xzLeft");
-    // }
-    // // unten rechts (x + z)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2]?.winChecked && objFelder[i + 1][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 - 1, i2, "xzLeft");
-    // }
-    // // unten links (x + z)
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2]?.winChecked && objFelder[i - 1][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 - 1, i2, "xzRight");
-    // }
-    // // xyz
-    // // hinten rechts hoch (x + z)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2 + 1]?.winChecked && objFelder[i + 1][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 + 1, i2 + 1, "xyz1");
-    // }
-    // // hinten rechts runter (x + z)
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2 - 1]?.winChecked && objFelder[i + 1][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 + 1, i2 - 1, "xyz2");
-    // }
-    // // hinten links (x + z) hoch
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2 + 1]?.winChecked && objFelder[i - 1][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 + 1, i2 + 1, "xyz3");
-    // }
-    // // hinten links (x + z) runter
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2 - 1]?.winChecked && objFelder[i - 1][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 + 1, i2 - 1, "xyz4");
-    // }
-    // // vorne rechts (x + z) hoch
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2 + 1]?.winChecked && objFelder[i + 1][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 - 1, i2 + 1, "xyz4");
-    // }
-    // // vorne rechts (x + z) runter
-    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2 - 1]?.winChecked && objFelder[i + 1][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i + 1, i1 - 1, i2 - 1, "xyz3");
-    // }
-    // // vorne links (x + z) hoch
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2 + 1]?.winChecked && objFelder[i - 1][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 - 1, i2 + 1, "xyz2");
-    // }
-    // // vorne links (x + z) runter
-    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2 - 1]?.winChecked && objFelder[i - 1][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
-    //   checkWinningLoop(i - 1, i1 - 1, i2 - 1, "xyz1");
-    // }
     if (direction == "start") {
       console.log(winningDirec);
       for (var keyWinningDirec of Object.keys(winningDirec)) {
@@ -754,7 +650,7 @@ _APP.load3dLayout(Felder);
           }
         }
       }
-      winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyz1: [{x: i, y: i2, z: i1}], xyz2: [{x: i, y: i2, z: i1}], xyz3: [{x: i, y: i2, z: i1}], xyz4: [{x: i, y: i2, z: i1}]};
+      winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
     }
   }
 
