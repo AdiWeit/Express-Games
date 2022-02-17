@@ -148,10 +148,14 @@ class BasicWorldDemo {
     this._RAF();
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
-    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 5/*radius top*/, 5/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
-    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} )};
+    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
+    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), green: new THREE.MeshBasicMaterial( { color: 'hsl(113, 79%, 54%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} )};
+    this.getMaterials = () => materials;
     var sphere;
     var direction = 1;
+    setTimeout(function () {
+      scrollY = 124.5
+    }, 3000);
     this.load3dLayout = (Felder) => {
       for (var i = 0; i < Felder.length; i++) {
         // for (var i1 = 0; i1 < Felder[0].length; i1++) {
@@ -232,13 +236,21 @@ class BasicWorldDemo {
         message: "Spielerwechsel"
       });
       sphere = new THREE.Mesh( sphereGeometry, materials.blue);
-      // 13*i - 13*1.5/*x*/, 20/*y*/, 13*i2 - 13*1.5/*z*/
       field.push("blue");
     }
     else {
       sphere = new THREE.Mesh( sphereGeometry, materials.red);
       field.push("red");
     }
+    objFelder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))].push(sphere);
+    objFelder.forEach((objFeldX, i) => {
+      objFeldX.forEach((objFeldZ, i1) => {
+        objFeldZ.forEach((objFeld, i2) => {
+          objFeld.winChecked = [];
+        });
+      });
+    });
+    checkWinning();
       sphere.position.set(stabPos.x/*x*/, 50/*y*/, stabPos.z/*z*/);
       this._scene.add( sphere );
       this.fallingStone(sphere, field);
@@ -296,8 +308,10 @@ setTimeout(function () {
 Felder = [];
 for (var i = 0; i < 4; i++) {
   Felder[i] = [];
+  objFelder[i] = [];
   for (var i1 = 0; i1 < 4; i1++) {
     Felder[i][i1] = [];
+    objFelder[i][i1] = [];
   }
 }
 _APP.load3dLayout(Felder);
@@ -334,6 +348,7 @@ _APP.load3dLayout(Felder);
   var Ablage;
   var TeileMarkierung = [];
   var Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+  var objFelder = [];
   var Koordinaten = ["00", 10, 20, 30, 40, 50, 60, "01", 11, 21, 31, 41, 51, 61, "02", 12, 22, 32, 42, 52, 62, "03", 13, 23, 33, 43, 53, 63, "04", 14, 24, 34, 44, 54, 64, "05", 15, 25, 35, 45, 55, 65]
   var Zustand = "none"
   var zählerM2 = ""
@@ -481,6 +496,7 @@ _APP.load3dLayout(Felder);
           modi.value = '3D';
           if (modi.value != "3D") Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
           else {
+            // objFelder = [];
             // Felder = [];
             // for (var i = 0; i < 4; i++) {
             //   Felder[i] = [];
@@ -583,6 +599,164 @@ _APP.load3dLayout(Felder);
 
 
   }
+  var winningDirec;
+  function checkWinning() {
+    objFelder.forEach((objFeldX, i) => {
+      objFeldX.forEach((objFeldZ, i1) => {
+        objFeldZ.forEach((objFeld, i2) => {
+          if (!objFeld.winChecked.length) checkWinningLoop(i, i1, i2, "start");
+        });
+      });
+    });
+  }
+  var keyDirectionBefore;
+  function checkWinningLoop(i, i1, i2, direction) {
+    if (direction == "start") winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyz1: [{x: i, y: i2, z: i1}], xyz2: [{x: i, y: i2, z: i1}], xyz3: [{x: i, y: i2, z: i1}], xyz4: [{x: i, y: i2, z: i1}]};
+    else {
+      console.log(direction);
+      winningDirec[direction].push({x: i, y: i2, z: i1});
+    }
+    objFelder[i][i1][i2].winChecked.push(direction);
+    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 0, 1], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyz1: [1, 1, 1], xyz2: [1, 1, -1], xyz3: [-1, 1, 1], xyz4: [1, -1, 1]};
+    for (var i3 = 0; i3 < Object.keys(directions).length; i3++) {
+      var keyDirection = Object.keys(directions)[i3];
+      if (!i3 && direction != "start" && keyDirectionBefore != direction) keyDirection = direction;
+      if (!(keyDirection == direction && i3) || direction == "start") {
+      var plus = directions[keyDirection];
+      if (objFelder[i + plus[0]] && objFelder[i + plus[0]][i1 + plus[1]] && (!objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.winChecked.includes(keyDirection) && objFelder[i + plus[0]][i1 + plus[1]] && !objFelder[i + plus[0]][i1 + plus[1]][i2 + [i2 + plus[2]]]?.winChecked.includes("start")) && objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.material.color == objFelder[i][i1][i2]?.material.color) {
+        if (direction != "start" && winningDirec[direction].length < 4 && keyDirection != direction) winningDirec[direction].length = 1;
+        if (direction != "start" && keyDirection != direction) break;
+        objFelder[i][i1][i2].winChecked.push(keyDirection);
+        checkWinningLoop(i + plus[0], i1 + plus[1], i2 + plus[2], keyDirection);
+      }
+      if (objFelder[i + plus[0]*-1] && objFelder[i + plus[0]*-1][i1 + plus[1]*-1] && (!objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.winChecked.includes(keyDirection) && !objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.winChecked.includes("start")) && objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+        if (direction != "start" && winningDirec[direction].length < 4 && keyDirection != direction) winningDirec[direction].length = 1;
+        if (direction != "start" && keyDirection != direction) break;
+        objFelder[i][i1][i2].winChecked.push(keyDirection);
+        checkWinningLoop(i + plus[0]*-1, i1 + plus[1]*-1, i2 + plus[2]*-1, keyDirection);
+      }
+      if (!i3 && direction != "start" && keyDirectionBefore != direction) i3 = -1;
+      keyDirectionBefore = keyDirection;
+    }
+    }
+
+
+    // if (objFelder[i + 1] && objFelder[i + 1][i1][i2]?.winChecked != "x" && objFelder[i + 1][i1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1, i2, "x");
+    // }
+    // if (objFelder[i - 1] && objFelder[i - 1][i1][i2]?.winChecked != "x" && objFelder[i - 1][i1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1, i2, "x");
+    // }
+    // if (objFelder[i][i1 + 1] && objFelder[i][i1 + 1][i2]?.winChecked != "z" && objFelder[i][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 + 1, i2, "z");
+    // }
+    // if (objFelder[i][i1 - 1] && objFelder[i][i1 - 1][i2]?.winChecked != "z" && objFelder[i][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 - 1, i2, "z");
+    // }
+    // if (objFelder[i][i1][i2 + 1]?.winChecked != "y" && objFelder[i][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1, i2 + 1, "y");
+    // }
+    // if (objFelder[i][i1][i2 - 1]?.winChecked != "y" && objFelder[i][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1, i2 - 1, "y");
+    // }
+    // // diagonal
+    // // xy
+    // // oben rechts (x + y)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1] && !objFelder[i + 1][i1][i2 + 1]?.winChecked && objFelder[i + 1][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1, i2 + 1, "xyRight");
+    // }
+    // // unten links (x + y)
+    // if (objFelder[i - 1] && objFelder[i - 1][i1] && !objFelder[i - 1][i1][i2 - 1]?.winChecked && objFelder[i - 1][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1, i2 - 1, "xyRight");
+    // }
+    // // unten rechts (x + y)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1] && !objFelder[i + 1][i1][i2 - 1]?.winChecked && objFelder[i + 1][i1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1, i2 - 1, "xyleft");
+    // }
+    // // oben links (x + y)
+    // if (objFelder[i - 1] && objFelder[i - 1][i1] && !objFelder[i - 1][i1][i2 + 1]?.winChecked && objFelder[i - 1][i1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1, i2 + 1, "xyLeft");
+    // }
+    // // oben hinten (z + y)
+    // if (objFelder[i][i1 + 1] && !objFelder[i][i1 + 1][i2 + 1]?.winChecked && objFelder[i][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 + 1, i2 + 1, "zyRight");
+    // }
+    // // unten hinten (z + y)
+    // if (objFelder[i][i1 + 1] && !objFelder[i][i1 + 1][i2 - 1]?.winChecked && objFelder[i][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 + 1, i2 - 1, "zyLeft");
+    // }
+    // // unten vorne (z + y)
+    // if (objFelder[i][i1 - 1] && !objFelder[i][i1 - 1][i2 - 1]?.winChecked && objFelder[i][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 - 1, i2 - 1, "zyRight");
+    // }
+    // // oben vorne (z + y)
+    // if (objFelder[i][i1 - 1] && !objFelder[i][i1 - 1][i2 + 1]?.winChecked && objFelder[i][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i, i1 - 1, i2 + 1, "zyLeft");
+    // }
+    // // xz
+    // // oben rechts (x + z)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2]?.winChecked && objFelder[i + 1][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 + 1, i2, "xzRight");
+    // }
+    // // oben links (x + z)
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2]?.winChecked && objFelder[i - 1][i1 + 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 + 1, i2, "xzLeft");
+    // }
+    // // unten rechts (x + z)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2]?.winChecked && objFelder[i + 1][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 - 1, i2, "xzLeft");
+    // }
+    // // unten links (x + z)
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2]?.winChecked && objFelder[i - 1][i1 - 1][i2]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 - 1, i2, "xzRight");
+    // }
+    // // xyz
+    // // hinten rechts hoch (x + z)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2 + 1]?.winChecked && objFelder[i + 1][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 + 1, i2 + 1, "xyz1");
+    // }
+    // // hinten rechts runter (x + z)
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 + 1] && !objFelder[i + 1][i1 + 1][i2 - 1]?.winChecked && objFelder[i + 1][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 + 1, i2 - 1, "xyz2");
+    // }
+    // // hinten links (x + z) hoch
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2 + 1]?.winChecked && objFelder[i - 1][i1 + 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 + 1, i2 + 1, "xyz3");
+    // }
+    // // hinten links (x + z) runter
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 + 1] && !objFelder[i - 1][i1 + 1][i2 - 1]?.winChecked && objFelder[i - 1][i1 + 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 + 1, i2 - 1, "xyz4");
+    // }
+    // // vorne rechts (x + z) hoch
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2 + 1]?.winChecked && objFelder[i + 1][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 - 1, i2 + 1, "xyz4");
+    // }
+    // // vorne rechts (x + z) runter
+    // if (objFelder[i + 1] && objFelder[i + 1][i1 - 1] && !objFelder[i + 1][i1 - 1][i2 - 1]?.winChecked && objFelder[i + 1][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i + 1, i1 - 1, i2 - 1, "xyz3");
+    // }
+    // // vorne links (x + z) hoch
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2 + 1]?.winChecked && objFelder[i - 1][i1 - 1][i2 + 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 - 1, i2 + 1, "xyz2");
+    // }
+    // // vorne links (x + z) runter
+    // if (objFelder[i - 1] && objFelder[i - 1][i1 - 1] && !objFelder[i - 1][i1 - 1][i2 - 1]?.winChecked && objFelder[i - 1][i1 - 1][i2 - 1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+    //   checkWinningLoop(i - 1, i1 - 1, i2 - 1, "xyz1");
+    // }
+    if (direction == "start") {
+      console.log(winningDirec);
+      for (var keyWinningDirec of Object.keys(winningDirec)) {
+        var pWinningDirec = winningDirec[keyWinningDirec];
+        if (pWinningDirec.length >= 4) {
+          console.log("more than 3!!!");
+          for (var ball of pWinningDirec) {
+            objFelder[ball.x][ball.z][ball.y].material = _APP.getMaterials().green;
+          }
+        }
+      }
+      winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyz1: [{x: i, y: i2, z: i1}], xyz2: [{x: i, y: i2, z: i1}], xyz3: [{x: i, y: i2, z: i1}], xyz4: [{x: i, y: i2, z: i1}]};
+    }
+  }
 
 
   zähler = 1;
@@ -617,6 +791,16 @@ _APP.load3dLayout(Felder);
     Ablage;
     TeileMarkierung = []
     Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+    objFelder = [];
+    Felder = [];
+    for (var i = 0; i < 4; i++) {
+      Felder[i] = [];
+      objFelder[i] = [];
+      for (var i1 = 0; i1 < 4; i1++) {
+        Felder[i][i1] = [];
+        objFelder[i][i1] = [];
+      }
+    }
     Koordinaten = ["00", 10, 20, 30, 40, 50, 60, "01", 11, 21, 31, 41, 51, 61, "02", 12, 22, 32, 42, 52, 62, "03", 13, 23, 33, 43, 53, 63, "04", 14, 24, 34, 44, 54, 64, "05", 15, 25, 35, 45, 55, 65]
     Zustand = "none"
     zählerM2 = ""
