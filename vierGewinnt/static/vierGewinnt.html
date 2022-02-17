@@ -170,23 +170,6 @@ class BasicWorldDemo {
           }
         // }
       }
-      // sphere = new THREE.Mesh( sphereGeometry, materials.blue );
-      // sphere.position.set(0/*x*/, 5/*y*/, 0/*z*/);
-      // // // sphere.castShadow = true;
-      // // sphere.receiveShadow = true;
-      // this._scene.add( sphere );
-      // sphere = new THREE.Mesh( sphereGeometry, materials.blue );
-      // sphere.position.set(0/*x*/, 25/*y*/, 0/*z*/);
-      // this._scene.add( sphere );
-      // sphere = new THREE.Mesh( sphereGeometry, materials.red );
-      // sphere.position.set(0/*x*/, 15/*y*/, 0/*z*/);
-      // this._scene.add( sphere );
-      // sphere = new THREE.Mesh( sphereGeometry, materials.red );
-      // sphere.position.set(0/*x*/, 35/*y*/, 0/*z*/);
-      // this._scene.add( sphere );
-      // const cylinder = new THREE.Mesh( cylinderGeometry, materials.brownIsh);
-      // cylinder.position.set(0/*x*/, 20/*y*/, 0/*z*/) /*position of middle*/;
-      // this._scene.add( cylinder );
     }
     this.objClicked = () => {
       if (Start && SpielerId == SpielerIds[0] && document.getElementById('modi').value == "3D") {
@@ -196,7 +179,7 @@ class BasicWorldDemo {
       raycaster.setFromCamera(clickMouse, _APP._camera);
       const found = raycaster.intersectObjects(_APP._scene.children);
       var stabPos = found[0]?.object.position;
-      if (click.mouseMove < 5 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]?.length < 4) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]?.length < 4) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
@@ -284,15 +267,17 @@ var click = {state: "up", mouseMove: 0};
 window.addEventListener('mousedown', event => {
   click.state = "down";
 });
-// document.addEventListener('touchmove', touch);
-// document.addEventListener('touchstart', touch);
+document.addEventListener('pointermove', touch);
+document.addEventListener('touchend', touch);
 document.addEventListener('touchstart', touch);
 function touch(ev) {
   if (ev.type == "touchstart") {
     xMaus = ev.touches[0]["pageX"];
     yMaus = ev.touches[0]["pageY"];
-    _APP.objClicked();
+    click.state = "down";
   }
+  if (ev.type == "pointermove" && click.state == "down") click.mouseMove++;
+  if (ev.type == "touchend") _APP.objClicked();
 }
 window.addEventListener('click', event => {
   _APP.objClicked();
@@ -841,7 +826,6 @@ _APP.load3dLayout(Felder);
   var xMaus;
   var yMaus;
   function readMouseMove(e) {
-    if (click.state == "down") click.mouseMove++;
     xMaus = e.clientX + scrollX;
     yMaus = e.clientY + scrollY;
     if (gerät == "Handy") yMaus -= 10;
