@@ -111,13 +111,13 @@ class BasicWorldDemo {
     // plane.rotation.x = -Math.PI / 2;
     // this._scene.add(plane);
 
-    const box = new THREE.Mesh(
+    plate = new THREE.Mesh(
       new THREE.BoxGeometry(4*13, 1.75, 4*13),
       new THREE.MeshStandardMaterial({
           color: 'rgb(201, 115, 60)',
       }));
-    box.position.set(0, 0, 0);
-    this._scene.add(box);
+    plate.position.set(0, 0, 0);
+    this._scene.add(plate);
 
     // for (let x = -8; x < 8; x++) {
     //   for (let y = -8; y < 8; y++) {
@@ -149,7 +149,7 @@ class BasicWorldDemo {
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
     const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
-    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), green: new THREE.MeshBasicMaterial( { color: 'hsl(113, 79%, 54%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} )};
+    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), green: new THREE.MeshBasicMaterial( { color: 'hsl(113, 79%, 54%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} ), darkGreen: new THREE.MeshBasicMaterial( {color: 'hsl(115, 100%, 21%)'} ), darkRed: new THREE.MeshBasicMaterial( {color: 'hsl(7, 100%, 34%)'} )};
     this.getMaterials = () => materials;
     var sphere;
     var direction = 1;
@@ -183,6 +183,7 @@ class BasicWorldDemo {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
+          SpielerIds[0] = "waiting for player taking turn";
           room.send({
             type: '3DsetStone',
             stabPos: found[0]?.object.position,
@@ -212,7 +213,7 @@ class BasicWorldDemo {
     }
     this.stoneSelected = (stabPos, player) => {
       var field = Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]
-    if (SpielerId == SpielerIds[0]) {
+    if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
       _APP.destroySelected();
       selected = {ball: null, stab: null};
       room.send({
@@ -317,6 +318,7 @@ _APP.load3dLayout(Felder);
     console.log("PC");
   }
   document.getElementById('modi').style.display = "none";
+  var plate;
   var textur = document.getElementById('textur');
   var canvas = textur.getContext('2d'); //Dimension
   var KoordinatenY = 65;
@@ -436,7 +438,8 @@ _APP.load3dLayout(Felder);
       }
       SpielerIds = message.toString().split('player');
       SpielerIds.shift();
-      console.log(SpielerIds);
+        if (SpielerIds[0] == SpielerId) plate.material = _APP.getMaterials().darkGreen;
+        else plate.material = _APP.getMaterials().darkRed;
       KoordinatenY = 65;
       KoordinatenX = 300;
       if (SpielerIds[0] == SpielerId) {
