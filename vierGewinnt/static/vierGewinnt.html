@@ -180,15 +180,13 @@ class BasicWorldDemo {
     if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
       _APP.destroyObj(selected.ball, true);
       selected = {ball: null, stab: null};
-      room.send({
-        message: "Spielerwechsel"
-      });
       sphere = new THREE.Mesh( sphereGeometry, materials.blue);
     }
     else {
       sphere = new THREE.Mesh( sphereGeometry, materials.red);
     }
-    objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))].push(sphere);
+    var pFeld = objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))];
+    pFeld.push(sphere);
     objFelder.forEach((objFeldX, i) => {
       objFeldX.forEach((objFeldZ, i1) => {
         objFeldZ.forEach((objFeld, i2) => {
@@ -197,14 +195,19 @@ class BasicWorldDemo {
       });
     });
     checkWinning();
+    if (Start && (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn")) {
+      room.send({
+        message: "Spielerwechsel"
+      });
+    }
       sphere.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
       this._scene.add( sphere );
-      this.fallingStone(sphere);
+      this.fallingStone(sphere, pFeld);
     }
-    this.fallingStone = (sphere) => {
+    this.fallingStone = (sphere, pFeld) => {
       sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
       setTimeout(function () {
-        if (sphere.position.y > -5 + 10*boardParam.y) _APP.fallingStone(sphere);
+        if (sphere.position.y > -5 + 10*pFeld.length) _APP.fallingStone(sphere, pFeld);
       }, 10);
     }
   }
