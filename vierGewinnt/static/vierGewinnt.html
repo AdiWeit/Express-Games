@@ -12,17 +12,6 @@
   <h2 id="info">klick to choose a field</h2>
   <h2 id="Name"></h2>
 </div>
-<!-- <button id="B1" onclick='B("0-0")'>reinschmeißen</button>
-<button id="B2" onclick='B("1-0")'>reinschmeißen</button>
-<button id="B3" onclick='B("2-0")'>reinschmeißen</button>
-<button id="B4" onclick='B("3-0")'>reinschmeißen</button>
-<button id="B5" onclick='B("4-0")'>reinschmeißen</button>
-<button id="B6" onclick='B("5-0")'>reinschmeißen</button>
-<button id="B7" onclick='B("6-0")'>reinschmeißen</button>
-
-<link href="https://adi.nicolaiweitkemper.de/JS_Grafik/TEST.css" rel="stylesheet" type="text/css"> -->
-
-<canvas id="textur" style="display:none" width="1582" height="750"></canvas>
 <!-- <input id="modi" style="display:none"></input> -->
 <select name="course" style="display:none">
   <option value="p">p</option>
@@ -104,43 +93,6 @@ class BasicWorldDemo {
     ]);
     this._scene.background = texture;
 
-    // const plane = new THREE.Mesh(
-    //     new THREE.PlaneGeometry(100, 100, 10, 10),
-    //     new THREE.MeshStandardMaterial({
-    //         color: 'rgb(201, 115, 60)',
-    //       }));
-    // plane.castShadow = false;
-    // plane.receiveShadow = true;
-    // plane.rotation.x = -Math.PI / 2;
-    // this._scene.add(plane);
-
-
-    // for (let x = -8; x < 8; x++) {
-    //   for (let y = -8; y < 8; y++) {
-    //     const box = new THREE.Mesh(
-    //       new THREE.BoxGeometry(2, 2, 2),
-    //       new THREE.MeshStandardMaterial({
-    //           color: 0x808080,
-    //       }));
-    //     box.position.set(Math.random() + x * 5, Math.random() * 4.0 + 2.0, Math.random() + y * 5);
-    //     box.castShadow = true;
-    //     box.receiveShadow = true;
-    //     this._scene.add(box);
-    //   }
-    // }
-
-    // const box = new THREE.Mesh(
-    //   new THREE.SphereGeometry(2, 32, 32),
-    //   new THREE.MeshStandardMaterial({
-    //       color: 0xFFFFFF,
-    //       wireframe: true,
-    //       wireframeLinewidth: 4,
-    //   }));
-    // box.position.set(0, 0, 0);
-    // box.castShadow = true;
-    // box.receiveShadow = true;
-    // this._scene.add(box);
-
     this._RAF();
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
@@ -174,18 +126,14 @@ class BasicWorldDemo {
 
       cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 10*boardParams.y/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 10*boardParams.y/*height*/, 32/*radialSegments*/ )};
       for (var i = 0; i < Felder.length; i++) {
-        // for (var i1 = 0; i1 < Felder[0].length; i1++) {
           for (var i2 = 0; i2 < Felder[0].length; i2++) {
-            // if (!i1) {
             const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
             console.log(i + " - " + i2);
             cylinder.position.set(13*i - 13*(boardParams.x/2 - 0.5)/*x*/, 5*boardParams.y/*y*/, 13*i2 - 13*(boardParams.z/2 - 0.5)/*z*/) /*position of middle*/;
             cylinder.selectable = true;
             this._scene.add( cylinder );
             sticks.push(cylinder);
-          // }
           }
-        // }
       }
     }
     this.objClicked = () => {
@@ -196,7 +144,7 @@ class BasicWorldDemo {
       raycaster.setFromCamera(clickMouse, _APP._camera);
       const found = raycaster.intersectObjects(_APP._scene.children);
       var stabPos = found[0]?.object.position;
-      if (click.mouseMove < 11 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]?.length < boardParam.y) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]?.length < boardParam.y) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
@@ -229,7 +177,6 @@ class BasicWorldDemo {
       if (ball) selected.stab.material = materials.brownIsh;
     }
     this.stoneSelected = (stabPos, player) => {
-      var field = Felder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]
     if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
       _APP.destroyObj(selected.ball, true);
       selected = {ball: null, stab: null};
@@ -237,11 +184,9 @@ class BasicWorldDemo {
         message: "Spielerwechsel"
       });
       sphere = new THREE.Mesh( sphereGeometry, materials.blue);
-      field.push("blue");
     }
     else {
       sphere = new THREE.Mesh( sphereGeometry, materials.red);
-      field.push("red");
     }
     objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))].push(sphere);
     objFelder.forEach((objFeldX, i) => {
@@ -254,12 +199,12 @@ class BasicWorldDemo {
     checkWinning();
       sphere.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
       this._scene.add( sphere );
-      this.fallingStone(sphere, field);
+      this.fallingStone(sphere);
     }
-    this.fallingStone = (sphere, field) => {
+    this.fallingStone = (sphere) => {
       sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
       setTimeout(function () {
-        if (sphere.position.y > -5 + 10*field.length) _APP.fallingStone(sphere, field);
+        if (sphere.position.y > -5 + 10*boardParam.y) _APP.fallingStone(sphere);
       }, 10);
     }
   }
@@ -310,18 +255,6 @@ window.addEventListener('DOMContentLoaded', () => {
   _APP = new BasicWorldDemo();
   console.log(_APP);
 });
-// setTimeout(function () {
-// Felder = [];
-// for (var i = 0; i < 4; i++) {
-//   Felder[i] = [];
-//   objFelder[i] = [];
-//   for (var i1 = 0; i1 < 4; i1++) {
-//     Felder[i][i1] = [];
-//     objFelder[i][i1] = [];
-//   }
-// }
-// _APP.create3DLayout(Felder);
-// }, 1000);
   var gerät = "";
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
@@ -338,26 +271,9 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("PC");
   }
   var plate;
-  var textur = document.getElementById('textur');
-  var canvas = textur.getContext('2d'); //Dimension
-  var KoordinatenY = 65;
-  var KoordinatenX = 300;
-  var diff
-  var zähler = 0;
-  var zähler1 = 0;
-  var zählerNummerierung = 0;
-  var antwort;
   var SpielerIds = [];
-  var Farben = ["red", "blue"]
   var Start = false;
-  var eins;
-  var Ablage;
-  var TeileMarkierung = [];
-  var Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
   var objFelder = [];
-  var Koordinaten = ["00", 10, 20, 30, 40, 50, 60, "01", 11, 21, 31, 41, 51, 61, "02", 12, 22, 32, 42, 52, 62, "03", 13, 23, 33, 43, 53, 63, "04", 14, 24, 34, 44, 54, 64, "05", 15, 25, 35, 45, 55, 65]
-  var Zustand = "none"
-  var zählerM2 = ""
   var SpielerId;
 
   async function sendJson(url = "/", body = {}) {
@@ -444,69 +360,39 @@ window.addEventListener('DOMContentLoaded', () => {
       console.log(SpielerId);
     } else if (message.includes("player")) {
       if (SpielerIds.length == 0) {
-        Ablage = message.toString().split('player');
-        // if (message.includes('newPlayer')) Ablage = message.toString().split('newPlayer');
-        Ablage.shift();
-        if (Ablage[0] == SpielerId) {
-          Farben = ["red", "blue"];
-        } else {
-          Farben = ["blue", "red"];
-        }
-        KoordinatenY = 65;
-        KoordinatenX = 300;
-        canvas.fillStyle = 'black'; //Farbe
-        canvas.fillRect(0, 0, 1800, 750);
-        zähler = 0;
-        zählerNummerierung = 0;
-        Layout();
-        // if (SpielerIds.length != 2) {
         room.send({
           message: "voteMode: " + prompt('Which mode do you want to play? Type...\nr for runterrutschen\np for Plättchen or \n3D for 3D.\nyou can also type ra for random')
         });
-        // }
       }
       SpielerIds = message.toString().split('player');
       SpielerIds.shift();
-      KoordinatenY = 65;
-      KoordinatenX = 300;
       if (SpielerIds[0] == SpielerId) {
-        document.getElementById("Name").innerHTML = "Du bist dran" + " (" + Farben[0] + ")"
+        document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
         plate.material = _APP.getMaterials().darkGreen;
       } else {
-        plate.material = _APP.getMaterials().darkRed;
-        document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (" + Farben[1] + ")"
+        if (_APP.getMaterials()) plate.material = _APP.getMaterials().darkRed;
+        document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"
       }
     } else if (message.includes("Spielmodus:")) {
       document.getElementById('modi').value = message.replace("Spielmodus:", "");
       if (message == undefined) {
         document.getElementById('modi').value = "runterrutschen";
       }
-      selectedMode = [];
-      KoordinatenY = 65;
-      KoordinatenX = 300;
-      canvas.fillStyle = 'black'; //Farbe
-      canvas.fillRect(0, 0, 1800, 750);
-      zähler = 0;
-      zählerNummerierung = 0;
-      Layout();
     }
     else if (message.includes("voteMode")) {
       selectedMode.push(message.replace("voteMode: ", ""));
       if (selectedMode.length > 1) {
-        if (SpielerIds[0] == SpielerId) yourColour = "red";
-        else yourColour = "blue";
         if (!selectedMode.includes("random")) {
         if (selectedMode.filter(x => x == "3D").length == 2) modeSelected = "3D";
         else if (selectedMode.filter(x => x == "r").length == 2) modeSelected = "runterrutschen";
         else if (selectedMode.filter(x => x == "p").length == 2) modeSelected = "Plättchen";
         var modes = ["runterrutschen", "Plättchen", "3D"];
+        Start = true;
         if (!modeSelected) document.getElementById('modi').value = modes[Math.round(Math.random()*2)];
       }
         if (!modeSelected) alert("random gamemode selected (" + document.getElementById('modi').value + ") because the players wanted to play different modes!");
-        else {
-          alert("Voting results gamemode " + modeSelected);
+        else alert("Voting results gamemode " + modeSelected);
           document.getElementById('modi').value = modeSelected;
-          Felder = [];
           if (objFelder.length > 0) {
           for (var i = 0; i < boardParam.x; i++) {
             for (var i1 = 0; i1 < boardParam.z; i1++) {
@@ -520,94 +406,20 @@ window.addEventListener('DOMContentLoaded', () => {
           boardParam = boardParams[modeSelected];
           objFelder = [];
           for (var i = 0; i < boardParam.x; i++) {
-            Felder[i] = [];
             objFelder[i] = [];
             for (var i1 = 0; i1 < boardParam.z; i1++) {
-              Felder[i][i1] = [];
               objFelder[i][i1] = [];
             }
           }
-          _APP.create3DLayout(Felder, boardParam);
-          // if (modi.value != "3D") {
-          //   Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
-          //   _APP._threejs.domElement.style.display = "none";
-          //   textur.style.display = "inline";
-          //   text.style.color = "#09F";
-          //   scrollY = 0;
-          //   _APP.setContols(false);
-          // }
-          // else {
-          // }
-          KoordinatenY = 65;
-          KoordinatenX = 300;
-          canvas.fillStyle = 'black'; //Farbe
-          canvas.fillRect(0, 0, 1800, 750);
-          zähler = 0;
-          zählerNummerierung = 0;
-          Layout();
-          // room.send({
-          //   message: "Spielmodus:" + modeSelected
-          // });
-        }
+          _APP.create3DLayout(objFelder, boardParam);
+          Start = true;
+          // scrollY = 124.5;
       }
-    }
-     else if (message.includes("koord:")) {
-       placedList.push(JSON.parse(JSON.stringify(message)));
-      if (document.getElementById('modi').value == "runterrutschen") {
-        Ablage = message.replace("koord: ", "");
-        PlazierungM2(true);
-      } else {
-        //    Felder[message.replace("koord: ", "")[0]]
-        Felder[0 + JSON.parse(message.replace("koord: ", "")[0]) + JSON.parse(message.replace("koord: ", "")[2]) * 7] = Farben[1];
-        KoordinatenY = 65;
-        KoordinatenX = 300;
-        canvas.fillStyle = 'black'; //Farbe
-        canvas.fillRect(0, 0, 1800, 750);
-        zählerNummerierung = 0;
-        zähler = 0;
-        Layout();
-        LayoutZurrück();
-      }
-    } else if (message.includes(" hat gewonnen!")) {
-      Start = false;
-      audio = new Audio("http://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
-      /*    Ablage = zuletztGelegt.replace(" - ", "");
-          eins = Ablage.toString().split('');
-          diff = ((1) * Math.PI * 2 * 10).toFixed(2)
-          canvas.lineWidth = 95;
-          canvas.fillStyle = 'green'
-          canvas.strokeStyle = '#40FF00'
-          canvas.textAlign = 'center'
-          canvas.beginPath();
-          canvas.arc(150 + 150 * JSON.parse(eins[0]), 65 + 120 * JSON.parse(eins[1]), 5, 4.72, diff / 10 + 4.72, false)
-          canvas.stroke(); */
-      setTimeout(function() {
-        zähler1 = 0;
-        Markierungen();
-      }, 400);
-      setTimeout(function() {
-        canvas.font = "135px Arial";
-        canvas.fillStyle = "#cc0000";
-        canvas.fillText("Du hast Verloren!", 750, 370);
-        askReplay();
-      }, 1535);
-    } else if (message.includes("Markierungen: ")) {
-      markierungMessage = message;
-      TeileMarkierung = message.replace("Markierungen: ").toString().split(',');
-      TeileMarkierung[0] = TeileMarkierung[0].replace("undefined", "");
-    }  /* else if (message.includes("left")) {
-         location.reload();
-    } */ else {
-          // var p = document.createElement("p");
-          // p.innerHTML = message;
-          // document.querySelector("#messages").appendChild(p);
     }
   });
   var placedList = [];
   var modeSelected;
   var selectedMode = [];
-  var yourColour;
-  var markierungMessage;
   // send message to room on submit
   /*  document.querySelector("#form").onsubmit = function(e) {
       e.preventDefault();
@@ -624,13 +436,6 @@ window.addEventListener('DOMContentLoaded', () => {
       // clear input
       input.value = "";
     } */
-
-  verstecktAnfang();
-
-  function verstecktAnfang() {
-
-
-  }
   var winningDirec;
   function checkWinning() {
     objFelder.forEach((objFeldX, i) => {
@@ -688,188 +493,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  zähler = 1;
-  // Buttons();
-  //
-  // function Buttons() {
-  //
-  //   Ablage = document.getElementById("B" + zähler)
-  //   Ablage.style.display = Zustand;
-  //   zähler++;
-  //   if (zähler == 8) {
-  //     zähler = 0;
-  //   } else {
-  //     Buttons();
-  //   }
-  // }
-  function varZurrücksetzen() {
-    KoordinatenY = 65;
-    KoordinatenX = 300;
-    diff
-    zähler = 0;
-    zähler1 = 0;
-    zählerNummerierung = 0;
-    antwort;
-    SpielerIds[0] = "1";
-    SpielerIds[1] = "2";
-    Farben[0] = "red"
-    Farben[1] = "blue"
-    Start = false;
-    eins;
-    Ablage;
-    TeileMarkierung = []
-    Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
-    objFelder = [];
-    Felder = [];
-    for (var i = 0; i < 4; i++) {
-      Felder[i] = [];
-      objFelder[i] = [];
-      for (var i1 = 0; i1 < 4; i1++) {
-        Felder[i][i1] = [];
-        objFelder[i][i1] = [];
-      }
-    }
-    Koordinaten = ["00", 10, 20, 30, 40, 50, 60, "01", 11, 21, 31, 41, 51, 61, "02", 12, 22, 32, 42, 52, 62, "03", 13, 23, 33, 43, 53, 63, "04", 14, 24, 34, 44, 54, 64, "05", 15, 25, 35, 45, 55, 65]
-    Zustand = "none"
-    zählerM2 = ""
-  }
-
-  function Layout() {
-    Start = true;
-    canvas.font = "20px Georgia";
-    canvas.fillStyle = "#09F"
-    canvas.fillText(zählerNummerierung + "-" + zähler, 150, KoordinatenY);
-    zähler++;
-    diff = ((1) * Math.PI * 2 * 10).toFixed(2)
-    canvas.lineWidth = 95;
-    canvas.fillStyle = '#09F'
-    canvas.strokeStyle = '#09F'
-    canvas.textAlign = 'center'
-    canvas.beginPath();
-    canvas.arc(150, KoordinatenY, 5, 4.72, diff / 10 + 4.72, false)
-    canvas.stroke();
-    KoordinatenY = KoordinatenY + 120
-
-    if (KoordinatenY > 784) {
-      KoordinatenY = 65
-      zählerNummerierung++;
-      zähler = 0;
-      Layout1();
-    } else {
-
-      Layout();
-    }
-  }
-
-
-  function Layout1() {
-
-    canvas.font = "20px Georgia";
-    canvas.fillStyle = "#09F"
-    canvas.fillText(zählerNummerierung + "-" + zähler, KoordinatenX, KoordinatenY);
-
-    diff = ((1) * Math.PI * 2 * 10).toFixed(2)
-    canvas.lineWidth = 95;
-    canvas.fillStyle = '#09F'
-    canvas.strokeStyle = '#09F'
-    canvas.textAlign = 'center'
-    canvas.beginPath();
-    canvas.arc(KoordinatenX, KoordinatenY, 5, 4.72, diff / 10 + 4.72, false)
-    canvas.stroke();
-    zähler++;
-    KoordinatenY = KoordinatenY + 120;
-    if (zähler == 6) {
-      zählerNummerierung++;
-      KoordinatenY = 65;
-      KoordinatenX = KoordinatenX + 150
-      zähler = 0;
-    }
-
-    if (KoordinatenX == 1200) {
-
-
-      console.log("L. fertig!")
-
-      if (document.getElementById('modi').value == "runterrutschen") {
-        setTimeout(function() {
-          //        window.scrollTo(0, 47);
-        }, 100);
-        zähler = 1;
-        Zustand = "inline"
-        // Buttons();
-        document.getElementById('info').innerHTML = "click on the field, you want your stone to be. it will fall down as far as possible.";
-      //  document.getElementById('info').style.display = "none";
-      }
-      else {
-        zähler = 1;
-        Zustand = "none"
-        //Buttons();
-        document.getElementById('info').innerHTML = "klick to choose a field";
-  //      document.getElementById('info').style.display = "inline";
-      }
-    }
-    else {
-      Layout1();
-    }
-  }
-
-  function Gewinncheck() {
-
-    Ablage = zähler + 3
-    Ablage = Ablage / 7
-    Ablage = "" + Ablage + "";
-    if (Ablage.length == 1) {
-      zähler = zähler + 3
-
-    }
-
-    if (Felder[zähler] == Farben[0] && Felder[zähler + 1] == Farben[0] && Felder[zähler + 2] == Farben[0] && Felder[zähler + 3] == Farben[0]) {
-
-      TeileMarkierung[0] = Koordinaten[zähler + 1]
-      TeileMarkierung[1] = Koordinaten[zähler + 2]
-      TeileMarkierung[2] = Koordinaten[zähler + 3]
-      Endbildschirm();
-    }
-
-    if (zähler < 42 == false) {
-      if (Start == true) {
-        zähler = 0;
-        Gewinncheck1();
-      }
-    } else {
-
-      zähler++;
-      Gewinncheck();
-    }
-  }
-
-
-  function Gewinncheck1() {
-
-    if (Felder[zähler] == Farben[0] && Felder[zähler + 7] == Farben[0] && Felder[zähler + 14] == Farben[0] && Felder[zähler + 21] == Farben[0]) {
-
-      console.log("Spieler " + SpielerIds[0] + " hat gewonnen! (Var. 2)")
-      TeileMarkierung[0] = Koordinaten[zähler + 7]
-      TeileMarkierung[1] = Koordinaten[zähler + 14]
-      TeileMarkierung[2] = Koordinaten[zähler + 21]
-      Endbildschirm();
-
-    } else if (zähler < 21) {
-
-      zähler++;
-      Gewinncheck1();
-    } else if (Start == true) {
-      zähler = 0;
-      Gewinncheck2();
-    }
-  }
-
-
-  document.onkeydown = function(event) {
-    if (event.keyCode == 70) {
-      FolgenMouseOrKeyDown();
-    }
-  }
   var xMaus;
   var yMaus;
   function readMouseMove(e) {
@@ -879,148 +502,6 @@ window.addEventListener('DOMContentLoaded', () => {
     //    console.log(xMaus + " - " + yMaus);
   }
   document.onmousemove = readMouseMove
-  function checkfieldMouseDown() {
-    for (var i = 0; i < 6; i++) {
-      for (var i1 = 0; i1 < 7; i1++) {
-        if (xMaus > 105 + 155*i1 && xMaus < 105 + 155*i1 + 100 && yMaus > 114 + 111*i && yMaus < 114 + 111*i + 100) {
-          console.log(i1 + " - " + i);
-          return i1 + "-" + i;
-        }
-      }
-    }
-  }
-  function FolgenMouseOrKeyDown() {
-    if (Start == true && SpielerId == SpielerIds[0] && document.getElementById('modi').value == "Plättchen") {
-      antwort = checkfieldMouseDown();
-      if (Felder[0 + JSON.parse(antwort[0]) + JSON.parse(antwort[2]) * 7] == "-") {
-      JSON.parse(antwort[2]);
-      Felder[0 + JSON.parse(antwort[0]) + JSON.parse(antwort[2]) * 7] = Farben[0];
-
-      canvas.fillStyle = Farben[0];
-      canvas.beginPath();
-      canvas.arc(150 + 150 * JSON.parse(antwort[0]), 65 + 120 * JSON.parse(antwort[2]), 43, 10, 0, Math.PI * 2, true);
-      canvas.fill();
-      room.send({
-        message: antwort
-      });
-      placedList.push(JSON.parse(JSON.stringify("koord: " + antwort)));
-      zähler = 0;
-      Gewinncheck();
-    }
-    }
-    if (document.getElementById('modi').value == "runterrutschen" && checkfieldMouseDown() && Felder[JSON.parse(checkfieldMouseDown()[0])] == "-") B(checkfieldMouseDown()[0] + "-0")
-  }
-
-  window.addEventListener('mousedown', function() {
-    FolgenMouseOrKeyDown();
-  });
-
-  function Gewinncheck2() {
-
-    Ablage = zähler + 3
-    Ablage = Ablage / 7
-    Ablage = "" + Ablage + "";
-    if (Ablage.length == 1) {
-      zähler = zähler + 3
-    }
-
-    if (Felder[zähler] == Farben[0] && Felder[zähler + 8] == Farben[0] && Felder[zähler + 16] == Farben[0] && Felder[zähler + 24] == Farben[0]) {
-
-      console.log("Spieler " + SpielerIds[0] + " hat gewonnen! (Var. 3)")
-      TeileMarkierung[0] = Koordinaten[zähler + 8]
-      TeileMarkierung[1] = Koordinaten[zähler + 16]
-      TeileMarkierung[2] = Koordinaten[zähler + 24]
-      Endbildschirm()
-    } else if (zähler < 18) {
-
-      zähler++;
-      Gewinncheck2();
-    } else if (Start == true) {
-      zähler = 0;
-      Gewinncheck3();
-    }
-  }
-
-  function Gewinncheck3() {
-    //[0 + JSON.parse(antwort[0]) + JSON.parse(antwort[2]) * 7]
-    var i1 = 0;
-    for (var i = zähler; (i/7 + "").includes("."); i--) {
-      i1++;
-    }
-    console.log(i1);
-    if (i1 > 2 && Felder[zähler] == Farben[0] && Felder[zähler + 6] == Farben[0] && Felder[zähler + 12] == Farben[0] && Felder[zähler + 18] == Farben[0]) {
-
-      console.log("Spieler " + SpielerIds[0] + " hat gewonnen! (Var. 4)")
-      TeileMarkierung[0] = Koordinaten[zähler + 6]
-      TeileMarkierung[1] = Koordinaten[zähler + 12]
-      TeileMarkierung[2] = Koordinaten[zähler + 18]
-      Endbildschirm();
-    } else if (zähler < 21) {
-
-      zähler++;
-      Gewinncheck3();
-    } else if (Start == true) {
-
-      console.log("Fertig!")
-      /*    Ablage = SpielerIds[0]
-          SpielerIds[0] = SpielerIds[1]
-          SpielerIds[1] = Ablage */
-      /*    Ablage = Farben[0]
-          Farben[0] = Farben[1]
-          Farben[1] = Ablage */
-      zähler = 0;
-      /*      if (SpielerIds[0] == SpielerId) {
-        document.getElementById("Name").innerHTML = "Du bist dran" + " (" + Farben[0] + ")"
-      }
-      else {
-        document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (" + Farben[1] + ")"
-      } */
-      console.log("Spielerwechsel");
-      room.send({
-        message: "Spielerwechsel"
-      });
-      KoordinatenY = 65;
-      KoordinatenX = 300;
-      canvas.fillStyle = 'black'; //Farbe
-      canvas.fillRect(0, 0, 1800, 750);
-      zähler = 0;
-      zählerNummerierung = 0;
-      Layout();
-      LayoutZurrück();
-    }
-  }
-
-  function Endbildschirm() {
-    Start = false;
-    audio = new Audio(/*"https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3"*/"https://adi.nicolaiweitkemper.de/Sounds/old-victory-sound-roblox-youtubemp3free.org.mp3").play();
-    /*  Ablage = Koordinaten[zähler];
-      eins = Ablage.toString().split('');
-      diff = ((1) * Math.PI * 2 * 10).toFixed(2)
-      canvas.lineWidth = 95;
-      canvas.fillStyle = 'green'
-      canvas.strokeStyle = '#40FF00'
-      canvas.textAlign = 'center'
-      canvas.beginPath();
-      canvas.arc(150 + 150 * JSON.parse(eins[0]), 65 + 120 * JSON.parse(eins[1]), 5, 4.72, diff / 10 + 4.72, false)
-      canvas.stroke(); */
-    TeileMarkierung[3] = Koordinaten[zähler];
-    zähler1 = 0;
-    Markierungen();
-    room.send({
-      message: "Markierungen: " + TeileMarkierung
-    });
-    setTimeout(function() {
-      canvas.font = "135px Arial";
-      canvas.fillStyle = "green"
-      canvas.fillText("Du hast gewonnen!", 750, 370);
-    }, 1735);
-    setTimeout(function() {
-      room.send({
-        message: SpielerIds[0] + " hat gewonnen!"
-      });
-    }, 200);
-    askReplay();
-  }
   function askReplay() {
     setTimeout(function () {
       if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/vierGewinnt.html angucken.")) {
@@ -1031,118 +512,5 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }, 2222);
   }
-  function Markierungen() {
-    Ablage = TeileMarkierung[zähler1]
-    eins = Ablage.toString().split('');
-    diff = ((1) * Math.PI * 2 * 10).toFixed(2)
-    canvas.lineWidth = 95;
-    canvas.fillStyle = 'green'
-    canvas.strokeStyle = '#40FF00'
-    canvas.textAlign = 'center'
-    canvas.beginPath();
-    canvas.arc(150 + 150 * JSON.parse(eins[0]), 65 + 120 * JSON.parse(eins[1]), 5, 4.72, diff / 10 + 4.72, false)
-    canvas.stroke();
-    zähler1++;
 
-    if (zähler1 == TeileMarkierung.length == false) {
-      Markierungen();
-    }
-  }
-
-
-  function B(Position) {
-    if (SpielerIds[0] == SpielerId) {
-      Ablage = Position;
-      room.send({
-        message: Position
-      });
-      placedList.push(JSON.parse(JSON.stringify("koord: " + Position)));
-      PlazierungM2(false);
-    }
-  }
-
-  function PlazierungM2(nachSpielerwechsel) {
-
-    if (zählerM2 == "") {
-      antwort = JSON.parse(Ablage[0]);
-      zählerM2 = JSON.parse(Ablage[2]);
-    } else {
-      KoordinatenY = 65;
-      KoordinatenX = 300;
-      canvas.fillStyle = 'black'; //Farbe
-      canvas.fillRect(0, 0, 1800, 750);
-      zähler = 0;
-      zählerNummerierung = 0;
-      Layout();
-
-      LayoutZurrück();
-    }
-    if (nachSpielerwechsel == true) {
-      canvas.fillStyle = Farben[1];
-    } else {
-      canvas.fillStyle = Farben[0];
-    }
-    canvas.beginPath();
-    canvas.arc(150 + antwort * 150, 65 + zählerM2 * 120, 45, 0, Math.PI * 2, true);
-    canvas.fill();
-    canvas.stroke
-
-    zählerM2 = zählerM2 + 1;
-    if (Felder[antwort + 7 * JSON.parse(zählerM2)] == "-") {
-
-      setTimeout(function() {
-
-        PlazierungM2(nachSpielerwechsel);
-      }, 37);
-    } else {
-      setTimeout(function() {
-        if (nachSpielerwechsel == false) {
-          Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[0];
-        } else {
-          Felder[0 + JSON.parse(antwort) + JSON.parse(zählerM2 - 1) * 7] = Farben[1];
-        }
-        KoordinatenY = 65;
-        KoordinatenX = 300;
-        canvas.fillStyle = 'black'; //Farbe
-        canvas.fillRect(0, 0, 1800, 750);
-        zähler = 0;
-        zählerNummerierung = 0;
-        Layout();
-        LayoutZurrück();
-        zählerM2 = "";
-        if (nachSpielerwechsel == false) {
-          zähler = 0;
-          Gewinncheck();
-        }
-      }, 100);
-    }
-  }
-
-  function LayoutZurrück() {
-    zähler = 0;
-    KoordinatenX = 150;
-    KoordinatenY = 65;
-    while (zähler < 42) {
-      if (Felder[zähler] == "red") {
-
-        canvas.fillStyle = "red";
-        canvas.beginPath();
-        canvas.arc(KoordinatenX, KoordinatenY, 43, 10, 0, Math.PI * 2, true);
-        canvas.fill();
-      } else if (Felder[zähler] == "blue") {
-        canvas.fillStyle = "blue";
-        canvas.beginPath();
-        canvas.arc(KoordinatenX, KoordinatenY, 43, 10, 0, Math.PI * 2, true);
-        canvas.fill();
-      }
-
-      KoordinatenX = KoordinatenX + 150;
-
-      if (KoordinatenX == 150 + 150 * 7) {
-        KoordinatenX = 150;
-        KoordinatenY = KoordinatenY + 120;
-      }
-      zähler++;
-    }
-  }
 </script>
