@@ -17,10 +17,10 @@ class vierGewinnt  {
     if (this.player1 && this.player2)  {
       this.send(this.player1.client, "player1" + this.player1.id);
       this.send(this.player2.client, "player2" + this.player2.id);
-      var spielmodi = ["runterrutschen", "Plätchen"];
-      this.broadcast(`Spielmodus:` + spielmodi[Math.floor(Math.random() * 2)]);
+      // var spielmodi = ["runterrutschen", "Plätchen"];
+      // this.broadcast(`Spielmodus:` + spielmodi[Math.floor(Math.random() * 2)]);
       this.broadcast(`player` + this.player1.id + "player" + this.player2.id);
-      this.send(client, `player` + this.player1.id + "player" + this.player2.id);
+      // this.send(client, `player` + this.player1.id + "player" + this.player2.id);
       Reihenfolge = ["player1", "player2"]
     }
   }
