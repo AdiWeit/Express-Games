@@ -114,13 +114,6 @@ class BasicWorldDemo {
     // plane.rotation.x = -Math.PI / 2;
     // this._scene.add(plane);
 
-    plate = new THREE.Mesh(
-      new THREE.BoxGeometry(4*13, 1.75, 4*13),
-      new THREE.MeshStandardMaterial({
-          color: 'rgb(201, 115, 60)',
-      }));
-    plate.position.set(0, 0, 0);
-    this._scene.add(plate);
 
     // for (let x = -8; x < 8; x++) {
     //   for (let y = -8; y < 8; y++) {
@@ -151,41 +144,59 @@ class BasicWorldDemo {
     this._RAF();
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
-    const cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 40/*height*/, 32/*radialSegments*/ )};
+    var cylinderGeometry;
     var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), green: new THREE.MeshBasicMaterial( { color: 'hsl(113, 79%, 54%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} ), darkGreen: new THREE.MeshBasicMaterial( {color: 'hsl(115, 100%, 21%)'} ), darkRed: new THREE.MeshBasicMaterial( {color: 'hsl(7, 100%, 34%)'} )};
     this.getMaterials = () => materials;
     var sphere;
     var direction = 1;
+    var sticks = [];
     // setTimeout(function () {
       scrollY = 124.5;
     // }, 3000);
     this.setContols = (pEnabled) => {
       controls.enabled = pEnabled;
     }
-    this.create3DLayout = (Felder) => {
+    this.create3DLayout = (Felder, boardParams) => {
+      while (sticks.length) {
+        _APP.destroyObj(sticks[0]);
+        sticks.shift();
+      }
+      if (plate) _APP.destroyObj(plate);
+      plate = new THREE.Mesh(
+        new THREE.BoxGeometry(boardParams.x*13, 1.75, boardParams.z*13),
+        new THREE.MeshStandardMaterial({
+            color: 'rgb(201, 115, 60)',
+        }));
+        if (SpielerIds[0] == SpielerId) plate.material = _APP.getMaterials().darkGreen;
+        else plate.material = _APP.getMaterials().darkRed;
+      plate.position.set(0, 0, 0);
+      this._scene.add(plate);
+
+      cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 10*boardParams.y/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 10*boardParams.y/*height*/, 32/*radialSegments*/ )};
       for (var i = 0; i < Felder.length; i++) {
         // for (var i1 = 0; i1 < Felder[0].length; i1++) {
           for (var i2 = 0; i2 < Felder[0].length; i2++) {
             // if (!i1) {
             const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
             console.log(i + " - " + i2);
-            cylinder.position.set(13*i - 13*1.5/*x*/, 20/*y*/, 13*i2 - 13*1.5/*z*/) /*position of middle*/;
+            cylinder.position.set(13*i - 13*(boardParams.x/2 - 0.5)/*x*/, 5*boardParams.y/*y*/, 13*i2 - 13*(boardParams.z/2 - 0.5)/*z*/) /*position of middle*/;
             cylinder.selectable = true;
             this._scene.add( cylinder );
+            sticks.push(cylinder);
           // }
           }
         // }
       }
     }
     this.objClicked = () => {
-      if (Start && SpielerId == SpielerIds[0] && document.getElementById('modi').value == "3D") {
+      if (Start && SpielerId == SpielerIds[0]) {
       clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
       clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(clickMouse, _APP._camera);
       const found = raycaster.intersectObjects(_APP._scene.children);
       var stabPos = found[0]?.object.position;
-      if (click.mouseMove < 11 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]?.length < 4) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && Felder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]?.length < boardParam.y) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
@@ -197,30 +208,30 @@ class BasicWorldDemo {
           });
         }
         else {
-          _APP.destroySelected();
+          _APP.destroyObj(selected.ball, true);
         }
       }
       if (!selected.stab || JSON.stringify(found[0]?.object.position) != JSON.stringify(selected.stab.position)) {
       selected.stab = found[0]?.object;
         selected.stab.material = materials.blue;
       selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
-      selected.ball.position.set(stabPos.x/*x*/, 50/*y*/, stabPos.z/*z*/);
+      selected.ball.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
       this._scene.add( selected.ball );
     }
     }
     else click = {state: "up", mouseMove: 0};
     }
     }
-    this.destroySelected = () => {
-      selected.ball.geometry.dispose();
-      selected.ball.material.dispose();
-      this._scene.remove(selected.ball);
-      selected.stab.material = materials.brownIsh;
+    this.destroyObj = (obj, ball) => {
+      obj.geometry.dispose();
+      obj.material.dispose();
+      this._scene.remove(obj);
+      if (ball) selected.stab.material = materials.brownIsh;
     }
     this.stoneSelected = (stabPos, player) => {
-      var field = Felder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))]
+      var field = Felder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]
     if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
-      _APP.destroySelected();
+      _APP.destroyObj(selected.ball, true);
       selected = {ball: null, stab: null};
       room.send({
         message: "Spielerwechsel"
@@ -232,7 +243,7 @@ class BasicWorldDemo {
       sphere = new THREE.Mesh( sphereGeometry, materials.red);
       field.push("red");
     }
-    objFelder[Math.abs(((stabPos.x - 13*1.5)/13))][Math.abs(((stabPos.z - 13*1.5)/13))].push(sphere);
+    objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))].push(sphere);
     objFelder.forEach((objFeldX, i) => {
       objFeldX.forEach((objFeldZ, i1) => {
         objFeldZ.forEach((objFeld, i2) => {
@@ -241,7 +252,7 @@ class BasicWorldDemo {
       });
     });
     checkWinning();
-      sphere.position.set(stabPos.x/*x*/, 50/*y*/, stabPos.z/*z*/);
+      sphere.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
       this._scene.add( sphere );
       this.fallingStone(sphere, field);
     }
@@ -299,18 +310,18 @@ window.addEventListener('DOMContentLoaded', () => {
   _APP = new BasicWorldDemo();
   console.log(_APP);
 });
-setTimeout(function () {
-Felder = [];
-for (var i = 0; i < 4; i++) {
-  Felder[i] = [];
-  objFelder[i] = [];
-  for (var i1 = 0; i1 < 4; i1++) {
-    Felder[i][i1] = [];
-    objFelder[i][i1] = [];
-  }
-}
-_APP.create3DLayout(Felder);
-}, 1000);
+// setTimeout(function () {
+// Felder = [];
+// for (var i = 0; i < 4; i++) {
+//   Felder[i] = [];
+//   objFelder[i] = [];
+//   for (var i1 = 0; i1 < 4; i1++) {
+//     Felder[i][i1] = [];
+//     objFelder[i][i1] = [];
+//   }
+// }
+// _APP.create3DLayout(Felder);
+// }, 1000);
   var gerät = "";
   if (navigator.userAgent.match(/Android/i) ||
     navigator.userAgent.match(/webOS/i) ||
@@ -348,7 +359,7 @@ _APP.create3DLayout(Felder);
   var Zustand = "none"
   var zählerM2 = ""
   var SpielerId;
-  3
+
   async function sendJson(url = "/", body = {}) {
     const rawResponse = await fetch(url, {
       method: 'POST',
@@ -419,17 +430,22 @@ _APP.create3DLayout(Felder);
     });
     return 'Are you sure you want to leave?';
   };
+  var boardParams;
+  var boardParam;
   room.setOnMessageListener(function(message) {
     if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.player);
     else if (message.includes("player1")) {
       SpielerId = message.replace("player1", "");
+      SpielerIds = [];
       console.log(SpielerId);
     } else if (message.includes("player2")) {
       SpielerId = message.replace("player2", "");
+      SpielerIds = [];
       console.log(SpielerId);
     } else if (message.includes("player")) {
       if (SpielerIds.length == 0) {
         Ablage = message.toString().split('player');
+        // if (message.includes('newPlayer')) Ablage = message.toString().split('newPlayer');
         Ablage.shift();
         if (Ablage[0] == SpielerId) {
           Farben = ["red", "blue"];
@@ -443,21 +459,21 @@ _APP.create3DLayout(Felder);
         zähler = 0;
         zählerNummerierung = 0;
         Layout();
+        // if (SpielerIds.length != 2) {
+        room.send({
+          message: "voteMode: " + prompt('Which mode do you want to play? Type...\nr for runterrutschen\np for Plättchen or \n3D for 3D.\nyou can also type ra for random')
+        });
+        // }
       }
-      // if (SpielerIds.length != 2) {
-      room.send({
-        message: "voteMode: " + prompt('Which mode do you want to play? Type...\nr for runterrutschen\np for Plättchen or \n3D for 3D.\nyou can also type ra for random')
-      });
-    // }
       SpielerIds = message.toString().split('player');
       SpielerIds.shift();
-        if (SpielerIds[0] == SpielerId) plate.material = _APP.getMaterials().darkGreen;
-        else plate.material = _APP.getMaterials().darkRed;
       KoordinatenY = 65;
       KoordinatenX = 300;
       if (SpielerIds[0] == SpielerId) {
         document.getElementById("Name").innerHTML = "Du bist dran" + " (" + Farben[0] + ")"
+        plate.material = _APP.getMaterials().darkGreen;
       } else {
+        plate.material = _APP.getMaterials().darkRed;
         document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (" + Farben[1] + ")"
       }
     } else if (message.includes("Spielmodus:")) {
@@ -490,17 +506,38 @@ _APP.create3DLayout(Felder);
         else {
           alert("Voting results gamemode " + modeSelected);
           document.getElementById('modi').value = modeSelected;
-          if (modi.value != "3D") {
-            Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
-            _APP._threejs.domElement.style.display = "none";
-            textur.style.display = "inline";
-            text.style.color = "#09F";
-            scrollY = 0;
-            _APP.setContols(false);
+          Felder = [];
+          if (objFelder.length > 0) {
+          for (var i = 0; i < boardParam.x; i++) {
+            for (var i1 = 0; i1 < boardParam.z; i1++) {
+              for (var i2 = 0; i2 < objFelder[i][i1].length; i2++) {
+                _APP.destroyObj(objFelder[i][i1][i2]);
+              }
+            }
           }
-          else {
-            textur.style.display = "none";
+        }
+          boardParams = {runterrutschen: {x: 7, y: 6, z: 1}, '3D': {x: 4, y: 4, z: 4}, Plättchen: {x: 7, y: 1, z: 6}}
+          boardParam = boardParams[modeSelected];
+          objFelder = [];
+          for (var i = 0; i < boardParam.x; i++) {
+            Felder[i] = [];
+            objFelder[i] = [];
+            for (var i1 = 0; i1 < boardParam.z; i1++) {
+              Felder[i][i1] = [];
+              objFelder[i][i1] = [];
+            }
           }
+          _APP.create3DLayout(Felder, boardParam);
+          // if (modi.value != "3D") {
+          //   Felder = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+          //   _APP._threejs.domElement.style.display = "none";
+          //   textur.style.display = "inline";
+          //   text.style.color = "#09F";
+          //   scrollY = 0;
+          //   _APP.setContols(false);
+          // }
+          // else {
+          // }
           KoordinatenY = 65;
           KoordinatenX = 300;
           canvas.fillStyle = 'black'; //Farbe
@@ -643,6 +680,7 @@ _APP.create3DLayout(Felder);
           for (var ball of pWinningDirec) {
             objFelder[ball.x][ball.z][ball.y].material = _APP.getMaterials().green;
           }
+          Start = false;
         }
       }
       winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
