@@ -97,11 +97,13 @@ class BasicWorldDemo {
     // my code
     const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
     var cylinderGeometry;
-    var materials = {blue: new THREE.MeshBasicMaterial( { color: 'hsl(205, 63%, 46%)' } ), red: new THREE.MeshBasicMaterial( { color: 'hsl(0, 80%, 55%)' } ), green: new THREE.MeshBasicMaterial( { color: 'hsl(113, 79%, 54%)' } ), brownIsh: new THREE.MeshBasicMaterial( {color: 'hsl(43, 62%, 46%)'} ), darkGreen: new THREE.MeshBasicMaterial( {color: 'hsl(115, 100%, 21%)'} ), darkRed: new THREE.MeshBasicMaterial( {color: 'hsl(7, 100%, 34%)'} )};
+    var materials = {blue: new THREE.MeshBasicMaterial({color: 'hsl(205, 63%, 46%)'}), red: new THREE.MeshBasicMaterial({color: 'hsl(0, 80%, 55%)'}), green: new THREE.MeshBasicMaterial({ color: 'hsl(113, 79%, 54%)'}), brownIsh: new THREE.MeshBasicMaterial({color: 'hsl(43, 62%, 46%)'}), darkGreen: new THREE.MeshBasicMaterial({color: 'hsl(115, 100%, 21%)'}), darkRed: new THREE.MeshBasicMaterial({color: 'hsl(7, 100%, 34%)'})};
     this.getMaterials = () => materials;
     var sphere;
     var direction = 1;
     var sticks = [];
+    var stickDistance = 13;
+    if (gerät == "Handy") stickDistance = 22;
     // setTimeout(function () {
       scrollY = 124.5;
     // }, 3000);
@@ -115,7 +117,7 @@ class BasicWorldDemo {
       }
       if (plate) _APP.destroyObj(plate);
       plate = new THREE.Mesh(
-        new THREE.BoxGeometry(boardParams.x*13, 1.75, boardParams.z*13),
+        new THREE.BoxGeometry(boardParams.x*stickDistance, 1.75, boardParams.z*stickDistance),
         new THREE.MeshStandardMaterial({
             color: 'rgb(201, 115, 60)',
         }));
@@ -129,7 +131,7 @@ class BasicWorldDemo {
           for (var i2 = 0; i2 < Felder[0].length; i2++) {
             const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
             console.log(i + " - " + i2);
-            cylinder.position.set(13*i - 13*(boardParams.x/2 - 0.5)/*x*/, 5*boardParams.y/*y*/, 13*i2 - 13*(boardParams.z/2 - 0.5)/*z*/) /*position of middle*/;
+            cylinder.position.set(stickDistance*i - stickDistance*(boardParams.x/2 - 0.5)/*x*/, 5*boardParams.y/*y*/, stickDistance*i2 - stickDistance*(boardParams.z/2 - 0.5)/*z*/) /*position of middle*/;
             cylinder.selectable = true;
             this._scene.add( cylinder );
             sticks.push(cylinder);
@@ -144,14 +146,14 @@ class BasicWorldDemo {
       raycaster.setFromCamera(clickMouse, _APP._camera);
       const found = raycaster.intersectObjects(_APP._scene.children);
       var stabPos = found[0]?.object.position;
-      if (click.mouseMove < 11 && found[0]?.object.selectable && objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))]?.length < boardParam.y) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && objFelder[Math.abs(((stabPos.x - stickDistance*(boardParam.x/2 - 0.5))/stickDistance))][Math.abs(((stabPos.z - stickDistance*(boardParam.z/2 - 0.5))/stickDistance))]?.length < boardParam.y) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
           SpielerIds[0] = "waiting for player taking turn";
           room.send({
             type: '3DsetStone',
-            stabPos: found[0]?.object.position,
+            stabPos: {x: Math.abs(((stabPos.x - stickDistance*(boardParam.x/2 - 0.5))/stickDistance)), z: Math.abs(((stabPos.z - stickDistance*(boardParam.z/2 - 0.5))/stickDistance))},
             player: SpielerId
           });
         }
@@ -176,16 +178,21 @@ class BasicWorldDemo {
       this._scene.remove(obj);
       if (ball) selected.stab.material = materials.brownIsh;
     }
+    var newStone;
     this.stoneSelected = (stabPos, player) => {
+      if (newStone) newStone.material = this.getMaterials()[newStone.color];
     if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
+      sphere = new THREE.Mesh( sphereGeometry, materials.blue);
       _APP.destroyObj(selected.ball, true);
       selected = {ball: null, stab: null};
-      sphere = new THREE.Mesh( sphereGeometry, materials.blue);
+      sphere.color = "blue";
     }
     else {
-      sphere = new THREE.Mesh( sphereGeometry, materials.red);
+      sphere = new THREE.Mesh( sphereGeometry, materials.green);
+      sphere.color = "red";
     }
-    var pFeld = objFelder[Math.abs(((stabPos.x - 13*(boardParam.x/2 - 0.5))/13))][Math.abs(((stabPos.z - 13*(boardParam.z/2 - 0.5))/13))];
+    var pFeld = objFelder[stabPos.x][stabPos.z];
+    newStone = sphere;
     pFeld.push(sphere);
     objFelder.forEach((objFeldX, i) => {
       objFeldX.forEach((objFeldZ, i1) => {
@@ -200,7 +207,7 @@ class BasicWorldDemo {
         message: "Spielerwechsel"
       });
     }
-      sphere.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
+      sphere.position.set((stickDistance*stabPos.x - stickDistance*(boardParam.x/2 - 0.5))*-1/*x*/, boardParam.y*10 + 10/*y*/, (stickDistance*stabPos.z - stickDistance*(boardParam.z/2 - 0.5))*-1/*z*/);
       this._scene.add( sphere );
       this.fallingStone(sphere, pFeld);
     }
@@ -363,17 +370,19 @@ window.addEventListener('DOMContentLoaded', () => {
       console.log(SpielerId);
     } else if (message.includes("player")) {
       if (SpielerIds.length == 0) {
+        var voteStr = prompt('Which mode do you want to play? Type...\nr for runterrutschen\np for Plättchen or \n3D for 3D.\nyou can also type ra or anything else for random');
+        if (voteStr != "r" && voteStr != "p" && voteStr != "3D") voteStr = "ra";
         room.send({
-          message: "voteMode: " + prompt('Which mode do you want to play? Type...\nr for runterrutschen\np for Plättchen or \n3D for 3D.\nyou can also type ra for random')
+          message: "voteMode: " + voteStr
         });
       }
       SpielerIds = message.toString().split('player');
       SpielerIds.shift();
       if (SpielerIds[0] == SpielerId) {
         document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
-        plate.material = _APP.getMaterials().darkGreen;
+        if (plate) plate.material = _APP.getMaterials().darkGreen;
       } else {
-        if (_APP.getMaterials()) plate.material = _APP.getMaterials().darkRed;
+        if (plate) plate.material = _APP.getMaterials().darkRed;
         document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"
       }
     } else if (message.includes("Spielmodus:")) {
@@ -386,12 +395,16 @@ window.addEventListener('DOMContentLoaded', () => {
       selectedMode.push(message.replace("voteMode: ", ""));
       if (selectedMode.length > 1) {
         if (!selectedMode.includes("random")) {
-        if (selectedMode.filter(x => x == "3D").length == 2) modeSelected = "3D";
-        else if (selectedMode.filter(x => x == "r").length == 2) modeSelected = "runterrutschen";
-        else if (selectedMode.filter(x => x == "p").length == 2) modeSelected = "Plättchen";
-        var modes = ["runterrutschen", "Plättchen", "3D"];
+        if (selectedMode.filter(x => x == "3D").length >= 2 || (selectedMode.filter(x => x == "3D").length >= 1 && selectedMode.includes('ra'))) modeSelected = "3D";
+        else if (selectedMode.filter(x => x == "r").length >= 2 || (selectedMode.filter(x => x == "r").length >= 1 && selectedMode.includes('ra'))) modeSelected = "runterrutschen";
+        else if (selectedMode.filter(x => x == "p").length >= 2 || (selectedMode.filter(x => x == "p").length >= 1 && selectedMode.includes('ra'))) modeSelected = "Plättchen";
+        var modes = ["r", "p", "3D"];
         Start = true;
-        if (!modeSelected) document.getElementById('modi').value = modes[Math.round(Math.random()*2)];
+        if (!modeSelected) {
+          room.send({
+            message: "voteMode: " + modes[Math.round(Math.random()*2)]
+          });
+        }
       }
         if (!modeSelected) alert("random gamemode selected (" + document.getElementById('modi').value + ") because the players wanted to play different modes!");
         else alert("Voting results gamemode " + modeSelected);
@@ -463,7 +476,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if (!i3 && direction != "start" && keyDirectionBefore != direction) keyDirection = direction;
       if (!(keyDirection == direction && i3) || direction == "start") {
       var plus = directions[keyDirection];
-      if (objFelder[i + plus[0]] && objFelder[i + plus[0]][i1 + plus[1]] && (!objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.winChecked.includes(keyDirection) && objFelder[i + plus[0]][i1 + plus[1]] && !objFelder[i + plus[0]][i1 + plus[1]][i2 + [i2 + plus[2]]]?.winChecked.includes("start")) && objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.material.color == objFelder[i][i1][i2]?.material.color) {
+      if (objFelder[i + plus[0]] && objFelder[i + plus[0]][i1 + plus[1]] && (!objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.winChecked.includes(keyDirection) && objFelder[i + plus[0]][i1 + plus[1]] && !objFelder[i + plus[0]][i1 + plus[1]][i2 + [i2 + plus[2]]]?.winChecked.includes("start")) && objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.color == objFelder[i][i1][i2]?.color) {
         if (direction != "start" && winningDirec[direction].length < 4 && keyDirection != direction) winningDirec[direction].length = 1;
         if (direction != "start" && keyDirection != direction) break;
         objFelder[i][i1][i2].winChecked.push(keyDirection);
