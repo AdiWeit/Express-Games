@@ -463,7 +463,7 @@ window.addEventListener('DOMContentLoaded', () => {
     objFelder.forEach((objFeldX, i) => {
       objFeldX.forEach((objFeldZ, i1) => {
         objFeldZ.forEach((objFeld, i2) => {
-          if (!objFeld.winChecked.length) checkWinningLoop(i, i1, i2, "start");
+          checkWinningLoop(i, i1, i2, "start");
         });
       });
     });
@@ -476,7 +476,7 @@ window.addEventListener('DOMContentLoaded', () => {
       winningDirec[direction].push({x: i, y: i2, z: i1});
     }
     objFelder[i][i1][i2].winChecked.push(direction);
-    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 0, 1], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyzRightUp: [1, 1, 1], xyzRightDown: [1, 1, -1], xyzLeftUp: [-1, 1, 1], xyzLeftDown: [1, -1, 1]};
+    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 1, 0], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyzRightUp: [1, 1, 1], xyzRightDown: [1, 1, -1], xyzLeftUp: [-1, 1, 1], xyzLeftDown: [1, -1, 1]};
     for (var i3 = 0; i3 < Object.keys(directions).length; i3++) {
       var keyDirection = Object.keys(directions)[i3];
       if (!i3 && direction != "start" && keyDirectionBefore != direction) keyDirection = direction;
