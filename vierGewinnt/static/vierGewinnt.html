@@ -102,8 +102,6 @@ class BasicWorldDemo {
     var sphere;
     var direction = 1;
     var sticks = [];
-    var stickDistance = 13;
-    if (gerät == "Handy") stickDistance = 22;
     // setTimeout(function () {
       scrollY = 124.5;
     // }, 3000);
@@ -149,7 +147,7 @@ class BasicWorldDemo {
       if (click.mouseMove < 11 && found[0]?.object.selectable && objFelder[Math.abs(((stabPos.x - stickDistance*(boardParam.x/2 - 0.5))/stickDistance))][Math.abs(((stabPos.z - stickDistance*(boardParam.z/2 - 0.5))/stickDistance))]?.length < boardParam.y) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
-        if (JSON.stringify(found[0]?.object.position) == JSON.stringify(selected.stab.position)) {
+        if (found[0]?.object.position.x + " - " + found[0]?.object.position.z == selected.stab.position.x + " - " + selected.stab.position.z) {
           SpielerIds[0] = "waiting for player taking turn";
           room.send({
             type: '3DsetStone',
@@ -161,11 +159,12 @@ class BasicWorldDemo {
           _APP.destroyObj(selected.ball, true);
         }
       }
-      if (!selected.stab || JSON.stringify(found[0]?.object.position) != JSON.stringify(selected.stab.position)) {
+      if (!selected.stab || found[0]?.object.position.x + " - " + found[0]?.object.position.z != selected.stab.position.x + " - " + selected.stab.position.z) {
       selected.stab = found[0]?.object;
         selected.stab.material = materials.blue;
       selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
       selected.ball.position.set(stabPos.x/*x*/, boardParam.y*10 + 10/*y*/, stabPos.z/*z*/);
+      selected.ball.selectable = true;
       this._scene.add( selected.ball );
     }
     }
@@ -214,6 +213,7 @@ class BasicWorldDemo {
     this.fallingStone = (sphere, pFeld) => {
       sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
       setTimeout(function () {
+        if (!(sphere.position.y - 1 > -5 + 10*pFeld.length) && sphere.position.y > -5 + 10*pFeld.length) var audio = new Audio('https://adi.nicolaiweitkemper.de/Sounds/low_pitched_click.mp3').play();
         if (sphere.position.y > -5 + 10*pFeld.length) _APP.fallingStone(sphere, pFeld);
       }, 10);
     }
@@ -360,6 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var boardParam;
   room.setOnMessageListener(function(message) {
     if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.player);
+    else if (message.includes('joined')) modeSelected = null;
     else if (message.includes("player1")) {
       SpielerId = message.replace("player1", "");
       SpielerIds = [];
@@ -400,14 +401,15 @@ window.addEventListener('DOMContentLoaded', () => {
         else if (selectedMode.filter(x => x == "p").length >= 2 || (selectedMode.filter(x => x == "p").length >= 1 && selectedMode.includes('ra'))) modeSelected = "Plättchen";
         var modes = ["r", "p", "3D"];
         Start = true;
-        if (!modeSelected) {
+        if (!modeSelected && SpielerIds[0] == SpielerId) {
           room.send({
             message: "voteMode: " + modes[Math.round(Math.random()*2)]
           });
         }
       }
-        if (!modeSelected) alert("random gamemode selected (" + document.getElementById('modi').value + ") because the players wanted to play different modes!");
-        else alert("Voting results gamemode " + modeSelected);
+        if (selectedMode.length > 2) alert("random gamemode selected (" + modeSelected + ") because the players wanted to play different modes!");
+        if (modeSelected) {
+          if (selectedMode.length <= 2) alert("Voting results gamemode " + modeSelected);
           document.getElementById('modi').value = modeSelected;
           if (objFelder.length > 0) {
           for (var i = 0; i < boardParam.x; i++) {
@@ -418,6 +420,7 @@ window.addEventListener('DOMContentLoaded', () => {
             }
           }
         }
+        if (gerät == "Handy" && modeSelected == "3D") stickDistance = 22;
           boardParams = {runterrutschen: {x: 7, y: 6, z: 1}, '3D': {x: 4, y: 4, z: 4}, Plättchen: {x: 7, y: 1, z: 6}}
           boardParam = boardParams[modeSelected];
           objFelder = [];
@@ -430,9 +433,12 @@ window.addEventListener('DOMContentLoaded', () => {
           _APP.create3DLayout(objFelder, boardParam);
           Start = true;
           // scrollY = 124.5;
+          selectedMode = [];
+        }
       }
     }
   });
+  var stickDistance = 13;
   var placedList = [];
   var modeSelected;
   var selectedMode = [];
