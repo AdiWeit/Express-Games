@@ -213,7 +213,7 @@ class BasicWorldDemo {
     this.fallingStone = (sphere, pFeld) => {
       sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
       setTimeout(function () {
-        if (!(sphere.position.y - 1 > -5 + 10*pFeld.length) && sphere.position.y > -5 + 10*pFeld.length) var audio = new Audio('https://adi.nicolaiweitkemper.de/Sounds/low_pitched_click.mp3').play();
+        if (!(sphere.position.y - 1 > -5 + 10*pFeld.length) && sphere.position.y > -5 + 10*pFeld.length) new Audio('https://adi.nicolaiweitkemper.de/Sounds/low_pitched_click.mp3').play();
         if (sphere.position.y > -5 + 10*pFeld.length) _APP.fallingStone(sphere, pFeld);
       }, 10);
     }
@@ -508,6 +508,14 @@ window.addEventListener('DOMContentLoaded', () => {
             objFelder[ball.x][ball.z][ball.y].material = _APP.getMaterials().green;
           }
           Start = false;
+          if (SpielerId != SpielerIds[1]) {
+            var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+            audio.currentTime = 9.0;
+            audio.play();
+          }
+          else {
+            new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+          }
         }
       }
       winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
