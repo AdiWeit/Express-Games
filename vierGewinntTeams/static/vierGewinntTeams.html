@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/base.css">
+</head>
+<body>
+</body>
+</html>
+<meta charset="utf-8">
+<div style="color:black" id="text">
+  <h2 id="info">klick to choose a field</h2>
+  <h2 id="Name"></h2>
+</div>
+<!-- <input id="modi" style="display:none"></input> -->
+<select name="course" style="display:none">
+  <option value="p">p</option>
+  <option value="r" selected="">runterrutschen</option>
+  <option value="3D" selected="true">3D</option>
+  <option value="ra" selected="">random</option>
+</select>
+<input type="text" id="modi" style="display:none">
+
+<script type = "module">
+// 3D part
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
+
+
+class BasicWorldDemo {
+  constructor() {
+    this._Initialize();
+  }
+
+  _Initialize() {
+    this._threejs = new THREE.WebGLRenderer({
+      antialias: true,
+    });
+    this._threejs.shadowMap.enabled = true;
+    this._threejs.shadowMap.type = THREE.PCFSoftShadowMap;
+    this._threejs.setPixelRatio(window.devicePixelRatio);
+    this._threejs.setSize(window.innerWidth, window.innerHeight);
+
+    document.body.appendChild(this._threejs.domElement);
+
+    window.addEventListener('resize', () => {
+      this._OnWindowResize();
+    }, false);
+
+    const fov = 60;
+    const aspect = 1920 / 1080;
+    const near = 1.0;
+    const far = 1000.0;
+    this._camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    this._camera.position.set(75, 20, 0);
+
+    this._scene = new THREE.Scene();
+
+    let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+    light.position.set(20, 100, 10);
+    light.target.position.set(0, 0, 0);
+    light.castShadow = true;
+    light.shadow.bias = -0.001;
+    light.shadow.mapSize.width = 2048;
+    light.shadow.mapSize.height = 2048;
+    light.shadow.camera.near = 0.1;
+    light.shadow.camera.far = 500.0;
+    light.shadow.camera.near = 0.5;
+    light.shadow.camera.far = 500.0;
+    light.shadow.camera.left = 100;
+    light.shadow.camera.right = -100;
+    light.shadow.camera.top = 100;
+    light.shadow.camera.bottom = -100;
+    this._scene.add(light);
+
+    light = new THREE.AmbientLight(0x101010);
+    this._scene.add(light);
+
+    var controls = new OrbitControls(
+      this._camera, this._threejs.domElement);
+    controls.target.set(0, 20, 0);
+    controls.update();
+
+    const loader = new THREE.CubeTextureLoader();
+    const texture = loader.load([
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/posx.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negx.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posy.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negy.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/posz.jpg',
+        'https://adi.nicolaiweitkemper.de/Tests/ThreeJS_Tutorial_BasicWorld-main/resources/resources/negz.jpg',
+    ]);
+    this._scene.background = texture;
+
+    this._RAF();
+    // my code
+    const sphereGeometry = new THREE.SphereGeometry( 5/*radius*/, 32, 16 );
+    var cylinderGeometry;
+    var materials = {blue: new THREE.MeshBasicMaterial({color: 'hsl(205, 63%, 46%)'}), red: new THREE.MeshBasicMaterial({color: 'hsl(0, 80%, 55%)'}), green: new THREE.MeshBasicMaterial({ color: 'hsl(113, 79%, 54%)'}), brownIsh: new THREE.MeshBasicMaterial({color: 'hsl(43, 62%, 46%)'}), darkGreen: new THREE.MeshBasicMaterial({color: 'hsl(115, 100%, 21%)'}), darkRed: new THREE.MeshBasicMaterial({color: 'hsl(7, 100%, 34%)'})};
+    this.getMaterials = () => materials;
+    var sphere;
+    var direction = 1;
+    var sticks = [];
+    // setTimeout(function () {
+      scrollY = 124.5;
+    // }, 3000);
+    this.setContols = (pEnabled) => {
+      controls.enabled = pEnabled;
+    }
+    this.create3DLayout = (Felder, boardParams) => {
+      while (sticks.length) {
+        _APP.destroyObj(sticks[0]);
+        sticks.shift();
+      }
+      if (plate) _APP.destroyObj(plate);
+      plate = new THREE.Mesh(
+        new THREE.BoxGeometry(4*stickDistance + 0.3, 2.95, playerPosition.z[0].length*stickDistance + 0.1),
+        new THREE.MeshStandardMaterial({
+            color: 'rgb(201, 115, 60)',
+        }));
+        if (SpielerIds[0] == SpielerId) plate.material = _APP.getMaterials().darkGreen;
+        else plate.material = _APP.getMaterials().darkRed;
+      plate.position.set(-0.1, 0.1, -((playerPosition.z[0][0] - 1)*stickDistance));
+      if (playerPosition.z[0].length == 1) plate.position.z -= (playerPosition.z[0].length*stickDistance)/2;
+      this._scene.add(plate);
+      var basicPlate = new THREE.Mesh(
+        new THREE.BoxGeometry(4*stickDistance, 1.75, 4*stickDistance),
+        new THREE.MeshStandardMaterial({
+            color: 'rgb(201, 115, 60)',
+        }));
+      basicPlate.position.set(0, 0, 0);
+      this._scene.add(basicPlate);
+
+      cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 10*4/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 10*4/*height*/, 32/*radialSegments*/ )};
+      for (var i = 0; i < 4; i++) {
+          for (var i2 = 0; i2 < 4; i2++) {
+            const cylinder = new THREE.Mesh( cylinderGeometry[gerät], materials.brownIsh);
+            console.log(i + " - " + i2);
+            cylinder.position.set(stickDistance*i - stickDistance*(4/2 - 0.5)/*x*/, 5*4/*y*/, stickDistance*i2 - stickDistance*(4/2 - 0.5)/*z*/) /*position of middle*/;
+            cylinder.selectable = true;
+            this._scene.add( cylinder );
+            sticks.push(cylinder);
+          }
+      }
+    }
+    this.objClicked = () => {
+      if (Start && SpielerId == SpielerIds[0]) {
+      clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
+      clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(clickMouse, _APP._camera);
+      const found = raycaster.intersectObjects(_APP._scene.children);
+      var stabPos = found[0]?.object.position;
+      if (stabPos) var z = Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance));
+      if (click.mouseMove < 11 && found[0]?.object.selectable && playerPosition.z[0].includes(z) && found[0]?.object && objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][z]?.length < 4) {
+      click = {state: "up", mouseMove: 0};
+      if (selected.ball) {
+        if (found[0]?.object.position.x + " - " + found[0]?.object.position.z == selected.stab.position.x + " - " + selected.stab.position.z) {
+          SpielerIds[0] = "waiting for player taking turn";
+          room.send({
+            type: '3DsetStone',
+            stabPos: {x: Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance)), z},
+            player: SpielerId
+          });
+        }
+        else {
+          _APP.destroyObj(selected.ball, true);
+        }
+      }
+      if (!selected.stab || found[0]?.object.position.x + " - " + found[0]?.object.position.z != selected.stab.position.x + " - " + selected.stab.position.z) {
+      selected.stab = found[0]?.object;
+        selected.stab.material = materials.blue;
+      selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
+      selected.ball.position.set(stabPos.x/*x*/, 4*10 + 10/*y*/, stabPos.z/*z*/);
+      selected.ball.selectable = true;
+      this._scene.add( selected.ball );
+    }
+    }
+    else click = {state: "up", mouseMove: 0};
+    }
+    }
+    this.destroyObj = (obj, ball) => {
+      obj.geometry.dispose();
+      obj.material.dispose();
+      this._scene.remove(obj);
+      if (ball) selected.stab.material = materials.brownIsh;
+    }
+    var newStone;
+    this.stoneSelected = (stabPos, player) => {
+      if (newStone) newStone.material = this.getMaterials()[newStone.color];
+    if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
+      sphere = new THREE.Mesh( sphereGeometry, materials.blue);
+      _APP.destroyObj(selected.ball, true);
+      selected = {ball: null, stab: null};
+      sphere.color = "blue";
+    }
+    else {
+      sphere = new THREE.Mesh( sphereGeometry, materials.green);
+      sphere.color = "red";
+    }
+    var pFeld = objFelder[stabPos.x][stabPos.z];
+    newStone = sphere;
+    pFeld.push(sphere);
+    objFelder.forEach((objFeldX, i) => {
+      objFeldX.forEach((objFeldZ, i1) => {
+        objFeldZ.forEach((objFeld, i2) => {
+          objFeld.winChecked = [];
+        });
+      });
+    });
+    checkWinning();
+    if (Start && (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn")) {
+      room.send({
+        message: "Spielerwechsel"
+      });
+    }
+      sphere.position.set((stickDistance*stabPos.x - stickDistance*(4/2 - 0.5))*-1/*x*/, 4*10 + 10/*y*/, (stickDistance*stabPos.z - stickDistance*(4/2 - 0.5))*-1/*z*/);
+      this._scene.add( sphere );
+      this.fallingStone(sphere, pFeld);
+    }
+    this.fallingStone = (sphere, pFeld) => {
+      sphere.position.set(sphere.position.x/*x*/, sphere.position.y - 1/*y*/, sphere.position.z/*z*/);
+      setTimeout(function () {
+        if (!(sphere.position.y - 1 > -5 + 10*pFeld.length) && sphere.position.y > -5 + 10*pFeld.length) new Audio('https://adi.nicolaiweitkemper.de/Sounds/low_pitched_click.mp3').play();
+        if (sphere.position.y > -5 + 10*pFeld.length) _APP.fallingStone(sphere, pFeld);
+      }, 10);
+    }
+  }
+
+  _OnWindowResize() {
+    this._camera.aspect = window.innerWidth / window.innerHeight;
+    this._camera.updateProjectionMatrix();
+    this._threejs.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  _RAF() {
+    requestAnimationFrame(() => {
+      this._threejs.render(this._scene, this._camera);
+      this._RAF();
+    });
+  }
+}
+// detect obj at mouse position
+const raycaster = new THREE.Raycaster();
+var clickMouse = new THREE.Vector2();
+const moveMouse = new THREE.Vector2();
+var click = {state: "up", mouseMove: 0};
+window.addEventListener('mousedown', event => {
+  click.state = "down";
+});
+document.addEventListener('pointermove', touch);
+document.addEventListener('touchend', touch);
+document.addEventListener('touchstart', touch);
+function touch(ev) {
+  if (ev.type == "touchstart") {
+    xMaus = ev.touches[0]["pageX"];
+    yMaus = ev.touches[0]["pageY"];
+    click.state = "down";
+  }
+  if (ev.type == "pointermove" && click.state == "down") {
+    click.mouseMove++;
+    // if (modi.value != "3D" && gerät == "Handy") window.scroll(scrollX + (ev.x - xMaus - scrollX), scrollY + (ev.y - yMaus - scrollY));
+  }
+  if (ev.type == "touchend") _APP.objClicked();
+}
+window.addEventListener('click', event => {
+  _APP.objClicked();
+})
+var selected = {stab: null, ball: null};
+let _APP = null;
+
+window.addEventListener('DOMContentLoaded', () => {
+  _APP = new BasicWorldDemo();
+  console.log(_APP);
+});
+  var gerät = "";
+  if (navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i)
+  ) {
+    gerät = "Handy"
+    console.log("Handy");
+  } else {
+    gerät = "PC"
+    console.log("PC");
+  }
+  var plate;
+  var SpielerIds = [];
+  var Start = false;
+  var objFelder = [];
+  var SpielerId;
+
+  async function sendJson(url = "/", body = {}) {
+    const rawResponse = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    const content = await rawResponse.json();
+    return content;
+  }
+  // sendJson('/logout', {
+  //   clientId
+  // });
+
+  const clientId = makeid(10);
+  var messageListener = null;
+
+  async function register() {
+    let response = sendJson('/vierGewinntTeams/login', {
+      clientId
+    });
+  }
+
+  register();
+  setInterval(getMessages, 1000);
+
+  function getMessages() {
+    sendJson('/vierGewinntTeams/message-queue', {
+      clientId
+    }).then(messages => {
+      if (messages.length > 0) console.log("MESSAGES", messages);
+      messages.forEach(msg => messageListener(msg));
+    });
+  }
+
+  function sendMessage(obj) {
+    sendJson('/vierGewinntTeams/message', {
+      clientId,
+      content: obj
+    });
+  }
+
+  function makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+
+  var room = {
+    setOnMessageListener(listener) {
+      messageListener = listener;
+    },
+    send(msg) {
+      sendMessage(msg);
+    }
+  };
+  window.onbeforeunload = function() {
+    console.log("Leave Website");
+    sendJson('/vierGewinntTeams/logout', {
+      clientId
+    });
+    return 'Are you sure you want to leave?';
+  };
+  var boardParams;
+  var boardParam;
+  var playerPosition = {};
+  room.setOnMessageListener(function(message) {
+    if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.player);
+    else if (message.type == "yourID") {
+      SpielerId = message.id;
+      SpielerIds = [];
+    }
+    else if (message.type == "setPlayer") {
+      SpielerIds = message.ids;
+      if (SpielerIds[0] == SpielerId) {
+        document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
+        if (plate) plate.material = _APP.getMaterials().darkGreen;
+        playerPosition.z.push(playerPosition.z[0]);
+        playerPosition.z.shift();
+        plate.position.set(-0.1, 0.1, -((playerPosition.z[0][0] - 1)*stickDistance));
+      } else {
+        if (plate) plate.material = _APP.getMaterials().darkRed;
+        document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"
+      }
+    } else if (message.type == "setPlayerPosition") {
+      playerPosition = message;
+      console.log(playerPosition);
+      console.log(playerPosition.z[0]);
+      objFelder = [];
+      for (var i = 0; i < 4; i++) {
+        objFelder[i] = [];
+        for (var i1 = 0; i1 < 4; i1++) {
+          objFelder[i][i1] = [];
+        }
+      }
+      setTimeout(function () {
+        _APP.create3DLayout();
+        Start = true;
+      }, 10);
+    }
+  });
+  var stickDistance = 13;
+  var placedList = [];
+  var modeSelected;
+  var selectedMode = [];
+  // send message to room on submit
+  /*  document.querySelector("#form").onsubmit = function(e) {
+      e.preventDefault();
+
+      var input = document.querySelector("#input");
+
+      console.log("input:", input.value);
+
+      // send data to room
+      room.send({
+        message: input.value
+      });
+
+      // clear input
+      input.value = "";
+    } */
+  var winningDirec;
+  function checkWinning() {
+    objFelder.forEach((objFeldX, i) => {
+      objFeldX.forEach((objFeldZ, i1) => {
+        objFeldZ.forEach((objFeld, i2) => {
+          checkWinningLoop(i, i1, i2, "start");
+        });
+      });
+    });
+  }
+  var keyDirectionBefore;
+  function checkWinningLoop(i, i1, i2, direction) {
+    if (direction == "start") winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
+    else {
+      console.log(direction);
+      winningDirec[direction].push({x: i, y: i2, z: i1});
+    }
+    objFelder[i][i1][i2].winChecked.push(direction);
+    var directions = {x: [1, 0, 0], y: [0, 0, 1], z: [0, 1, 0], xyRight: [1, 0, 1], xyLeft: [-1, 0, 1], zyRight: [0, 1, 1], zyLeft: [0, 1, - 1], xzRight: [1, 1, 0], xzLeft: [-1, 1, 0], xyzRightUp: [1, 1, 1], xyzRightDown: [1, 1, -1], xyzLeftUp: [-1, 1, 1], xyzLeftDown: [1, -1, 1]};
+    for (var i3 = 0; i3 < Object.keys(directions).length; i3++) {
+      var keyDirection = Object.keys(directions)[i3];
+      if (!i3 && direction != "start" && keyDirectionBefore != direction) keyDirection = direction;
+      if (!(keyDirection == direction && i3) || direction == "start") {
+      var plus = directions[keyDirection];
+      if (objFelder[i + plus[0]] && objFelder[i + plus[0]][i1 + plus[1]] && (!objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.winChecked.includes(keyDirection) && objFelder[i + plus[0]][i1 + plus[1]] && !objFelder[i + plus[0]][i1 + plus[1]][i2 + [i2 + plus[2]]]?.winChecked.includes("start")) && objFelder[i + plus[0]][i1 + plus[1]][i2 + plus[2]]?.color == objFelder[i][i1][i2]?.color) {
+        if (direction != "start" && winningDirec[direction].length < 4 && keyDirection != direction) winningDirec[direction].length = 1;
+        if (direction != "start" && keyDirection != direction) break;
+        objFelder[i][i1][i2].winChecked.push(keyDirection);
+        checkWinningLoop(i + plus[0], i1 + plus[1], i2 + plus[2], keyDirection);
+      }
+      if (objFelder[i + plus[0]*-1] && objFelder[i + plus[0]*-1][i1 + plus[1]*-1] && (!objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.winChecked.includes(keyDirection) && !objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.winChecked.includes("start")) && objFelder[i + plus[0]*-1][i1 + plus[1]*-1][i2 + plus[2]*-1]?.material.color == objFelder[i][i1][i2]?.material.color) {
+        if (direction != "start" && winningDirec[direction].length < 4 && keyDirection != direction) winningDirec[direction].length = 1;
+        if (direction != "start" && keyDirection != direction) break;
+        objFelder[i][i1][i2].winChecked.push(keyDirection);
+        checkWinningLoop(i + plus[0]*-1, i1 + plus[1]*-1, i2 + plus[2]*-1, keyDirection);
+      }
+      if (!i3 && direction != "start" && keyDirectionBefore != direction) i3 = -1;
+      keyDirectionBefore = keyDirection;
+    }
+    }
+    if (direction == "start") {
+      console.log(winningDirec);
+      for (var keyWinningDirec of Object.keys(winningDirec)) {
+        var pWinningDirec = winningDirec[keyWinningDirec];
+        if (pWinningDirec.length >= 4) {
+          console.log("more than 3!!!");
+          for (var ball of pWinningDirec) {
+            objFelder[ball.x][ball.z][ball.y].material = _APP.getMaterials().green;
+          }
+          Start = false;
+          if (SpielerId != SpielerIds[1]) {
+            var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+            audio.currentTime = 9.0;
+            audio.play();
+          }
+          else {
+            new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+          }
+        }
+      }
+      winningDirec = {x: [{x: i, y: i2, z: i1}], y: [{x: i, y: i2, z: i1}], z: [{x: i, y: i2, z: i1}], xyRight: [{x: i, y: i2, z: i1}], xyLeft: [{x: i, y: i2, z: i1}], zyRight: [{x: i, y: i2, z: i1}], zyLeft: [{x: i, y: i2, z: i1}], xzRight: [{x: i, y: i2, z: i1}], xzLeft: [{x: i, y: i2, z: i1}], xyzRightUp: [{x: i, y: i2, z: i1}], xyzRightDown: [{x: i, y: i2, z: i1}], xyzLeftUp: [{x: i, y: i2, z: i1}], xyzLeftDown: [{x: i, y: i2, z: i1}]};
+    }
+  }
+
+
+  var xMaus;
+  var yMaus;
+  function readMouseMove(e) {
+    xMaus = e.clientX + scrollX;
+    yMaus = e.clientY + scrollY;
+    if (gerät == "Handy") yMaus -= 10;
+    //    console.log(xMaus + " - " + yMaus);
+  }
+  document.onmousemove = readMouseMove
+  function askReplay() {
+    setTimeout(function () {
+      if (confirm("Wollen sie die Runde als Replay speichern? Sie können es sich später auf ihrem Gerät unter express-games/playbacks/vierGewinntTeams.html angucken.")) {
+        if (localStorage.getItem("playBacksvierGewinntTeams")) var replays = JSON.parse(localStorage.getItem("playBacksvierGewinntTeams"));
+        else var replays = {};
+        replays[prompt("Wie wollen sie ihr Replay nennen?")] = {movementList: placedList, selectedMode: modeSelected, farben: Farben, yourColour: yourColour, markierung: markierungMessage};
+        localStorage.setItem("playBacksvierGewinntTeams", JSON.stringify(replays));
+      }
+    }, 2222);
+  }
+
+</script>

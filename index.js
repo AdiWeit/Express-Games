@@ -45,6 +45,9 @@ app.use('/gruselino/', gruselino);
 const vierGewinnt = require('./vierGewinnt/index.js');
 app.use('/vierGewinnt/', vierGewinnt);
 
+const vierGewinntTeams = require('./vierGewinntTeams/index.js');
+app.use('/vierGewinntTeams/', vierGewinntTeams);
+
 const labyrinth = require('./labyrinth/index.js');
 app.use('/labyrinth/', labyrinth);
 
