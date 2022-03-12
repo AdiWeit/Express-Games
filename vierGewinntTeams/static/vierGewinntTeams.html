@@ -108,11 +108,7 @@ class BasicWorldDemo {
     this.setContols = (pEnabled) => {
       controls.enabled = pEnabled;
     }
-    this.create3DLayout = (Felder, boardParams) => {
-      while (sticks.length) {
-        _APP.destroyObj(sticks[0]);
-        sticks.shift();
-      }
+    this.createPlayerPlate = () => {
       if (plate) _APP.destroyObj(plate);
       plate = new THREE.Mesh(
         new THREE.BoxGeometry(4*stickDistance + 0.3, 2.95, playerPosition.z[0].length*stickDistance + 0.1),
@@ -121,9 +117,16 @@ class BasicWorldDemo {
         }));
         if (SpielerIds[0] == SpielerId) plate.material = _APP.getMaterials().darkGreen;
         else plate.material = _APP.getMaterials().darkRed;
-      plate.position.set(-0.1, 0.1, -((playerPosition.z[0][0] - 1)*stickDistance));
-      if (playerPosition.z[0].length == 1) plate.position.z -= (playerPosition.z[0].length*stickDistance)/2;
+      if (playerPosition.z[0].length == 2) plate.position.set(-0.1, 0.1, -(((playerPosition.z[0][0])*stickDistance) - 2*stickDistance));
+      else plate.position.set(-0.1, 0.1, -(((playerPosition.z[0][0])*stickDistance) - 1.5*stickDistance));
       this._scene.add(plate);
+    }
+    this.create3DLayout = (Felder, boardParams) => {
+      while (sticks.length) {
+        _APP.destroyObj(sticks[0]);
+        sticks.shift();
+      }
+      _APP.createPlayerPlate();
       var basicPlate = new THREE.Mesh(
         new THREE.BoxGeometry(4*stickDistance, 1.75, 4*stickDistance),
         new THREE.MeshStandardMaterial({
@@ -379,9 +382,10 @@ window.addEventListener('DOMContentLoaded', () => {
       if (SpielerIds[0] == SpielerId) {
         document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
         if (plate) plate.material = _APP.getMaterials().darkGreen;
+        console.log(playerPosition.z);
         playerPosition.z.push(playerPosition.z[0]);
         playerPosition.z.shift();
-        plate.position.set(-0.1, 0.1, -((playerPosition.z[0][0] - 1)*stickDistance));
+        _APP.createPlayerPlate();
       } else {
         if (plate) plate.material = _APP.getMaterials().darkRed;
         document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"

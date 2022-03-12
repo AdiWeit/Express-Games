@@ -22,23 +22,23 @@ class vierGewinntTeams  {
         Reihenfolge.push(pPlayer.id);
       }
       if (this.player.length == 3) {
-        this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[0, 1]]});
-        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[2, 3], [0, 1]]});
-        this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[2, 3]]});
+        this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1, 0]]});
+        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[3, 2], [0, 1]]});
+        this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3, 2]]});
         Reihenfolge.push(this.player[1].id);
       }
       if (this.player.length == 4) {
-        this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[0, 1]]});
-        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[0, 1]]});
-        this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[2, 3]]});
-        this.send(this.player[3].client, {type: "setPlayerPosition", teamNumber: 1, z: [[2, 3]]});
+        this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1, 0]]});
+        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[1, 0]]});
+        this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3, 2]]});
+        this.send(this.player[3].client, {type: "setPlayerPosition", teamNumber: 1, z: [[3, 2]]});
       }
       if (this.player.length == 5) {
         this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[0]]});
-        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[2, 3], [0]]});
+        this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[3, 2], [0]]});
         this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1]]});
         this.send(this.player[3].client, {type: "setPlayerPosition", teamNumber: 1, z: [[1]]});
-        this.send(this.player[4].client, {type: "setPlayerPosition", teamNumber: 0, z: [[2, 3]]});
+        this.send(this.player[4].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3, 2]]});
         Reihenfolge.push(this.player[1].id);
       }
       if (this.player.length == 6) {
@@ -46,8 +46,8 @@ class vierGewinntTeams  {
         this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 1, z: [[0]]});
         this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1]]});
         this.send(this.player[3].client, {type: "setPlayerPosition", teamNumber: 1, z: [[1]]});
-        this.send(this.player[4].client, {type: "setPlayerPosition", teamNumber: 0, z: [[2, 3]]});
-        this.send(this.player[5].client, {type: "setPlayerPosition", teamNumber: 1, z: [[2, 3]]});
+        this.send(this.player[4].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3, 2]]});
+        this.send(this.player[5].client, {type: "setPlayerPosition", teamNumber: 1, z: [[3, 2]]});
       }
       if (this.player.length == 7) {
         this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[0]]});
