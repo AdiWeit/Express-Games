@@ -161,7 +161,7 @@ class BasicWorldDemo {
           room.send({
             type: '3DsetStone',
             stabPos: {x: Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance)), z},
-            player: SpielerId
+            teamNumber: playerPosition.teamNumber
           });
         }
         else {
@@ -187,11 +187,11 @@ class BasicWorldDemo {
       if (ball) selected.stab.material = materials.brownIsh;
     }
     var newStone;
-    this.stoneSelected = (stabPos, player) => {
+    this.stoneSelected = (stabPos, teamNumber) => {
       if (newStone) newStone.material = this.getMaterials()[newStone.color];
-    if (SpielerId == SpielerIds[0] || SpielerIds[0] == "waiting for player taking turn") {
+      if (SpielerIds[0] == "waiting for player taking turn") _APP.destroyObj(selected.ball, true);
+    if (playerPosition.teamNumber == teamNumber) {
       sphere = new THREE.Mesh( sphereGeometry, materials.blue);
-      _APP.destroyObj(selected.ball, true);
       selected = {ball: null, stab: null};
       sphere.color = "blue";
     }
@@ -369,7 +369,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var boardParam;
   var playerPosition = {};
   room.setOnMessageListener(function(message) {
-    if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.player);
+    if (message.type == "3DsetStone") _APP.stoneSelected(message.stabPos, message.teamNumber);
     else if (message.type == "yourID") {
       SpielerId = message.id;
       SpielerIds = [];
