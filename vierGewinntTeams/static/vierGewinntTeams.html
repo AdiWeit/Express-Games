@@ -109,6 +109,7 @@ class BasicWorldDemo {
       controls.enabled = pEnabled;
     }
     this.createPlayerPlate = () => {
+      if (modeSelected != "together") {
       if (plate) _APP.destroyObj(plate);
       plate = new THREE.Mesh(
         new THREE.BoxGeometry(4*stickDistance + 0.3, 2.95, playerPosition.z[0].length*stickDistance + 0.1),
@@ -121,19 +122,24 @@ class BasicWorldDemo {
       else plate.position.set(-0.1, 0.1, -(((playerPosition.z[0][0])*stickDistance) - 1.5*stickDistance));
       this._scene.add(plate);
     }
+    else if (basicPlate) {
+      if (SpielerIds[0] == SpielerId) basicPlate.material = _APP.getMaterials().darkGreen;
+      else basicPlate.material = _APP.getMaterials().darkRed;
+    }
+    }
     this.create3DLayout = (Felder, boardParams) => {
       while (sticks.length) {
         _APP.destroyObj(sticks[0]);
         sticks.shift();
       }
-      _APP.createPlayerPlate();
-      var basicPlate = new THREE.Mesh(
+      basicPlate = new THREE.Mesh(
         new THREE.BoxGeometry(4*stickDistance, 1.75, 4*stickDistance),
         new THREE.MeshStandardMaterial({
             color: 'rgb(201, 115, 60)',
         }));
       basicPlate.position.set(0, 0, 0);
       this._scene.add(basicPlate);
+      _APP.createPlayerPlate();
 
       cylinderGeometry = {PC: new THREE.CylinderGeometry( 0.6/*radius top*/, 0.6/*radius bottom*/, 10*4/*height*/, 32/*radialSegments*/ ), Handy: new THREE.CylinderGeometry( 2/*radius top*/, 2/*radius bottom*/, 10*4/*height*/, 32/*radialSegments*/ )};
       for (var i = 0; i < 4; i++) {
@@ -156,7 +162,7 @@ class BasicWorldDemo {
       const found = raycaster.intersectObjects(_APP._scene.children);
       var stabPos = found[0]?.object.position;
       if (stabPos) var z = Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance));
-      if (click.mouseMove < 11 && found[0]?.object.selectable && playerPosition.z[0].includes(z) && found[0]?.object && objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][z]?.length < 4) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && (modeSelected == "together" || playerPosition.z[0].includes(z)) && found[0]?.object && objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][z]?.length < 4) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
         if (found[0]?.object.position.x + " - " + found[0]?.object.position.z == selected.stab.position.x + " - " + selected.stab.position.z) {
@@ -217,6 +223,7 @@ class BasicWorldDemo {
       room.send({
         message: "Spielerwechsel"
       });
+      this.createPlayerPlate();
     }
       sphere.position.set((stickDistance*stabPos.x - stickDistance*(4/2 - 0.5))*-1/*x*/, 4*10 + 10/*y*/, (stickDistance*stabPos.z - stickDistance*(4/2 - 0.5))*-1/*z*/);
       this._scene.add( sphere );
@@ -293,6 +300,7 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("PC");
   }
   var plate;
+  var basicPlate;
   var SpielerIds = [];
   var Start = false;
   var objFelder = [];
@@ -409,7 +417,11 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   var stickDistance = 13;
   var placedList = [];
-  var modeSelected;
+  var modeSelected = "together";
+  room.send({
+    type: 'mode',
+    mode: modeSelected
+  });
   var selectedMode = [];
   // send message to room on submit
   /*  document.querySelector("#form").onsubmit = function(e) {

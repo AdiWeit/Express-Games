@@ -139,6 +139,11 @@ class vierGewinntTeams  {
     //     this.broadcast(this.resultString(result));
     //   }
     // }
+    console.log(data.type);
+    if (data.type == "mode" && [3, 5, 7].includes(this.player.length)) {
+      Reihenfolge.pop();
+      this.broadcast({type: `setPlayer`, ids: Reihenfolge});
+    }
     if (data.type == "3DsetStone") this.broadcast(data)
     if (data.message == "Spielerwechsel") {
     console.log(data.message);
