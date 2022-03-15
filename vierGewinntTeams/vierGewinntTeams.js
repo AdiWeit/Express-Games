@@ -25,7 +25,7 @@ class vierGewinntTeams  {
         this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1, 0]]});
         this.send(this.player[1].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3, 2]]});
         this.send(this.player[2].client, {type: "setPlayerPosition", teamNumber: 1, z: [[3, 2], [0, 1]]});
-        Reihenfolge.push(this.player[1].id);
+        Reihenfolge.push(this.player[2].id);
       }
       if (this.player.length == 4) {
         this.send(this.player[0].client, {type: "setPlayerPosition", teamNumber: 0, z: [[1, 0]]});
