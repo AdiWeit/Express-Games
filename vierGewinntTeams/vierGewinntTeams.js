@@ -70,7 +70,7 @@ class vierGewinntTeams  {
         this.send(this.player[6].client, {type: "setPlayerPosition", teamNumber: 0, z: [[3]]});
         this.send(this.player[7].client, {type: "setPlayerPosition", teamNumber: 1, z: [[2]]});
       }
-      if (([3, 5, 7].includes(this.player.length) && mode == "together") Reihenfolge.pop();
+      if ([3, 5, 7].includes(this.player.length) && mode == "together") Reihenfolge.pop();
       if (pPlayer) this.broadcast({type: `setPlayer`, ids: Reihenfolge});
       // var spielmodi = ["runterrutschen", "Plätchen"];
       // this.broadcast(`Spielmodus:` + spielmodi[Math.floor(Math.random() * 2)]);
