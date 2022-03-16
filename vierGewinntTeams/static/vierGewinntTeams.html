@@ -567,11 +567,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   getCoordinates.addEventListener('click', function() {
     var stabCoord = {x: Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance)), z: Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance)), y: objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance))].length};
-    alert('you selected the coordinates ' + (3 - stabCoord.x) + " - (" + stabCoord.y + ") - " + (3 - stabCoord.z));
+    alert('you selected the coordinates ' + (3 - stabCoord.x + 1) + " - (" + (stabCoord.y + 1) + ") - " + (3 - stabCoord.z + 1));
   });
   showCoordinates.addEventListener('click', function() {
     // stabPos = {x: stickDistance*stabPos.x - stickDistance*(4/2 - 0.5))*-1/*, y:  4*10 + 10*/, z: (stickDistance*stabPos.z - stickDistance*(4/2 - 0.5))*-1)};
-    _APP.selectStick(showCoordinatesText.value.split(' - '));
+    _APP.selectStick(showCoordinatesText.value.split(' - ').map(x => x - 1));
   });
 
 </script>
