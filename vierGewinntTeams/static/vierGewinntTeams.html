@@ -15,7 +15,36 @@
   <option value="ra" selected="">random</option>
 </select>
 <input type="text" id="modi" style="display:none">
-
+<button type="button" class="darkStye" id="getCoordinates" name="button">selected coord.</button>
+<input type="text" class="darkStye" id="showCoordinatesText" placeholder='coord. (x - z)'>
+<button type="button" class="darkStye"  id="showCoordinates" name="button">select coordinates</button>
+<style>
+  #getCoordinates {
+    position: absolute;
+    left: 8px;
+  }
+  #showCoordinatesText {
+    position: absolute;
+    top: 25px;
+    width: 166px;
+    left: 8px;
+  }
+  #showCoordinates {
+    position: absolute;
+    top: 47px;
+  }
+  .darkStye {
+    border: none;
+    /* border-color: #23C3DF; */
+    color: #23C3DF;
+    background: none;
+    font-size: 22px;
+  }
+  ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: hsl(188, 74%, 40%);
+  opacity: 1; /* Firefox */
+}
+</style>
 <script type = "module">
 // 3D part
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
@@ -94,9 +123,10 @@ class BasicWorldDemo {
     var cylinderGeometry;
     var materials = {blue: new THREE.MeshBasicMaterial({color: 'hsl(205, 63%, 46%)'}), red: new THREE.MeshBasicMaterial({color: 'hsl(0, 80%, 55%)'}), green: new THREE.MeshBasicMaterial({ color: 'hsl(113, 79%, 54%)'}), brownIsh: new THREE.MeshBasicMaterial({color: 'hsl(43, 62%, 46%)'}), darkGreen: new THREE.MeshBasicMaterial({color: 'hsl(115, 100%, 21%)'}), darkRed: new THREE.MeshBasicMaterial({color: 'hsl(7, 100%, 34%)'})};
     this.getMaterials = () => materials;
+    this.getDarkBlue = () => new THREE.MeshBasicMaterial({color: 'hsl(228, 63%, 45%)'});
     var sphere;
     var direction = 1;
-    var sticks = [];
+    var sticks = [[]];
     // setTimeout(function () {
       // scrollY = 124.5;
     // }, 3000);
@@ -123,10 +153,12 @@ class BasicWorldDemo {
     }
     }
     this.create3DLayout = (Felder, boardParams) => {
-      while (sticks.length) {
-        _APP.destroyObj(sticks[0]);
-        sticks.shift();
+      while (sticks[0].length > 0) {
+        _APP.destroyObj(sticks[0][0]);
+        stick.shift();
+        if (!sticks[0].length && stick.length) sticks.shift();
       }
+      console.log(sticks);
       basicPlate = new THREE.Mesh(
         new THREE.BoxGeometry(4*stickDistance, 1.75, 4*stickDistance),
         new THREE.MeshStandardMaterial({
@@ -144,23 +176,35 @@ class BasicWorldDemo {
             cylinder.position.set(stickDistance*i - stickDistance*(4/2 - 0.5)/*x*/, 5*4/*y*/, stickDistance*i2 - stickDistance*(4/2 - 0.5)/*z*/) /*position of middle*/;
             cylinder.selectable = true;
             this._scene.add( cylinder );
-            sticks.push(cylinder);
+            if (!sticks[i]) sticks[i] = [];
+            sticks[i][i2] = cylinder;
           }
       }
     }
+    this.selectStick = (stickCoordinates) => {
+      if (selected.ball) _APP.destroyObj(selected.ball, true);
+      if (stickCoordinates) {
+        selected.stab = sticks[stickCoordinates[0]][stickCoordinates[1]];
+        stabPos = selected.stab.position;
+      }
+      selected.stab.material = materials.blue;
+      selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
+      selected.ball.position.set(stabPos.x/*x*/, 4*10 + 10/*y*/, stabPos.z/*z*/);
+      selected.ball.selectable = true;
+      this._scene.add( selected.ball );
+    }
     this.objClicked = () => {
-      if (Start && SpielerId == SpielerIds[0]) {
       clickMouse.x = (/*event.clientX*/(xMaus) / window.innerWidth) * 2 - 1;
       clickMouse.y = -(/*event.clientY*/(yMaus - scrollY) / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(clickMouse, _APP._camera);
       const found = raycaster.intersectObjects(_APP._scene.children);
-      var stabPos = found[0]?.object.position;
+      if (found[0]?.object.position) stabPos = found[0]?.object.position;
       if (stabPos) var z = Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance));
-      if (click.mouseMove < 11 && found[0]?.object.selectable && (modeSelected == "together" || playerPosition.z[0].includes(z)) && found[0]?.object && objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][z]?.length < 4) {
+      if (click.mouseMove < 11 && found[0]?.object.selectable && (modeSelected == "together" || playerPosition.z[0].includes(z) || !(Start && SpielerId == SpielerIds[0])) && found[0]?.object && objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][z]?.length < 4) {
       click = {state: "up", mouseMove: 0};
       if (selected.ball) {
-        if (found[0]?.object.position.x + " - " + found[0]?.object.position.z == selected.stab.position.x + " - " + selected.stab.position.z) {
+        if (found[0]?.object.position.x + " - " + found[0]?.object.position.z == selected.stab.position.x + " - " + selected.stab.position.z && Start && SpielerId == SpielerIds[0]) {
           SpielerIds[0] = "waiting for player taking turn";
           room.send({
             type: '3DsetStone',
@@ -168,21 +212,17 @@ class BasicWorldDemo {
             teamNumber: playerPosition.teamNumber
           });
         }
-        else {
+        // else if (found[0]?.object.position.x + " - " + found[0]?.object.position.z != selected.stab.position.x + " - " + selected.stab.position.z && !(Start && SpielerId == SpielerIds[0])) selected.stab.material = materials.brownIsh;
+        else if ((Start && SpielerId == SpielerIds[0]) || found[0]?.object.position.x + " - " + found[0]?.object.position.z != selected.stab.position.x + " - " + selected.stab.position.z) {
           _APP.destroyObj(selected.ball, true);
         }
       }
       if (!selected.stab || found[0]?.object.position.x + " - " + found[0]?.object.position.z != selected.stab.position.x + " - " + selected.stab.position.z) {
       selected.stab = found[0]?.object;
-        selected.stab.material = materials.blue;
-      selected.ball = new THREE.Mesh( sphereGeometry, materials.blue );
-      selected.ball.position.set(stabPos.x/*x*/, 4*10 + 10/*y*/, stabPos.z/*z*/);
-      selected.ball.selectable = true;
-      this._scene.add( selected.ball );
+      _APP.selectStick();
     }
     }
     else click = {state: "up", mouseMove: 0};
-    }
     }
     this.destroyObj = (obj, ball) => {
       obj.geometry.dispose();
@@ -192,6 +232,7 @@ class BasicWorldDemo {
     }
     var newStone;
     this.stoneSelected = (stabPos, teamNumber) => {
+      if (selected.ball) _APP.destroyObj(selected.ball, true);
       if (newStone) newStone.material = this.getMaterials()[newStone.color];
       if (SpielerIds[0] == "waiting for player taking turn") _APP.destroyObj(selected.ball, true);
     if (playerPosition.teamNumber == teamNumber) {
@@ -296,6 +337,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   var plate;
   var basicPlate;
+  var stabPos;
   var SpielerIds = [];
   var Start = false;
   var objFelder = [];
@@ -382,6 +424,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     else if (message.type == "setPlayer") {
       SpielerIds = message.ids;
+      if (!message.ids.includes(SpielerId)) {
+        setTimeout(function () {
+          basicPlate.material = _APP.getDarkBlue();
+        }, 10);
+      }
       if (SpielerIds[0] == SpielerId) {
         // document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
         if (plate) plate.material = _APP.getMaterials().darkGreen;
@@ -518,5 +565,13 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }, 2222);
   }
+  getCoordinates.addEventListener('click', function() {
+    var stabCoord = {x: Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance)), z: Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance)), y: objFelder[Math.abs(((stabPos.x - stickDistance*(4/2 - 0.5))/stickDistance))][Math.abs(((stabPos.z - stickDistance*(4/2 - 0.5))/stickDistance))].length};
+    alert('you selected the coordinates ' + (3 - stabCoord.x) + " - (" + stabCoord.y + ") - " + (3 - stabCoord.z));
+  });
+  showCoordinates.addEventListener('click', function() {
+    // stabPos = {x: stickDistance*stabPos.x - stickDistance*(4/2 - 0.5))*-1/*, y:  4*10 + 10*/, z: (stickDistance*stabPos.z - stickDistance*(4/2 - 0.5))*-1)};
+    _APP.selectStick(showCoordinatesText.value.split(' - '));
+  });
 
 </script>
