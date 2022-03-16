@@ -8,11 +8,6 @@
 </body>
 </html>
 <meta charset="utf-8">
-<div style="color:black" id="text">
-  <h2 id="info">klick to choose a field</h2>
-  <h2 id="Name"></h2>
-</div>
-<!-- <input id="modi" style="display:none"></input> -->
 <select name="course" style="display:none">
   <option value="p">p</option>
   <option value="r" selected="">runterrutschen</option>
@@ -103,7 +98,7 @@ class BasicWorldDemo {
     var direction = 1;
     var sticks = [];
     // setTimeout(function () {
-      scrollY = 124.5;
+      // scrollY = 124.5;
     // }, 3000);
     this.setContols = (pEnabled) => {
       controls.enabled = pEnabled;
@@ -388,7 +383,7 @@ window.addEventListener('DOMContentLoaded', () => {
     else if (message.type == "setPlayer") {
       SpielerIds = message.ids;
       if (SpielerIds[0] == SpielerId) {
-        document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
+        // document.getElementById("Name").innerHTML = "Du bist dran" + " (blue)"
         if (plate) plate.material = _APP.getMaterials().darkGreen;
         console.log(playerPosition.z);
         playerPosition.z.push(playerPosition.z[0]);
@@ -396,7 +391,7 @@ window.addEventListener('DOMContentLoaded', () => {
         _APP.createPlayerPlate();
       } else {
         if (plate) plate.material = _APP.getMaterials().darkRed;
-        document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"
+        // document.getElementById("Name").innerHTML = "Der Gegner ist dran" + " (rot)"
       }
     } else if (message.type == "setPlayerPosition") {
       playerPosition = message;
