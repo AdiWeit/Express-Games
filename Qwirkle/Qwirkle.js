@@ -68,6 +68,7 @@ var steine = {
 }
 var colours = ["red", "green", "blue", "yellow", "#B45F04", "purple"];
 var spielerOnline = 0;
+var deletedPieces = [];
 
 
 class Qwirkle {
@@ -222,8 +223,10 @@ class Qwirkle {
       noGap = false;
       this.checkStein(data.coord.x, data.coord.y, newPlaceDirection, true);
       var sameLine = false;
-        if (!newTiles.length || ((!(data.coord.x - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) sameLine = true;
-      for (var newTile of newTiles) {
+        if (!newTiles.length || ((!(data.coord.x - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].x) && newPlaceDirection.string == 'y') || (!(data.coord.y - newPlaceDirection.coords[newPlaceDirection.coords.length - 1].y) && newPlaceDirection.string == 'x'))) {
+          sameLine = true;
+        }
+        for (var newTile of newTiles) {
         this.checkStein(newTile.x, newTile.y, newPlaceDirection);
       }
       if (!newTiles.length) noGap = true;
@@ -239,9 +242,20 @@ class Qwirkle {
         sameShape: ((snake.y.shapes.length < 2 && (!snake.y.shapes.length || player[data.player].steine[data.steinI].name == snake.y.shapes[0])) && (!snake.y.colours.length || !snake.y.colours.includes(player[data.player].steine[data.steinI].colour)))
       }
       };
+      if (mode != "normal") {
+        if (!sameLine) {
+          return "You are not allowed to place the pieces around a corner. ";
+        }
+      }
+      if (data.player != Reihenfolge) {
+        return "It's not your turn. ";
+      }
+      if (turntype == "newStein") {
+        return "you already swaped a piece. Therefore you are not allowed to place a piece on the board this round. You can reverse the swapping of the pieces and then place pieces instead. "
+      }
       console.log(snake);
       console.log(rules);
-      return data.player == Reihenfolge && turntype != "newStein" && ((sameLine && noGap) || mode == "normal") && (!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.x.shapes.length && !snake.y.shapes.length) || beginning) && (((rules.x.sameColour || rules.x.sameShape) && (rules.x.sameColour || rules.x.sameShape) && (rules.y.sameColour || rules.y.sameShape) && (rules.y.sameColour || rules.y.sameShape)) || (mode == "normal" && (snake.x.shapes.length || snake.y.shapes.length || beginning)))
+      return /*check Feld belegt*/(!field[data.coord.x][data.coord.y] || !field[data.coord.x][data.coord.y].stein) && (!(!snake.x.shapes.length && !snake.y.shapes.length) || beginning) && (((rules.x.sameColour || rules.x.sameShape) && (rules.x.sameColour || rules.x.sameShape) && (rules.y.sameColour || rules.y.sameShape) && (rules.y.sameColour || rules.y.sameShape)) || (mode == "normal" && (snake.x.shapes.length || snake.y.shapes.length || beginning)))
     }
     this.checkStein = (x, y, newPlaceDirection, forRules) => {
       console.log("check Stein " + x + " - " + y);
@@ -472,6 +486,8 @@ class Qwirkle {
       //   data: player[Reihenfolge].steine
       //   });
       // }
+      this.getSteine(Reihenfolge, deletedPieces.length, true);
+      deletedPieces = [];
       if (turntype == "placeStein") firstPlacingRound = false;
       if (mode == "normal" && turntype == "placeStein") {
         inSpielerwechsel = true;
@@ -844,7 +860,8 @@ class Qwirkle {
      }
      else if (data.message.type == "placeStein" && this.player[Reihenfolge + 1].client == client) {
      points.now = 0;
-       if (this.canPlace(data.message)/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
+     var bCanPlace = this.canPlace(data.message);
+       if (bCanPlace == true/* && JSON.stringify(player[data.message.player].steine).includes(JSON.stringify(data.message.card) && !(field[data.message.i][data.message.i1]))*/) {
          newTiles.push(data.message.coord);
          turntype = "placeStein";
          beginning = false;
@@ -901,36 +918,55 @@ class Qwirkle {
          field.map(x => x.push({}));
        }
      }
-     else points.now = points.before;
+     else {
+      points.now = points.before;
+      if (bCanPlace != false) {
+        this.send(this.player[Reihenfolge + 1].client, {type: "alert", data: bCanPlace});
+      }
+     }
      }
      else if (data.message.type == "newStein" && !newTiles.length && this.player[Reihenfolge + 1].client == client) {
        turntype = "newStein";
+       this.send(this.player[Reihenfolge + 1].client, {type: "jokerConfirmed", data: true})
+       deletedPieces.push(player[data.message.player].steine[data.message.steinI]);
        player[data.message.player].steine.splice(data.message.steinI, 1);
-       this.getSteine(data.message.player, 1, true);
      }
+     else if (data.message.type == "newStein") this.send(this.player[Reihenfolge + 1].client, {type: "jokerConfirmed", data: false})
      else if (data.message.type == "undo" && this.player[Reihenfolge + 1].client == client) {
-       this.broadcast({
-         "type": "undo",
-         x: newTiles[newTiles.length - 1].x,
-         y: newTiles[newTiles.length - 1].y,
-         player: Reihenfolge
-       });
-       player[Reihenfolge].steine.push(field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein);
-       if (player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].type == "joker") player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].letter = "?";
-       delete field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein;
-       newTiles.pop();
-       points.now = 0;
-       if (newTiles.length < 2) placeDirection.string = "";
-       if (newTiles.length) this.canPlace({steinI: 0, player: Reihenfolge, coord: newTiles[newTiles.length - 1]});
-       else if (firstPlacingRound) beginning = true;
-       if (mode == "normal") {
-       currentWords = [];
-       wordIndexes = {};
-     }
-       for (var tile of newTiles) {
-         this.getWord(tile.x, tile.y);
-       }
-       if (mode == "normal") this.getLetterPoints();
+      if (turntype == "placeStein") {
+        this.broadcast({
+          "type": "undo",
+          x: newTiles[newTiles.length - 1].x,
+          y: newTiles[newTiles.length - 1].y,
+          player: Reihenfolge
+        });
+        player[Reihenfolge].steine.push(field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein);
+        if (player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].type == "joker") player[Reihenfolge].steine[player[Reihenfolge].steine.length - 1].letter = "?";
+        delete field[newTiles[newTiles.length - 1].x][newTiles[newTiles.length - 1].y].stein;
+        newTiles.pop();
+        points.now = 0;
+        if (newTiles.length < 2) placeDirection.string = "";
+        if (newTiles.length) this.canPlace({steinI: 0, player: Reihenfolge, coord: newTiles[newTiles.length - 1]});
+        else if (firstPlacingRound) beginning = true;
+        if (mode == "normal") {
+        currentWords = [];
+        wordIndexes = {};
+      }
+        for (var tile of newTiles) {
+          this.getWord(tile.x, tile.y);
+        }
+        if (mode == "normal") this.getLetterPoints();
+      }
+      else {
+        console.log(deletedPieces);
+        player[Reihenfolge].steine.push(deletedPieces[deletedPieces.length - 1]);
+        deletedPieces.pop();
+        this.send(this.player[Reihenfolge + 1].client, {
+          "type": "steinePlayer",
+          data: player[Reihenfolge].steine
+        });
+        if (!deletedPieces.length) turntype = "";
+      }
      }
      else if (data.message.type == "spielerwechsel" && !inSpielerwechsel && this.player[Reihenfolge + 1].client == client) {
        console.log("Spielerwechsel durch Spielerinput");

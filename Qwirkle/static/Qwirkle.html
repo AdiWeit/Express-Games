@@ -40,7 +40,7 @@
   }
 
   register();
-  setInterval(getMessages, 1000);
+  setInterval(getMessages, 200);
 
   function getMessages() {
     sendJson('/Qwirkle/message-queue', {
@@ -109,6 +109,14 @@
     settings.style.display = "none";
   }
   room.setOnMessageListener(function(message) {
+    if (message.type == "alert") {
+      alert(message.data);
+    }
+    if (message.type == "jokerConfirmed") {
+      if (message.data) player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
+      else alert("You already placed pieces. Therfore you are not allowed to swap pieces anymore. You can undo the placing and swap instead. ")
+      layout();
+    }
     if (message.type == "noRevenge") alert("Somebody doesn't want to play a revenge so you have to reload the page to play another round")
     if (message.type == "winner") {
       setTimeout(function () {
@@ -435,8 +443,8 @@
             player: player.myNumber
           }
         });
-        player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
-        layout();
+        // player[player.myNumber].steine[selected.i] = "placeholder";//.splice(selected.i, 1);
+        // layout();
       }
       else if (!i && protestTime) {
         room.send({
