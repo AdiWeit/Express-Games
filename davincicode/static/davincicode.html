@@ -1,93 +1,160 @@
-<meta charset="utf-8">
-<canvas id="textur" width="2069" height="688"></canvas>
-<input type="text" onfocus="console.log('Tesxtbox betreten'); textBoxSelected = true;" id="message" placeholder="message">
-<button type="button" id="submit" onclick="submit()" name="button">send</button>
-<input type="checkbox" id="zeichenZuEmogis" onchange="showChat();" checked="true"> <h3 id="zeichenZuEmogisT">Emojis aus Zeichen konvertieren</h3>
-<script>
-  message.style.position = "absolute";
-  document.getElementById('submit').style.position = "absolute";
-  document.getElementById('zeichenZuEmogis').style.position = "absolute";
-  document.getElementById('zeichenZuEmogisT').style.position = "absolute";
-  message.style.top = "703";
-  document.getElementById('submit').style.top = "703";
-  document.getElementById('submit').style.left = "185";
-  zeichenZuEmogis.style.top = "703";
-  zeichenZuEmogis.style.left = "233";
-  zeichenZuEmogisT.style.top = "684";
-  zeichenZuEmogisT.style.left = "257";
-  var textur = document.getElementById('textur');
-  var canvas = textur.getContext('2d'); //Dimension
-  var Bild = new Image();
-  var markierungen;
-  var tipp = "";
-  var weiterraten = "";
-  var zählerZustand = 1;
-  var Sperren = [true];
-  Sperren[2] = false;
-  var Kartenteilungsstopp = false;
-  var fertigCheck;
-  var Zustand = ["NOPE"];
-  var SpielerAnfrage = [];
-  var karteGezogen = "";
-  var karteGegnerGezogen = -1;
-  var NameSpieler = [];
-  var nameGegner = "";
-  var NameBleibt = [];
-  resetCards();
-  var kartenZiehen;
-  function resetCards() {
-    kartenZiehen = [
-      [0, "black", false],
-      [0, "white", false],
-      [1, "black", false],
-      [1, "white", false],
-      [2, "black", false],
-      [2, "white", false],
-      [3, "black", false],
-      [3, "white", false],
-      [4, "black", false],
-      [4, "white", false],
-      [5, "black", false],
-      [5, "white", false],
-      [6, "black", false],
-      [6, "white", false],
-      [7, "black", false],
-      [7, "white", false],
-      [8, "black", false],
-      [8, "white", false],
-      [9, "black", false],
-      [9, "white", false],
-      [10, "black", false],
-      [10, "white", false],
-      [11, "black", false],
-      [11, "white", false]
-    ];
-  }
-  var zähler = kartenZiehen.length,
-    j, Ablage;
-  var zählerListe = [0, 0];
-  var zählerLayout = 0;
-  var x = 170;
-  var y = 30;
-  var koordinatenSpieler1 = [45, 470, 80, 570, 0, 0, 0, 0]
-  var AblageList = [];
-      AblageList[3] = ["beendet"]
-  //var TutorialText = ['Das wich- tig- ste ist, dass es 2 ver- schie- de- ne Be- rei- che gibt. Um fort- zu- fahren, auf die Flä- che des Tex- tes kli- cken, oder En- ter drü- cken. ', "Im- mer wenn An- dro- ma- che an- greift und ei- ne grü- ne Ein- heit als Geg- ner hat, er- höht sich ihr An- griffs- wert um 1 bis zum En- de des An- grif- fes. ", "Im- mer wenn du Eu- ry- di- ke wegen ih- rer Scha- dens- mar- ker ab- le- gen müs- stest, kannst du 1 Hand- karte ab- wer- fen, um alle Marker von ihr zu ent- fernen und sie auf einen freien Platz zu ver- schie- ben. "]
-  var fertigerText = "";
-  var AnfrageCheck;
-  var RemachCheck;
-  var RematchAnfrage = [];
-  var messages = [];
-  var lookingMessage = "beendet";
-  // 1. und 2. : Koord. Stein 3. und 4. : Koord. Text 3. und 4. : X und Y Maus
-  // Y war = 30, 130
-  // X war ; 170, 205
-  // document.getElementById("BedienungAmPC").style.display = "none";
-  // document.getElementById("BRematch").style.display = "none";
-  // document.getElementById("Spielregeln").style.display = "none";
-  // document.getElementById("textCheckboxBedinungAmPC").style.display = "none";
-  // document.getElementById("textCheckboxSpielregeln").style.display = "none";
+<style>
+  .card {
+  box-shadow: 2px 2px 10px #855d5d;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  /* margin-top: 7px;
+  margin-bottom: 7px; */
+  margin-left: 5px;
+  margin-right: 25px;
+  border-radius: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
 
+  /* width: 100px;
+  height: 150px; */
+  width: 4%;
+  height: 73%;
+  height: fill-available; /* Standard (not widely supported yet) */
+  height: -webkit-fill-available;
+  /* text-align: center; */
+  /* line-height: 62%; */
+  /* line-height: 150px; */
+  /* font-size: 150px; */
+
+  /* center text: */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5vh;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  float: left;
+  cursor: pointer;
+
+  /* background-color: white;
+  color: black; */
+  animation: unselect .55s;
+  /* background-color: black;
+  color: white */
+
+  /* text unselectable: */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.card:hover {
+  animation: select .5s forwards
+}
+ .card:not(:hover) { 
+  animation: unselect .55s forwards
+ }
+@keyframes select {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+@keyframes unselect {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.cardDeck {
+  box-shadow: 2px 2px 10px #855d5d;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin-top: 7px;
+  margin-bottom: 11px;
+  border-radius: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  /* height: 200px; */
+  height: 15%;
+  overflow-x: scroll;
+  display: flex;
+  white-space: nowrap;
+}
+.nameTag {
+  width: fit-content;
+  height: auto;
+  box-shadow: 2px 2px 10px #855d5d;
+  border-radius: 10px;
+  padding: 5px;
+  font-size: 20px;
+  font-weight: bold;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+<!-- testing elements -->
+<!-- <div class="nameTag">Adrian of Hadrian</div>
+<div class="cardDeck">
+  <div height="150" onmouseenter="" class="card">
+    <a>3</a>
+  </div>
+  <div height="150" class="card">
+    <a>5</a>
+  </div>
+</div>
+<div class="nameTag">Adrian of Hadrian</div>
+<div class="cardDeck">
+  <div height="150" onmouseenter="" class="card">
+    <a>4</a>
+  </div>
+  <div height="150" class="card">
+    <a>7</a>
+  </div>
+</div>
+<div class="nameTag">Adrian of Hadrian</div>
+<div class="cardDeck">
+  <div height="150" onmouseenter="" class="card">
+    <a>-</a>
+  </div>
+  <div height="150" class="card">
+    <a>2</a>
+  </div>
+</div>
+<div class="nameTag">Adrian of Hadrian</div>
+<div class="cardDeck">
+  <div height="150" onmouseenter="" class="card">
+    <a>1</a>
+  </div>
+  <div height="150" class="card">
+    <a>5</a>
+  </div>
+</div> -->
+
+<!-- <div v-for="genre in genres" id="dvdList"> -->
+  <!-- <h2 onclick="changeKategorieName(innerText)">{{ genre }}</h2> -->
+<img id="winningState">
+<div id="app" >
+  <div v-for="(player, i) in players">
+    <div class="nameTag">{{ player.name}}</div>
+    <div class="cardDeck">
+      <div class="card" v-for="(card, i1) in player.cards" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
+        <a>{{ card.nr }}</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// online stuff: 
+window.onbeforeunload = function(){
+    console.log("Leave Website");
+      sendJson('/Davincicode/logout', {clientId});
+      return 'Are you sure you want to leave?';
+  };
 
   async function sendJson(url = "/", body = {}) {
     const rawResponse = await fetch(url, {
@@ -101,33 +168,45 @@
     const content = await rawResponse.json();
     return content;
   }
-  // sendJson('/logout', {
-  //   clientId
-  // });
 
-  const clientId = makeid(10);
+  let oldId = localStorage.getItem('CLIENTIDDavincicode');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDDavincicode', clientId);
+
   var messageListener = null;
 
   async function register() {
-    let response = sendJson('/davincicode/login', {
+    let response = sendJson('/Davincicode/login', {
       clientId
     });
   }
 
   register();
-  setInterval(getMessages, 3000);
+  setInterval(getMessages, 200);
 
   function getMessages() {
-    sendJson('/davincicode/message-queue', {
+    sendJson('/Davincicode/message-queue', {
       clientId
     }).then(messages => {
-      console.log("MESSAGES", messages);
+      if (messages.length > 0) console.log("MESSAGES", messages);
       messages.forEach(msg => messageListener(msg));
     });
   }
-
+  
+  // recognize connection lost
+  window.addEventListener('online', becameOnline);
+  window.addEventListener('offline', () => player.hasConnection = false);
+  function becameOnline() {
+    player.hasConnection = true;
+    room.send({
+        message: {
+          "type": "getAllData",
+          playerId: player.id
+        }
+    });
+  }
   function sendMessage(obj) {
-    sendJson('/davincicode/message', {
+    sendJson('/Davincicode/message', {
       clientId,
       content: obj
     });
@@ -152,918 +231,159 @@
       sendMessage(msg);
     }
   };
-  window.onbeforeunload = function() {
-    console.log("Leave Website");
-    sendJson('/davincicode/logout', {
-      clientId
-    });
-    return 'Are you sure you want to leave?';
-  };
-  var voting = [];
-  room.setOnMessageListener(function(message) {
-    if (message.type == "messages") {
-      messages = message.data;
-      for (var i = 0; i < messages.length; i++) {
-        var i2 = 0;
-        while(messages[i].length > 103) {
-          var messageChat = "";
-          for (var i1 = 0; i1 < 103; i1++) {
-            messageChat += messages[i][0];
-            messages[i] = messages[i].replace(messages[i][0], "");
-          }
-          messages.push(messageChat);
-          // i++;
-          i2++;
-          var switching = "";
-          if (!(messages[i].length > 103) && i2 > 0) {messages.push(messages[i]); messages.splice(i, 1);
-            for (var i1 = 0; i1 < (messages.length - i)/2; i1++) {
-              var verschieben = "";
-              verschieben = messages[i + i1];
-              messages[i + i1] = messages[-i1+messages.length - 1];
-              messages[-i1 + messages.length - 1] = verschieben;
-            }
+  var app = new Vue({
+    el: '#app',
+    data: {
+      players: [
+    {
+      cards: [
+        // {color: "black", nr: 3},
+        // {color: "white", nr: 3},
+        // {color: "white", nr: 5}
+      ],
+      name: "player 1"
+    },
+    {
+      cards: [
+        // {color: "black", nr: 7},
+        // {color: "white", nr: 9},
+        // {color: "white", nr: 11}
+      ],
+      name: "player 2"
+    },
+    {
+      cards: [
+      ],
+      name: "player 3"
+    },
+    {
+      cards: [
+      ],
+      name: "player 4"
+    }
+  ],
+      fontColor: {black: "white", white: "black"},
+      shadows: {new: "orange 0px 0px 20px 6px", normal: "2px 2px 10px #855d5d", visible: "red 0px 0px 20px 6px", guessMark: "blue 0px 0px 20px 6px"}
+    },
+    methods: {
+      cardClicked(pPlayerI, cardI) {
+        if (pPlayerI == playerI || playerI != playerNow || this.players[pPlayerI].cards[cardI].visible) return; 
+        console.log("card " + cardI + " of player " + playerI + " clicked");
+        while (!guess || guess != "-" && !(guess <= 11 && guess >= 0)) {
+          var guess = prompt('What is you guess? The numbers range from 0 to 11. Please enter "-" for the joker. ');
+        }
+        room.send({
+          "type": "guess",
+          data: guess,
+          playerI: pPlayerI,
+          cardI
+        });
+      },
+      mouseDown(pPlayerI, cardI) {
+        var card = this.players[pPlayerI].cards[cardI];
+        if (pPlayerI == playerI && (card.state == "new" || this.players[playerI].cards.length <= 5) && card.nr == "-") {
+          state = {state: "moving", cardI, initialI: cardI};
+        }
+      },
+      mouseOver(pPlayerI, cardI) {
+        if (state.state == "moving") {
+          var cards = this.players[playerI].cards;
+          // [ cards[cardI], cards[state.cardI] ] = [ cards[state.cardI], cards[cardI] ]
+          cards[state.cardI] = cards.splice(cardI, 1, cards[state.cardI])[0];
+          state.cardI = cardI;
+          // [this.players[playerI].cards[cardI], this.players[playerI].cards[state.cardI]] = [this.players[playerI].cards[state.cardI], this.players[playerI].cards[cardI]];
+        }
+      },
+      mouseUp(pPlayerI, cardI) {
+        console.log("mouseUp");
+        state.state = "done";
+        room.send({
+          "type": "jokerMoved",
+          from: state.initialI,
+          to: cardI,
+        });
+      },
+      processMessage(message) {
+        if (message.type == "getCard") {
+          if (!this.players[playerI]) this.players[playerI] = {cards: [], name: ""}
+          this.players[playerI].cards.push(message.data);
+        }
+        if (message.type == "getOpponentCard") {
+          if (message.playerI != playerI) {
+            this.players[message.playerI].cards.push(message.data);
           }
         }
-        // messages.pop();
+        if (message.type == "pullingCards") {
+          if (!message.data[1]) message.data[1] = {cards: [], name: ""};
+          if (!message.data[2]) message.data[2] = {cards: [], name: ""};
+          if (!message.data[3]) message.data[3] = {cards: [], name: ""};
+          // this.players = message.data;
+          this.players = message.data;
+          // updateVueObj(this.players, message.data);
+        }
+        if (message.type == "revealNr") {
+          // var card = this.players[message.playerI].cards[message.cardI];
+          // if (playerI == message.playerI) {
+          //   card.state = "visible";
+          // }
+          if (playerI == playerNow && message.correctGuess) {
+            this.players[message.playerI].cards[message.cardI].nr = message.data;
+            setTimeout(() => {
+              if (winningState.src == "") {
+                room.send({
+                "type": "continueDecision",
+                continue: confirm("Would you like to continue guessing?"),
+              });
+              }
+            }, 500);
+          }
+          // card.visible = true;
+          // card.nr = message.data;
+          // updateVueObj(this.players[message.playerI].cards[message.cardI], message.data);
+        }
+        if (message.type == "showGuess") {
+          var card = this.players[playerI].cards[message.cardI];
+          card.nr = message.data;
+          card.state = "guessMark";
+        }
       }
-      textur.height = 750 + messages.length*50;
-      LayoutIch();
-      if (!(name == message.sender)) audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/ding-sound-effect-youtubemp3free.org.mp3").play();
-      lookingMessage = "warten Message angucken";
-      setTimeout(function () {
-        lookingMessage = "beendet";
-      }, 3777);
-    };
-    if (message.type == "KartenSpieler1") kartenSpieler1 = message.data;
-    if (message.type == "KartenSpieler2") kartenSpieler2 = message.data;
-    if (message.type == "karteGegnerGezogen" && NameSpieler[1] == name) karteGegnerGezogen = message.data;
-    if (message.type == "KartenZiehen") {
-      kartenZiehen = message.data;
-      if (NameSpieler[0] == name) {
-        console.log("KartenZiehen");
-        if (kartenZiehen.length > 0) {
-          console.log(kartenZiehen[0]);
-          zähler = 0;
-          if (name == NameBleibt[0]) {
-            kartenSpieler1[kartenSpieler1.length] = kartenZiehen[0];
-          } else {
-            kartenSpieler2[kartenSpieler2.length] = kartenZiehen[0];
-          }
-          sort();
-        }
+    }
+  })
+  var state = {};
+  var playerI;
+  var playerNow = 0;
+  room.setOnMessageListener(function(message) {
+    if (message.type == "playerNr") {
+      playerI = message.data;
+    }
+    else if (message.type == "playerNow") {
+      document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "2px 2px 10px #855d5d";
+      document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "white";
+      document.getElementsByClassName("nameTag")[playerNow].style.color = "black";
+      playerNow = message.data;
+      document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "green 0px 0px 20px 6px";
+      document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "green";
+      document.getElementsByClassName("nameTag")[playerNow].style.color = "white";
+    }
+    else if (message.type == "playerLost") {
+      if (playerI == message.data) {
+        new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+        winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg";
       }
       else {
-        sort();
+        var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
+        audio.currentTime = 9.0;
+        audio.play();
+        winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
       }
-      if (NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
-        tipp = true
-        setTimeout(function () {
-          LayoutIch();
-        }, 777);
-      }
-      else  LayoutIch();
-    }
-
-    if (message.type == "name") {
-      name = message.data;
-      LayoutIch();
-    }
-    if (message.type == "Reihenfolge") {
-      NameSpieler = message.data;
-      NameBleibt = JSON.parse(JSON.stringify(NameSpieler));
-      if (name == NameBleibt[0]) {
-        nameGegner = NameBleibt[1]
-      } else {
-        nameGegner = NameBleibt[0]
-      }
-      room.send({
-        message: {
-          "type": "vote",
-          "data": confirm("Möchten sie mit Jokern spielen?")
-        }
-      });
-    }
-    if (message.type == "vote") {
-      voting.push(message.data);
-      resetCards();
-      if (voting.length == 2 && (voting.includes(false) && voting.includes(true)) && name == NameSpieler[0]) {
-        alert("Die Abstimmung resultiert in einem Gleichstand! Deshalb hat der Zufall entschieden!");
-        if ( Math.round(Math.random() *1) == 0) {
-          room.send({
-          message: {
-            "type": "vote",
-            "data": "Gleichstand mit Joker"
-          }
-          });
-        }
-        else {
-          room.send({
-          message: {
-            "type": "vote",
-            "data": "Gleichstand ohne Joker"
-          }
-          });
-        }
-      }
-      if (voting.length > 1 && (voting.includes("Gleichstand ohne Joker") || (voting.includes(false) && !(voting.includes(true))))) {
-        alert("Die Abstimmung hat ergeben, dass ohne Joker gespielt wird!");
-      }
-      if (voting.length > 1 && (voting.includes("Gleichstand mit Joker") || (!(voting).includes(false) && voting.includes(true)))) {
-        alert("Die Abstimmung hat ergeben, dass mit Joker gespielt wird!");
-        kartenZiehen.push(["-", "black", false]);
-        kartenZiehen.push(["-", "white", false]);
-      }
-      if ((voting.length == 2 && !(voting.includes(false) && voting.includes(true))) || voting.length > 2) {
-        zähler = kartenZiehen.length;
-        while (--zähler > 0) {
-          j = Math.floor(Math.random() * (zähler + 1));
-          Ablage = kartenZiehen[j];
-          kartenZiehen[j] = kartenZiehen[zähler];
-          kartenZiehen[zähler] = Ablage;
-        }
-        if (name == NameSpieler[0]) {
-          AblageList[0] = kartenZiehen;
-          AblageList[1] = [];
-          AblageList[2] = [];
-          for (var i = 0; i < 4; i++) {
-            AblageList[1].push(AblageList[0][0])
-            AblageList[0].shift();
-          }
-          for (var i = 0; i < 4; i++) {
-            AblageList[2].push(AblageList[0][0])
-            AblageList[0].shift();
-          }
-
-          room.send({
-          message: {
-          "type": "KartenSpieler1",
-          "data": AblageList[1]
-        }
-        });
-        room.send({
-        message: {
-        "type": "KartenSpieler2",
-        "data": AblageList[2]
-      }
-        });
-          room.send({
-            message: {
-              "type": "KartenZiehen",
-              "data": kartenZiehen
-            }
-          });
-        }
-        setTimeout(function () {
-          LayoutIch();
-        }, 3000);
-      }
-    }
-
-    if (message.type == "KarteTipp" && NameSpieler[0] == name && Zustand[Zustand.length - 1] == "verfehlt") {
-      console.log("LayoutFalscherTippGegner");
-      tipp = true;
-      Sperren[2] = true;
-      canvas.fillStyle = 'orange';
-      canvas.beginPath();
-      canvas.arc(30 + koordinatenSpieler1[6], 50, 15, 0, Math.PI * 2, false);
-      canvas.fill();
-        canvas.fillStyle = "blue"
-        canvas.fillRect((45 + message.data * 170) - 15, 470 - 15, 130, 180)
-        //canvas.fillStyle = kartenSpieler1[message.data][1];
-        //canvas.fillRect((45 + message.data*170),470,100,150)
-        AblageList[1] = message.data
-        if (name == NameBleibt[0]) {
-          canvas.fillStyle = kartenSpieler1[message.data][1];
-          canvas.fillRect((45 + message.data * 170), 470, 100, 150)
-          if (kartenSpieler1[message.data][1] == "black") {
-            canvas.fillStyle = "white";
-          } else {
-            canvas.fillStyle = "black";
-          }
-        } else {
-          canvas.fillStyle = kartenSpieler2[message.data][1];
-          canvas.fillRect((45 + message.data * 170), 470, 100, 150)
-          if (kartenSpieler2[message.data][1] == "black") {
-            canvas.fillStyle = "white";
-          } else {
-            canvas.fillStyle = "black";
-          }
-        }
-
-        canvas.font = "75px Georgia";
-        if (message.tipp.length == 2) {
-          canvas.fillText(message.tipp, 45 + AblageList[1] * 170 + 15, 570);
-        } else {
-          canvas.fillText(message.tipp, 45 + AblageList[1] * 170 + 33, 570);
-        }
-
-        setTimeout(function() {
-          Sperren[2] = false;
-        }, 1000);
-        setTimeout(function () {
-          LayoutIch();
-            LayoutIch();
-            tipp = false;
-        }, 2735);
-    }
-    if (message.type == "Zustand") {
-      result = message.data;
-      // showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
-      // showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
-      if (result[result.length - 1] == "1 gewonnen" && name == NameBleibt[0]) showResults("http://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
-      else if (result[result.length - 1] == "1 gewonnen") showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
-      if (result[result.length - 1] == "2 gewonnen" && name == NameBleibt[0]) showResults("https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg", "https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3", "red", 0);
-      else if (result[result.length - 1] == "2 gewonnen") showResults("https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg", "https://soundbible.com/mp3/Ta Da-SoundBible.com-1884170640.mp3", "green", 0);
-      if (Zustand.length < message.data.length) {
-      NameSpieler[2] = NameSpieler[0];
-      NameSpieler[0] = NameSpieler[1];
-      NameSpieler[1] = NameSpieler[2];
-      NameSpieler.pop();
-      Zustand = [result];
-      Zustand = Zustand.toString().split(',');
-      zähler = 1;
-    }
-  }
-  });
-
-  function showResults(picture, sounds, colour, time) {
-    var timeoutTime = 0;
-    if (colour == "red") timeoutTime = 3000;
-    setTimeout(function () {
-  setTimeout(function () {
-    if (time == 0) audio = new Audio(sounds).play();
-    canvas.fillStyle = colour;
-    canvas.fillRect(0, 0, 1847, 973);
-    Bild = new Image();
-    Bild.src = picture;
-    canvas.drawImage(Bild, 260, 0);
-    if (time < 5) showResults(picture, sounds, colour, time + 1);
-    if (time == 0) Zustand = ["start"];
-  }, 1000);
-}, timeoutTime);
-  if (time == 0 && colour == "red") LayoutGegner(true);
-  }
-
-  var kartenSpieler1 = [];
-  var kartenSpieler2 = [];
-  var indices = [];
-  var lengthSpielerAnfrage = 0;
-  var SpielerCheck = [false, true, true];
-  // Anfrage gestellt, nicht in Runde, nicht beim Beenden
-  //var name = prompt("Wie heißen sie? Diese Information ist nötig, um (online) spielen zu können.")
-  var gerät = "";
-  detectmob();
-
-  function detectmob() {
-    if (navigator.userAgent.match(/Android/i) ||
-      navigator.userAgent.match(/webOS/i) ||
-      navigator.userAgent.match(/iPhone/i) ||
-      navigator.userAgent.match(/iPad/i) ||
-      navigator.userAgent.match(/iPod/i) ||
-      navigator.userAgent.match(/BlackBerry/i) ||
-      navigator.userAgent.match(/Windows Phone/i)
-    ) {
-      gerät = "Handy"
-      console.log("Handy");
-    } else {
-      gerät = "PC"
-      console.log("PC");
-    }
-  }
-
-
-  var spielerCheck = setInterval(spielerCheck, 600)
-  var DranCheck;
-  function submit() {
-    messages.push(document.getElementById('message').value);
-    room.send({
-      message: {
-      type: "messages",
-      data: messages,
-      sender: name
-    }
-    });
-    document.getElementById('message').value = "";
-    // setTimeout(function () {
-        // window.scroll(scrollX, 10000)
-        // document.getElementById('message').select();
-    // }, 3000);
-  }
-  function Ampel() {
-    if (Sperren[2] == false) {
-      if (koordinatenSpieler1[6] == undefined) {
-        koordinatenSpieler1[6] = 0;
-      }
-      canvas.fillStyle = "brown"
-      canvas.fillRect(0, 100, 2069, 100)
-      if (NameSpieler[0] == name) {
-        canvas.fillStyle = '#3ADF00';
-        canvas.beginPath();
-        canvas.arc(30 + koordinatenSpieler1[6], 150, 15, 0, Math.PI * 2, false);
-        canvas.fill();
-      } else {
-        canvas.fillStyle = 'red';
-        canvas.beginPath();
-        canvas.arc(30 + koordinatenSpieler1[6], 150, 15, 0, Math.PI * 2, false);
-        canvas.fill();
-      }
-    }
-  }
-
-  function LayoutIch(popOrange, dontSendKarteGegnerGezogen) {
-    console.log("LayoutIch");
-    if (!(Zustand[Zustand.length - 1].includes("gewonnen"))) {
-      canvas.fillStyle = "brown"; //Farbe
-      canvas.fillRect(0, 0, textur.width, textur.height)
-    // zählerLayout++;
-    // canvas.fillStyle = "Black"
-    // canvas.font = "20px Georgia";
-    // canvas.fillText(zählerLayout, 390, 54);
-    if (NameBleibt[0] == name) {
-      while (zähler < kartenSpieler1.length) {
-        if (kartenSpieler1[zähler][2] == "true" || kartenSpieler1[zähler][2] == true) {
-          canvas.fillStyle = "red"; //Farbe
-        } else {
-          canvas.fillStyle = "green"; //Farbe
-        }
-        if (kartenZiehen.length > 0 &&  kartenZiehen[0][0] == kartenSpieler1[zähler][0] && kartenZiehen[0][1] == kartenSpieler1[zähler][1]) {
-          if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
-          canvas.fillStyle = "orange"
-          karteGezogen = zähler;
-          if (!dontSendKarteGegnerGezogen && !popOrange && kartenSpieler1[zähler][0] == "-" && !kartenSpieler1[zähler][3]) {
-            if (zähler == 0) kartenSpieler1[zähler][3] = {side: 1, stone: kartenSpieler1[zähler + 1]};
-            else kartenSpieler1[zähler][3] = {side: -1, stone: kartenSpieler1[zähler - 1]};
-          }
-          if (!dontSendKarteGegnerGezogen) {
-          room.send({
-            message: {
-              "type": "karteGegnerGezogen",
-              "data": karteGezogen
-            }
-          });
-        }
-        }
-        canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
-        canvas.fillStyle = kartenSpieler1[zähler][1]
-        canvas.fillRect(koordinatenSpieler1[0], koordinatenSpieler1[1], 100, 150)
-        if (kartenSpieler1[zähler][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-        canvas.font = "75px Georgia";
-        if ((kartenSpieler1[zähler][0] + "").length == 2) {
-          canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2] - 23, koordinatenSpieler1[3]);
-        } else {
-          canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2], koordinatenSpieler1[3]);
-        }
-        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
-        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
-        zähler++;
-      }
-
-    } else { //Spieler2 Anfang LayoutIch
-      while (zähler < kartenSpieler2.length) {
-        if (kartenSpieler2[zähler][2] == "true" || kartenSpieler2[zähler][2] == true) {
-          canvas.fillStyle = "red"; //Farbe
-        } else {
-          canvas.fillStyle = "green"; //Farbe
-        }
-        if (kartenZiehen.length > 0 && kartenZiehen[0][0] == kartenSpieler2[zähler][0] && kartenZiehen[0][1] == kartenSpieler2[zähler][1]) {
-          if (/*!(tipp == true) || */popOrange) kartenZiehen.shift();
-          canvas.fillStyle = "orange"
-          karteGezogen = zähler;
-          if (!dontSendKarteGegnerGezogen && !popOrange && kartenSpieler2[zähler][0] == "-" && !kartenSpieler2[zähler][3]) {
-            if (zähler == 0) kartenSpieler2[zähler][3] = {side: 1, stone: kartenSpieler2[zähler + 1]};
-            else kartenSpieler2[zähler][3] = {side: -1, stone: kartenSpieler2[zähler - 1]};
-          }
-          if (!dontSendKarteGegnerGezogen) {
-          room.send({
-            message: {
-              "type": "karteGegnerGezogen",
-              "data": karteGezogen
-            }
-          });
-        }
-        }
-        canvas.fillRect(koordinatenSpieler1[0] - 15, koordinatenSpieler1[1] - 15, 130, 180)
-        canvas.fillStyle = kartenSpieler2[zähler][1];
-        canvas.fillRect(koordinatenSpieler1[0], koordinatenSpieler1[1], 100, 150)
-        if (kartenSpieler2[zähler][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-        canvas.font = "75px Georgia";
-        if ((kartenSpieler2[zähler][0] + "").length == 2) {
-          canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2] - 23, koordinatenSpieler1[3]);
-        } else {
-          canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2], koordinatenSpieler1[3]);
-        }
-        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
-        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
-        zähler++;
-      }
-
-    }
-    koordinatenSpieler1 = [45, 470, 80, 570];
-    zähler = 0;
-    Ablage = true;
-    zähler = 0;
-      LayoutGegner();
-      /*if (kartenSpieler1 == "" || kartenSpieler2 == "") {
-      setTimeout(function () {
-        VarReset();
-          Kartenerteilung();
-      }, 5000);
-    }
-    */
-    Ampel();
-  }
-  showChat();
-  }
-
-  function LayoutGegner(showNumbers) {
-    console.log("LayoutGegner");
-    if (NameBleibt[0] == name) {
-      while (zähler < kartenSpieler2.length) {
-        if (kartenSpieler2[zähler][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-        if (zähler == karteGegnerGezogen) canvas.fillStyle = "orange";
-        canvas.fillRect(koordinatenSpieler1[0] - 15, 220 - 15, 130, 180)
-
-        canvas.fillStyle = kartenSpieler2[zähler][1]
-        canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
-
-        if (kartenSpieler2[zähler][2] == true || kartenSpieler2[zähler][2] == "true" || showNumbers) {
-
-          if (kartenSpieler2[zähler][1] == "black") {
-            canvas.fillStyle = "white";
-          } else {
-            canvas.fillStyle = "black";
-          }
-          canvas.font = "75px Georgia";
-          if (kartenSpieler2[zähler][0].length == 2) {
-            canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2] - 23, 323);
-          } else {
-            canvas.fillText(kartenSpieler2[zähler][0], koordinatenSpieler1[2], 323);
-          }
-        }
-        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
-        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
-        zähler++;
-      }
-
-    } else {
-
-      while (zähler < kartenSpieler1.length) {
-        if (kartenSpieler1[zähler][1] == "black") {
-          canvas.fillStyle = "white";
-        } else {
-          canvas.fillStyle = "black";
-        }
-        if (zähler == karteGegnerGezogen) canvas.fillStyle = "orange";
-        canvas.fillRect(koordinatenSpieler1[0] - 15, 220 - 15, 130, 180)
-
-        canvas.fillStyle = kartenSpieler1[zähler][1]
-        canvas.fillRect(koordinatenSpieler1[0], 220, 100, 150)
-
-        if (kartenSpieler1[zähler][2] == true || kartenSpieler1[zähler][2] == "true" || showNumbers) {
-
-          if (kartenSpieler1[zähler][1] == "black") {
-            canvas.fillStyle = "white";
-          } else {
-            canvas.fillStyle = "black";
-          }
-          canvas.font = "75px Georgia";
-          if (kartenSpieler1[zähler][0].length == 2) {
-            canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2] - 23, 323);
-          } else {
-            canvas.fillText(kartenSpieler1[zähler][0], koordinatenSpieler1[2], 323);
-          }
-        }
-        koordinatenSpieler1[0] = koordinatenSpieler1[0] + 170;
-        koordinatenSpieler1[2] = koordinatenSpieler1[2] + 170;
-        zähler++;
-      }
-    }
-    koordinatenSpieler1 = [45, 470, 80, 570];
-    zähler = 0;
-    /*if (Kartenteilungsstopp == false) {
-    Kartenteilungsstopp = true;
-    Kartenerteilung();
-  }
-else {
-*/
-    Ablage = true;
-    Sperren[0] = true;
-    //}
-  }
-  function showChat() {
-    // canvas.fillStyle = "brown"; //Farbe
-    // canvas.fillRect(0, 650, textur.width, textur.height - 650);
-    // for (var i = 0; i < messages.length; i++) {
-    //   // if (!(messages[messages.length - 1 - i] == undefined)) {
-    //   canvas.fillStyle = "white";
-    //   canvas.font = "33px Georgia";
-    //   canvas.fillText(messages[messages.length - 1 - i], 33, 700 + 44*i);
-    // }
-    canvas.fillStyle = "brown";
-    canvas.fillRect(0, 650, textur.width, textur.height - 650);
-    for (var i = 0; i < messages.length; i++) {
-      // if (!(messages[messages.length - 1 - i] == undefined)) {
-      canvas.fillStyle = "white";
-      canvas.font = "33px Georgia";
-      var messagesBearbeitet = JSON.parse(JSON.stringify(messages[messages.length - 1 - i]));
-      var emojiObj = {":)": "😊", ":(": "😞", ":p": "😛", "XD": "😆", ":o": "😲"};
-      if (zeichenZuEmogis.checked) {
-        for (var i1 = 0; i1 < Object.keys(emojiObj).length; i1++) {
-          messagesBearbeitet = messagesBearbeitet.replace(Object.keys(emojiObj)[i1], emojiObj[Object.keys(emojiObj)[i1]]);
-        }
-      }
-      canvas.fillText(messagesBearbeitet, 33, 777 + 11 + 44*i);
-    }
-    }
-
-    document.addEventListener('touchmove', touch);
-    document.addEventListener('touchstart', touch);
-    function touch(ev) {
-      if (ev.type == "touchstart" && ev.touches[0]["pageY"] > 400) folgenMouseDown();
-      if (ev.type == "touchmove") {
-        /*
-        xMaus = ev.touches[0]["pageX"]// + scrollX;
-        yMaus = ev.touches[0]["pageY"]// + scrollY;
-        */
-        folgenMouseMove({clientX: ev.touches[0]["pageX"], clientY: ev.touches[0]["pageY"]}, true);
-      }
-    }
-  function readMouseMove(e) {
-    folgenMouseMove(e);
-  }
-  document.onmousemove = readMouseMove
-  var coordinatesBefore;
-  function folgenMouseMove(e, fromHandy) {
-    if (AblageList[3][0] == "moveJoker" && e.clientY > 400) {
-      LayoutIch(false, true);
-      canvas.fillStyle = "orange";
-      canvas.fillRect(e.clientX, e.clientY, 17, 150);
-    }
-    koordinatenSpieler1[4] = e.clientX;
-    koordinatenSpieler1[5] = e.clientY;
-    //  console.log(e.clientX);
-  }
-  window.addEventListener('mousedown', function() {
-    folgenMouseDown();
-  });
-  function folgenMouseDown() {
-    if (AblageList[3][0] == "moveJoker" && name == NameBleibt[0]) {
-      if (coordinatesBefore) {
-        koordinatenSpieler1[4] = coordinatesBefore.x;
-        koordinatenSpieler1[5] = coordinatesBefore.y;
-      }
-      for (var i = 0; i < kartenSpieler1.length; i++) {
-        if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
-          console.log("moveBetween " + (i) + " and following");
-          if (karteGegnerGezogen > -1 && kartenSpieler1[karteGegnerGezogen] && kartenSpieler1[karteGegnerGezogen][3]) kartenSpieler1[karteGegnerGezogen].pop();
-          for (var i1 = kartenSpieler1.length; i1 > i + 1; i1--) {
-            kartenSpieler1[i1] = kartenSpieler1[i1 - 1];
-            if (i1 - 1 == AblageList[3][1]) AblageList[3][1]++;
-          }
-          kartenSpieler1[i + 1] = kartenSpieler1[AblageList[3][1]];
-          kartenSpieler1.splice(AblageList[3][1], 1);
-          AblageList[3] = ["beendet"];
-          LayoutIch(false, true);
-          karteGegnerGezogen = i + 1;
-          if (kartenSpieler1[i + 1] != undefined) kartenSpieler1[i + 1][3] = {side: -1, stone: kartenSpieler1[i]};
-          else  if (kartenSpieler1[i - 1][0] == "-") kartenSpieler1[i - 1][3] = {side: -1, stone: kartenSpieler1[i]};
-          else kartenSpieler1[i - 1][3] = {side: 1, stone: kartenSpieler1[i]};
-        }
-      }
-    }
-    else if (AblageList[3][0] == "moveJoker") {
-      for (var i = 0; i < kartenSpieler2.length; i++) {
-        if (koordinatenSpieler1[5] > 400 && koordinatenSpieler1[4] > 13 + 150 + (150 + 17)*i && koordinatenSpieler1[4] < 13 + 150 + (150 + 17)*i + 24) {
-          console.log("moveBetween " + (i) + " and following");
-          if (kartenSpieler2[karteGegnerGezogen][3]) kartenSpieler2[karteGegnerGezogen].pop();
-          for (var i1 = kartenSpieler2.length; i1 > i + 1; i1--) {
-            kartenSpieler2[i1] = kartenSpieler2[i1 - 1];
-            if (i1 - 1 == AblageList[3][1]) AblageList[3][1]++;
-          }
-          kartenSpieler2[i + 1] = kartenSpieler2[AblageList[3][1]];
-          kartenSpieler2.splice(AblageList[3][1], 1);
-          AblageList[3] = ["beendet"];
-          LayoutIch(false, true);
-          karteGegnerGezogen = i + 1;
-          if (kartenSpieler2[i + 1] != undefined) kartenSpieler2[i + 1][3] = {side: -1, stone: kartenSpieler2[i]};
-          else if (kartenSpieler2[i - 1][0] == "-") kartenSpieler2[i - 1][3] = {side: -1, stone: kartenSpieler2[i]};
-          else kartenSpieler2[i - 1][3] = {side: 1, stone: kartenSpieler2[i]};
-        }
-      }
-    }
-    if (NameSpieler[0] == name) {
-      Sperren[0] = false;
-      console.log(koordinatenSpieler1[4] + " - " + koordinatenSpieler1[5]);
-      if (koordinatenSpieler1[6] == undefined) {
-        koordinatenSpieler1[6] = 0;
-      }
-      if (NameBleibt[0] == name) {
-        while (zähler < kartenSpieler2.length && Ablage == true) {
-          if (koordinatenSpieler1[5] > 439 && koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && (/*(name == NameBleibt[1] && kartenSpieler2[zähler][0] == "-") || (name == NameBleibt[0] && */kartenSpieler1[zähler][0] == "-")/*)*/ && (kartenZiehen[0][0] == "-" || kartenSpieler1.length == 5)) {
-            console.log("moveJoker");
-            karteGezogen = kartenSpieler1[zähler][1];
-            AblageList[3] = ["moveJoker", zähler];
-          }
-          if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 400) {
-            AblageList[2] = Zustand.length;
-            console.log(zähler);
-            tipp = prompt("Was für einen Wert tippen sie für diesen Stein? Bitte Zahl (von 0-11) eingeben")
-            Ablage = false;
-            AblageList[1] = zähler;
-            if (tipp == null == false) {
-              if (tipp == kartenSpieler2[zähler][0] && kartenSpieler2[zähler][2] != true) {
-                console.log("richtig!");
-                kartenSpieler2[zähler][2] = true;
-                LayoutGegner();
-                setTimeout(function() {
-                      if (!(gewonnenCheck(true).includes("gewonnen")) && !(confirm("Möchten sie weiterraten?"))) {
-                    Zustand[Zustand.length] = "getroffen"
-                    Spielerwechsel();
-                  }
-                  else if (gewonnenCheck(true).includes("gewonnen")) Spielerwechsel();
-                }, 700);
-              } else {
-                Zustand[Zustand.length] = "verfehlt"
-                kartenSpieler1[karteGezogen][2] = true;
-                Sperren[0] = false;
-                Spielerwechsel();
-              }
-            }
-          }
-          koordinatenSpieler1[0] += 170;
-          koordinatenSpieler1[2] += 170;
-          if (Ablage == true) {
-            zähler++;
-          }
-        }
-        Ablage = true;
-        koordinatenSpieler1 = [45, 470, 80, 570]
-        zähler = 0;
-      } else {
-        while (zähler < kartenSpieler1.length && Ablage == true) {
-          if (koordinatenSpieler1[5] > 439 && koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && ((name == NameBleibt[1] && kartenSpieler2[zähler][0] == "-")/* || (name == NameBleibt[0] && kartenSpieler1[zähler][0] == "-")*/) && (kartenZiehen[0][0] == "-" || kartenSpieler2.length == 5)) {
-            console.log("moveJoker");
-            karteGezogen = kartenSpieler2[zähler][1];
-            AblageList[3] = ["moveJoker", zähler];
-          }
-          if (koordinatenSpieler1[4] + koordinatenSpieler1[6] > koordinatenSpieler1[0] && koordinatenSpieler1[4] + koordinatenSpieler1[6] < koordinatenSpieler1[0] + 90 && koordinatenSpieler1[5] > 220 && koordinatenSpieler1[5] < 220 + 180) {
-            AblageList[2] = Zustand.length;
-            console.log(zähler);
-            tipp = prompt("Was für einen Wert tippen sie für diesen Stein? Und welche Farbe? Bitte die Zahl eingeben!")
-            Ablage = false;
-            AblageList[1] = zähler;
-            if (tipp == null == false) {
-
-              if (tipp == kartenSpieler1[zähler][0] && kartenSpieler1[zähler][2] == false) {
-                console.log("richtig!")
-                kartenSpieler1[zähler][2] = true;
-                LayoutGegner();
-                setTimeout(function() {
-                  if (!(gewonnenCheck(true).includes("gewonnen")) && !(confirm("Möchten sie weiterraten?"))) {
-                    Zustand[Zustand.length] = "getroffen"
-                    Spielerwechsel();
-                  }
-                  else if (gewonnenCheck(true).includes("gewonnen")) Spielerwechsel();
-                }, 700);
-              } else {
-                Zustand[Zustand.length] = "verfehlt"
-                kartenSpieler2[karteGezogen][2] = true;
-                Sperren[0] = false;
-                Spielerwechsel();
-              }
-            }
-          }
-          koordinatenSpieler1[0] += 170;
-          koordinatenSpieler1[2] += 170;
-          if (Ablage == true) {
-            zähler++;
-          }
-        }
-        Ablage = true;
-        koordinatenSpieler1 = [45, 470, 80, 570];
-        zähler = 0;
-      }
-    }
-  }
-  function Spielerwechsel() {
-    for (var i = 0; kartenZiehen[0] && kartenZiehen[0][0] == "-" && (NameBleibt[0] == name && i < kartenSpieler1.length) || (NameBleibt[1] == name && i < kartenSpieler2.length); i++) {
-      if ((NameBleibt[0] == name && kartenSpieler1[i][1] == karteGezogen && kartenSpieler1[i][0] == "-") || (NameBleibt[1] == name && kartenSpieler2[i][1] == karteGezogen && kartenSpieler2[i][0] == "-")) karteGezogen = i;
-    }
-    gewonnenCheck();
-    LayoutIch(true);
-    SpielerwechselSet();
-    zähler = 0;
-    LayoutIch();
-    LayoutIch();
-    zählerZustand++;
-    Sperren[0] = true;
-    NameSpieler[2] = NameSpieler[0];
-    NameSpieler[0] = NameSpieler[1];
-    NameSpieler[1] = NameSpieler[2];
-    NameSpieler.pop();
-    setTimeout(function() {
-      Sperren[0] = true;
-    }, 300);
-
-  }
-
-  function SpielerwechselSet() {
-    room.send({
-      message: {
-        "type": "KartenSpieler1",
-        "data": kartenSpieler1
-      }
-    });
-    room.send({
-      message: {
-        "type": "KartenSpieler2",
-        "data": kartenSpieler2
-      }
-    });
-    setTimeout(function () {
-      room.send({
-        message: {
-          "type": "KartenZiehen",
-          "data": kartenZiehen
-        }
-      });
-    }, 3000);
-    // room.send({
-    //   message: {
-    //     "type": "Reihenfolge",
-    //     "data": NameSpieler
-    //   }
-    // });
-    setTimeout(function () {
-      room.send({
-        message: {
-          "type": "KarteTipp",
-          "data": AblageList[1],
-          tipp: tipp
-        }
-      });
-    // room.send({
-    //   message: {
-    //     "type": "tipp",
-    //     "data": tipp
-    //   }
-    // });
-    }, 300);
-    room.send({
-      message: {
-        "type": "Zustand",
-        "data": Zustand
-      }
-    });
-  }
-
-  function gewonnenCheck(pop) {
-    while (zähler < kartenSpieler1.length) {
-      if (kartenSpieler1[zähler][2] == "true" || kartenSpieler1[zähler][2] == true) {
-        zählerListe[1]++;
-      }
-      zähler++;
-    }
-    if (zählerListe[1] >= kartenSpieler1.length) {
-      Zustand[Zustand.length] = "2 gewonnen"
-    }
-    zähler = 0;
-    zählerListe[1] = 0;
-
-    while (zähler < kartenSpieler2.length) {
-      if (kartenSpieler2[zähler][2] == "true" || kartenSpieler2[zähler][2] == true) {
-        zählerListe[1]++;
-      }
-      zähler++;
-    }
-    if (zählerListe[1] == kartenSpieler2.length) {
-      Zustand[Zustand.length] = "1 gewonnen"
-    }
-    zähler = 0;
-    zählerListe[1] = 0;
-    return Zustand[Zustand.length - 1];
-    if (pop) Zustand.pop();
-  }
-
-  function sort() {
-    console.log("sort");
-  zähler = 0;
-  while (zähler < kartenSpieler1.length) {
-    if (kartenSpieler1[zähler][0] < 10) {
-      kartenSpieler1[zähler][0] = "0" + kartenSpieler1[zähler][0]
-    }
-    kartenSpieler1[zähler][0] += ""
-    zähler++;
-  }
-  zähler = 0;
-  while (zähler < kartenSpieler2.length) {
-    if (kartenSpieler2[zähler][0] < 10) {
-      kartenSpieler2[zähler][0] = "0" + kartenSpieler2[zähler][0]
     }
     else {
-      kartenSpieler2[zähler][0] += ""
+      app.processMessage(message);
     }
-    zähler++;
-  }
-  kartenSpieler1.sort();
-  kartenSpieler2.sort();
-  zähler = 0;
-  while (zähler < kartenSpieler1.length) {
-    if (kartenSpieler1[zähler][0] < 10) {
-      kartenSpieler1[zähler][0] = kartenSpieler1[zähler][0][1];
-    }
-    zähler++;
-  }
-  zähler = 0;
-  while (zähler < kartenSpieler2.length) {
-    if (kartenSpieler2[zähler][0] < 10) {
-      kartenSpieler2[zähler][0] = kartenSpieler2[zähler][0][1];
-    }
-    zähler++;
-  }
-  zähler = 0;
-  for (var i = 0; i < kartenSpieler1.length; i++) {
-    if (kartenSpieler1[i][3]) {
-      for (var i1 = 0; i1 < kartenSpieler1.length; i1++) {
-        if (!(kartenSpieler1[i][0] == "-" && kartenSpieler1[i][1] == kartenSpieler1[i1][1]) && kartenSpieler1[i][3] && kartenSpieler1[i1][0] == kartenSpieler1[i][3].stone[0] && kartenSpieler1[i1][1] == kartenSpieler1[i][3].stone[1]/* && kartenSpieler1[i][2] == kartenSpieler1[i][3].stone[2]*/) {
-          var i3 = i + kartenSpieler1[i][3].side;
-          AblageList[3][1] = i1;
-          console.log("moveBetween " + (i3) + " and following");
-          for (var i2 = kartenSpieler1.length; i2 > i3 + 1; i2--) {
-            kartenSpieler1[i2] = kartenSpieler1[i2 - 1];
-            if (i2 - 1 == AblageList[3][1]) AblageList[3][1]++;
-          }
-          if (kartenSpieler1[i3] == undefined) kartenSpieler1[i3] = kartenSpieler1[AblageList[3][1]];
-          else kartenSpieler1[i3 + 1] = kartenSpieler1[AblageList[3][1]];
-          kartenSpieler1.splice(AblageList[3][1], 1);
-        }
-      }
+  });
+  function updateVueObj(vueObj, newObj) {
+    for (const key of Object.keys(newObj)) {
+      vueObj[key] = newObj[key];
     }
   }
-  for (var i = 0; i < kartenSpieler2.length; i++) {
-    if (kartenSpieler2[i][3]) {
-      for (var i1 = 0; i1 < kartenSpieler2.length; i1++) {
-        if (!(kartenSpieler2[i][0] == "-" && kartenSpieler2[i][1] == kartenSpieler2[i1][1]) && kartenSpieler2[i][3] && kartenSpieler2[i1][0] == kartenSpieler2[i][3].stone[0] && kartenSpieler2[i1][1] == kartenSpieler2[i][3].stone[1]/* && kartenSpieler2[i][2] == kartenSpieler2[i][3].stone[2]*/) {
-          var i3 = i + kartenSpieler2[i][3].side;
-          AblageList[3][1] = i1;
-          console.log("moveBetween " + (i3) + " and following");
-          for (var i2 = kartenSpieler2.length; i2 > i3 + 1; i2--) {
-            kartenSpieler2[i2] = kartenSpieler2[i2 - 1];
-            if (i2 - 1 == AblageList[3][1]) AblageList[3][1]++;
-          }
-          if (kartenSpieler1[i3] == undefined) kartenSpieler2[i3] = kartenSpieler2[AblageList[3][1]];
-          else kartenSpieler2[i3 + 1] = kartenSpieler2[AblageList[3][1]];
-          kartenSpieler2.splice(AblageList[3][1], 1);
-        }
-      }
-    }
-  }
-  }
-
-
-  //Koordinaten Scrolling
-  var f = function() {
-
-    var eventHandler = function(event) {
-      console.log(window.scrollX + " - " + window.scrollY);
-      koordinatenSpieler1[6] = window.scrollX;
-      koordinatenSpieler1[6] = window.scrollX;
-    };
-    window.addEventListener('scroll', eventHandler, false)
-    koordinatenSpieler1[6] = 0;
-
-  };
-  window.addEventListener('DOMContentLoaded', f, false)
-  document.onkeydown = function(event) {
-    if (event.key == "ArrowUp") window.scroll(scrollX, 0);
-    if (event.key == "Enter" && !(lookingMessage == "beendet")) {
-      window.scroll(scrollX, 742);
-      setTimeout(function () {
-        window.scroll(scrollX, 0);
-      }, 1777);
-    }
-    if (event.key == "Enter" && textBoxSelected) submit();
-  }
-  var textBoxSelected = false;
-window.addEventListener("dblclick", dbClick)
-
-function dbClick() {
-  window.scroll(scrollX, 742);
-  setTimeout(function () {
-    window.scroll(scrollX, 0);
-  }, 1777);
-}
-
 </script>
