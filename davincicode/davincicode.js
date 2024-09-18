@@ -219,7 +219,11 @@ function pullCards(playerI) {
     var inkoPlayers = JSON.parse(JSON.stringify(players));
     for (let i = 0; i < players.length; i++) {
       players[i].cards.forEach((card, i1) => {
-        if (!card.visible && i != playerI) inkoPlayers[i].cards[i1].nr = "";
+        if (!card.visible && i != playerI && inkoPlayers[i].cards[i1] != undefined) inkoPlayers[i].cards[i1].nr = "";
+        // dont't show new card to oppontens before the round is over (because if it is a joker, changing it's position would be obvious)
+        if (i == playerNow && playerI != i && card.state == "new") {
+          inkoPlayers[i].cards.splice(i1, 1);
+        }
       });
     }
     pThis.send(players[playerI].client, {
