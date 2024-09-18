@@ -295,13 +295,27 @@ window.onbeforeunload = function(){
         }
       },
       mouseUp(pPlayerI, cardI) {
+        // TODO: use state.cardI instead of cardI param + call mouseUp on cardDeck
         console.log("mouseUp");
-        state.state = "done";
-        room.send({
-          "type": "jokerMoved",
-          from: state.initialI,
-          to: cardI,
-        });
+        if (state.state == "moving") {
+          var cards = this.players[pPlayerI].cards;
+          var card = cards[cardI];
+          if (card.color == "white" && cards[cardI + 1] && cards[cardI + 1].nr == "-") {
+            alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
+            cards[cardI] = cards.splice(cardI + 1, 1, cards[cardI])[0];
+          }
+          if (card.color == "black" && cards[cardI - 1] && cards[cardI - 1].nr == "-") {
+            alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
+            cards[cardI] = cards.splice(cardI - 1, 1, cards[cardI])[0];
+          }
+          state.state = "done";
+          room.send({
+            "type": "jokerMoved",
+            from: state.initialI,
+            to: cardI,
+            playerI: pPlayerI
+          });
+        }
       },
       processMessage(message) {
         if (message.type == "getCard") {

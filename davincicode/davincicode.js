@@ -29,8 +29,8 @@ var cards = [
   {nr: 10,color:  "white", visible: false, state: "normal"},
   {nr: 11,color:  "black", visible: false, state: "normal"},
   {nr: 11,color:  "white", visible: false, state: "normal"},
-  // {nr: "-",color:  "black", visible: false, state: "normal"},
-  // {nr: "-",color:  "white", visible: false, state: "normal"}
+  {nr: "-",color:  "black", visible: false, state: "normal"},
+  {nr: "-",color:  "white", visible: false, state: "normal"}
 ]
 var playerNow;
   // shuffle cards
@@ -130,6 +130,19 @@ class davincicode {
         spielerwechsel();
       }
     }
+    if (data.type == "jokerMoved") {
+      var cards = players[data.playerI].cards;
+      var card = cards[data.from];
+      
+      if (card.nr == "-" && (card.state == "new" || cards.length <= 5) && !((cards[data.cardI + 1] && card.color == "white" && cards[data.cardI + 1].nr == "-") || (cards[data.cardI - 1] && card.color == "black" && cards[data.cardI - 1].nr == "-"))) {
+        // deleting joker
+        cards.splice(data.from, 1);
+        console.log("card: " + JSON.stringify(card));
+        // inserting joker in the new place
+        cards.splice(data.to, 0, card);
+        console.log("new card order: " + JSON.stringify(cards));
+      }
+    }
     // this.broadcast(data.message);
   }
   onLeave(client) {
@@ -146,8 +159,44 @@ function getCards(playerI, amount=1) {
       if (amount == 1) {
         card.state = "new";
       }
-      players[playerI].cards.push(card);
-      players[playerI].cards.sort((a, b) => a.nr - b.nr || (a.color === "black" ? -1 : a.color === "white" ? 1 : 0));
+      // sort card in players card array
+      var pCards = players[playerI].cards;
+      // console.log("cards: " + pCards);
+      var sorted = false;
+      for (let i1 = 0; i1 < pCards.length && !sorted; i1++) {
+        var pCard = players[playerI].cards[i1];
+        // console.log("checking room to insert");
+        if (pCard.nr == card.nr && pCard.color == "white") {
+          // console.log("same Nr! Inserting left to white");
+          // console.log(pCards);
+          pCards.splice(i1, 0, card);
+          // console.log(pCards);
+          sorted = true;
+        }
+        if (card.nr < pCard.nr) {
+          // console.log("right border of elements with smaller values found! Inserting to the right of it");
+          // console.log(pCards);
+          pCards.splice(i1, 0, card);
+          // console.log(pCards);
+          sorted = true;
+        }
+      }
+      if (!sorted) {
+        // console.log(pCards);
+        // console.log("insert in the end");
+        pCards.splice(pCards.length, 0, card);
+        // console.log(pCards);
+      }
+      // players[playerI].cards.push(card);
+
+    //   players[playerI].cards.sort((a, b) => {
+    //     // If `nr` is "-", leave the item in its original position
+    //     if (a.nr === "-" || b.nr === "-") return 0;
+    
+    //     // Sort by number if both numbers are not "-"
+    //     return a.nr - b.nr || (a.color === "black" ? -1 : a.color === "white" ? 1 : 0);
+    // });
+      // players[playerI].cards.sort((a, b) => a.nr - b.nr || (a.color === "black" ? -1 : a.color === "white" ? 1 : 0));
       // pThis.send(players[playerI].client, {
       //   "type": "getCard",
       //   data: card,
