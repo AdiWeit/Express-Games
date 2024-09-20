@@ -5,8 +5,6 @@ var x;
 var i;
 var players = []
 var cards = [    
-  {nr: "-",color:  "black", visible: false, state: "normal"},
-  {nr: "-",color:  "white", visible: false, state: "normal"},
   {nr: 0, color: "black", visible: false, state: "normal"},
   {nr: 0, color: "white", visible: false, state: "normal"},
   {nr: 1, color: "black", visible: false, state: "normal"},
@@ -35,7 +33,7 @@ var cards = [
 var playerNow;
   // shuffle cards
   for (let i = cards.length - 1; i >= 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.round(Math.random() * (i + 1));
       [cards[i], cards[j]] = [cards[j], cards[i]];
   }
 var pThis;
