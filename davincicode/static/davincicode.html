@@ -389,7 +389,10 @@ window.onbeforeunload = function(){
     if (message.type == "playerNr") {
       playerI = message.data;
       var name = localStorage.getItem("nameOnlineGames");
-      if (name == undefined) name = prompt("Wie wollen Sie heißen? Der Name wird für die Mitspieler sichtbar sein. ");
+      if (name == undefined) {
+        name = prompt("Wie wollen Sie heißen? Der Name wird für die Mitspieler sichtbar sein. ");
+        localStorage.setItem("nameOnlineGames", name);
+      }
         room.send({
           "type": "namePlayer",
           data: name,
