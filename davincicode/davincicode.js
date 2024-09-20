@@ -95,7 +95,7 @@ class davincicode {
       if (data.data == card.nr && client == players[playerNow].id && !card.visible) {
         guessedCorrectly = true;
         card.visible = true;
-        card.state = "visible";
+        // card.state = "visible";
         pThis.broadcast({
           type: "revealNr",
           data: card.nr,
@@ -251,12 +251,20 @@ function pullCards(showOpponentCards) {
         continue;
       }
       for (let i1 = 0; i1 < players[i].cards.length; i1++) {
-        const card = players[i].cards[i1];
-        if (!card.visible && i != playerI && inkoPlayers[i].cards[i1] != undefined) inkoPlayers[i].cards[i1].nr = "";
-        // dont't show new card to oppontens before the round is over (because if it is a joker, changing it's position would be obvious)
-        if (i == playerNow && playerI != i && inkoPlayers[i].cards[i1] && inkoPlayers[i].cards[i1].state == "new") {
-          inkoPlayers[i].cards.splice(i1, 1);
-          i1--;
+        var inkoCards = inkoPlayers[i].cards;
+        var inkoCard = inkoCards[i1];
+        if (i == playerI && inkoCard.visible) {
+          inkoCard.state = "visible";
+        }
+        if (i != playerI && inkoCard != undefined) {
+          if (!inkoCard.visible) {
+            inkoCard.nr = "";
+          }
+          // dont't show new card to oppontens before the round is over (because if it is a joker, changing it's position would be obvious)
+          if (i == playerNow && inkoCard.state == "new") {
+            inkoCards.splice(i1, 1);
+            i1--;
+          }
         }
       };
     }
