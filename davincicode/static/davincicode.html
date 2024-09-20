@@ -14,6 +14,7 @@
   /* width: 100px;
   height: 150px; */
   width: 4%;
+  min-width: 60px;
   height: 73%;
   height: fill-available; /* Standard (not widely supported yet) */
   height: -webkit-fill-available;
@@ -26,7 +27,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5vh;
+  font-size: 333%;
   margin-top: 7px;
   margin-bottom: 7px;
   float: left;
@@ -68,6 +69,9 @@
     transform: scale(1);
   }
 }
+:root {
+  --pHeight: 15%
+}
 .cardDeck {
   box-shadow: 2px 2px 10px #855d5d;
   padding-top: 5px;
@@ -78,7 +82,9 @@
   padding-left: 10px;
   padding-right: 10px;
   /* height: 200px; */
-  height: 15%;
+  /* height: 15%; */
+  height: var(--pHeight);
+  max-height: 200px;
   overflow-x: scroll;
   display: flex;
   white-space: nowrap;
@@ -331,7 +337,7 @@ window.onbeforeunload = function(){
       },
       processMessage(message) {
         if (message.type == "getCard") {
-          if (!this.players[playerI]) this.players[playerI] = {cards: [], name: ""}
+          if (!this.players[playerI]) this.players[playerI] = {cards: [], name: "player " + playerI}
           this.players[playerI].cards.push(message.data);
         }
         if (message.type == "getOpponentCard") {
@@ -340,11 +346,12 @@ window.onbeforeunload = function(){
           }
         }
         if (message.type == "pullingCards") {
-          if (!message.data[1]) message.data[1] = {cards: [], name: ""};
+          if (!message.data[1]) message.data[1] = {cards: [], name: "player 1"};
           // if (!message.data[2]) message.data[2] = {cards: [], name: ""};
           // if (!message.data[3]) message.data[3] = {cards: [], name: ""};
           // this.players = message.data;
           this.players = message.data;
+          document.querySelector(':root').style.setProperty('--pHeight', (100/(this.players.length) - 10)/*(document.getElementsByClassName("nameTag")[0].getBoundingClientRect().height*this.players.length*2)/screen.height)*/ + '%')
           // updateVueObj(this.players, message.data);
         }
         if (message.type == "revealNr") {
@@ -381,11 +388,21 @@ window.onbeforeunload = function(){
   room.setOnMessageListener(function(message) {
     if (message.type == "playerNr") {
       playerI = message.data;
+      var name = localStorage.getItem("nameOnlineGames");
+      if (name == undefined) name = prompt("Wie wollen Sie heißen? Der Name wird für die Mitspieler sichtbar sein. ");
+        room.send({
+          "type": "namePlayer",
+          data: name,
+          playerI
+        });
     }
     else if (message.type == "playerNow") {
       document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "2px 2px 10px #855d5d";
       document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "white";
       document.getElementsByClassName("nameTag")[playerNow].style.color = "black";
+      document.getElementsByClassName("nameTag")[playerI].style.backgroundColor = "blue";
+      document.getElementsByClassName("nameTag")[playerI].style.color = "white";
+      document.getElementsByClassName("nameTag")[playerI].style.boxShadow = "2px 2px 10px blue";
       playerNow = message.data;
       document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "green 0px 0px 20px 6px";
       document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "green";

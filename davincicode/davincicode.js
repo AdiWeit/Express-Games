@@ -45,10 +45,10 @@ class davincicode {
   }
   onJoin(client) {
   //  console.log(`${client.sessionId} joined.`);
-    if (!players[0]) players[0] = {id: client.sessionId, client, cards: [], name: ""};
-    else if (!players[1]) players[1] = {id: client.sessionId, client, cards: [], name: ""};
-    else if (!players[2]) players[2] = {id: client.sessionId, client, cards: [], name: ""};
-    else if (!players[3]) players[3] = {id: client.sessionId, client, cards: [], name: ""};
+    if (!players[0]) players[0] = {id: client.sessionId, client, cards: [], name: "player 1"};
+    else if (!players[1]) players[1] = {id: client.sessionId, client, cards: [], name: "player 2"};
+    else if (!players[2]) players[2] = {id: client.sessionId, client, cards: [], name: "player 3"};
+    else if (!players[3]) players[3] = {id: client.sessionId, client, cards: [], name: "player 4"};
     else return;
     pThis.send(players[players.length - 1].client, {
       "type": "playerNr",
@@ -144,6 +144,9 @@ class davincicode {
       if (!data.continue) {
         spielerwechsel();
       }
+    }
+    if (data.type == "namePlayer") {
+      players[data.playerI].name = data.data;
     }
     if (data.type == "jokerMoved") {
       var cards = players[data.playerI].cards;
