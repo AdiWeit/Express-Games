@@ -5,6 +5,8 @@ var x;
 var i;
 var players = []
 var cards = [    
+  {nr: "-",color:  "black", visible: false, state: "normal"},
+  {nr: "-",color:  "white", visible: false, state: "normal"},
   {nr: 0, color: "black", visible: false, state: "normal"},
   {nr: 0, color: "white", visible: false, state: "normal"},
   {nr: 1, color: "black", visible: false, state: "normal"},
@@ -29,8 +31,6 @@ var cards = [
   {nr: 10,color:  "white", visible: false, state: "normal"},
   {nr: 11,color:  "black", visible: false, state: "normal"},
   {nr: 11,color:  "white", visible: false, state: "normal"},
-  {nr: "-",color:  "black", visible: false, state: "normal"},
-  {nr: "-",color:  "white", visible: false, state: "normal"}
 ]
 var playerNow;
   // shuffle cards
@@ -133,14 +133,17 @@ class davincicode {
     if (data.type == "jokerMoved") {
       var cards = players[data.playerI].cards;
       var card = cards[data.from];
-      
-      if (card.nr == "-" && (card.state == "new" || cards.length <= 5) && !((cards[data.cardI + 1] && card.color == "white" && cards[data.cardI + 1].nr == "-") || (cards[data.cardI - 1] && card.color == "black" && cards[data.cardI - 1].nr == "-"))) {
+      // checks if black joker is to the left of the white one if they are next to each other
+      var blackWhiteOrder = !((cards[data.cardI + 1] && card.color == "white" && cards[data.cardI + 1].nr == "-") || (cards[data.cardI - 1] && card.color == "black" && cards[data.cardI - 1].nr == "-"));
+      // checks if the joker is allowed to be moved because it is new
+      var newJoker = card.nr == "-" && ((card.state == "new" && data.playerI == playerNow) || cards.length <= 5) && blackWhiteOrder;
+      // checks if the joker is allowed to be exchanged with new card
+      var nextToJoker = cards[data.to].nr == "-" && Math.abs(data.from - data.to) <= 1 && card.state == "new" && data.playerI == playerNow;
+      if (newJoker || nextToJoker) {
         // deleting joker
         cards.splice(data.from, 1);
-        console.log("card: " + JSON.stringify(card));
         // inserting joker in the new place
         cards.splice(data.to, 0, card);
-        console.log("new card order: " + JSON.stringify(cards));
       }
     }
     // this.broadcast(data.message);
@@ -214,17 +217,20 @@ function getCards(playerI, amount=1) {
   }
   pullCards();
 }
+// TODO: delay of displaying opponten's cards in first round
 function pullCards(playerI) {
   for (let playerI = 0; playerI < players.length; playerI++) {
     var inkoPlayers = JSON.parse(JSON.stringify(players));
     for (let i = 0; i < players.length; i++) {
-      players[i].cards.forEach((card, i1) => {
+      for (let i1 = 0; i1 < players[i].cards.length; i1++) {
+        const card = players[i].cards[i1];
         if (!card.visible && i != playerI && inkoPlayers[i].cards[i1] != undefined) inkoPlayers[i].cards[i1].nr = "";
         // dont't show new card to oppontens before the round is over (because if it is a joker, changing it's position would be obvious)
-        if (i == playerNow && playerI != i && card.state == "new") {
+        if (i == playerNow && playerI != i && inkoPlayers[i].cards[i1] && inkoPlayers[i].cards[i1].state == "new") {
           inkoPlayers[i].cards.splice(i1, 1);
+          i1--;
         }
-      });
+      };
     }
     pThis.send(players[playerI].client, {
       "type": "pullingCards",

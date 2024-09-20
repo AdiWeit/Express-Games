@@ -280,14 +280,22 @@ window.onbeforeunload = function(){
         });
       },
       mouseDown(pPlayerI, cardI) {
-        var card = this.players[pPlayerI].cards[cardI];
-        if (pPlayerI == playerI && (card.state == "new" || this.players[playerI].cards.length <= 5) && card.nr == "-") {
-          state = {state: "moving", cardI, initialI: cardI};
+        var cards = this.players[pPlayerI].cards;
+        var card = cards[cardI];
+        if (pPlayerI == playerI) {
+          // moving joker in first round, directly after getting it
+          if (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5) && card.nr == "-") {
+            state = {state: "moving", cardI, initialI: cardI};
+          }
+          // moving joker if a new card is directly next to it
+          if (card.state == "new" && playerNow == playerI && [cards[cardI + 1]?.nr, cards[cardI - 1]?.nr].includes("-")) {
+            state = {state: "moving", cardI, initialI: cardI, neighbour: true};
+          }
         }
       },
       mouseOver(pPlayerI, cardI) {
-        if (state.state == "moving") {
-          var cards = this.players[playerI].cards;
+        var cards = this.players[playerI].cards;
+        if (state.state == "moving" && (!state.neighbour || cards[cardI].nr == "-")) {
           // [ cards[cardI], cards[state.cardI] ] = [ cards[state.cardI], cards[cardI] ]
           cards[state.cardI] = cards.splice(cardI, 1, cards[state.cardI])[0];
           state.cardI = cardI;
@@ -300,11 +308,11 @@ window.onbeforeunload = function(){
         if (state.state == "moving") {
           var cards = this.players[pPlayerI].cards;
           var card = cards[cardI];
-          if (card.color == "white" && cards[cardI + 1] && cards[cardI + 1].nr == "-") {
+          if (card.color == "white" && cards[cardI + 1] && cards[cardI + 1].nr == "-" && card.nr == "-") {
             alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
             cards[cardI] = cards.splice(cardI + 1, 1, cards[cardI])[0];
           }
-          if (card.color == "black" && cards[cardI - 1] && cards[cardI - 1].nr == "-") {
+          if (card.color == "black" && cards[cardI - 1] && cards[cardI - 1].nr == "-" && card.nr == "-") {
             alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
             cards[cardI] = cards.splice(cardI - 1, 1, cards[cardI])[0];
           }
