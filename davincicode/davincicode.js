@@ -54,25 +54,42 @@ class davincicode {
       "type": "playerNr",
       data: players.length - 1,
     });
-    // if (players.length > 1) {
-      // console.log("Spiel beginnen");
-        // getCards(i, 4);
-        // if (players.length > 1) pullCards(players.length - 1);
-        getCards(players.length - 1, 4);
-        // }
-        if (players.length == 2) {
-          playerNow = -1;
-          spielerwechsel();
-        }
-        if (players.length > 2) {
-          pThis.broadcast({
-            type: "playerNow",
-            data: playerNow,
-          });
-        }
   // }
 }
+  beginGame() {
+    // if (players.length > 1) {
+  // console.log("Spiel beginnen");
+    // getCards(i, 4);
+    // if (players.length > 1) pullCards(players.length - 1);
+    for (let i = 0; i < players.length; i++) {
+      getCards(i, 4);
+    }
+    // }
+    playerNow = -1;
+    spielerwechsel();
+      pThis.broadcast({
+        type: "playerNow",
+        data: playerNow,
+      });
+  }
   onMessage(client, data) {
+    if (data.type == "useJokers" && !voted.includes(client)) {
+      voting[data.data]++;
+      voted.push(client);
+      if (voted.length == players.length) {
+        var playWithJoker = voting[true] > voting[false] || (voting[true] == voting[false] && Math.round(Math.random() * 1) == 0);
+        if (playWithJoker) {
+          addJokers();
+        }
+        setTimeout(() => {
+          pThis.broadcast({
+            type: "jokerAlert",
+            data: playWithJoker,
+          });
+        }, 8000);
+        this.beginGame();
+      }
+    }
     if (data.type == "guess") {
       var card = players[data.playerI].cards[data.cardI];
       if (data.data == card.nr && client == players[playerNow].id && !card.visible) {
@@ -152,7 +169,13 @@ class davincicode {
     });
   }
 }
+var voting = {true: 0, false: 0};
+var voted = [];
 var guessedCorrectly = false;
+function addJokers() {
+  cards.push({nr: "-",color:  "black", visible: false, state: "normal"});
+  cards.push({nr: "-",color:  "white", visible: false, state: "normal"});
+}
 function getCards(playerI, amount=1) {
   for (let i = 0; i < amount; i++) {
     if (cards.length > 0) {
