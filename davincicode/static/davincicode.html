@@ -137,6 +137,10 @@
 
 <!-- <div v-for="genre in genres" id="dvdList"> -->
   <!-- <h2 onclick="changeKategorieName(innerText)">{{ genre }}</h2> -->
+<div id="votingDiv">
+<input id="jokerPlay" style="width: 50px; height: 50px;" type="checkbox"> <a style="font-size: 50px; ">play with jokers</a>
+<button onclick="voting();" style="font-size: 50px;">confirm</button>
+</div>
 <img id="winningState">
 <div id="app" >
   <div v-for="(player, i) in players">
@@ -337,8 +341,8 @@ window.onbeforeunload = function(){
         }
         if (message.type == "pullingCards") {
           if (!message.data[1]) message.data[1] = {cards: [], name: ""};
-          if (!message.data[2]) message.data[2] = {cards: [], name: ""};
-          if (!message.data[3]) message.data[3] = {cards: [], name: ""};
+          // if (!message.data[2]) message.data[2] = {cards: [], name: ""};
+          // if (!message.data[3]) message.data[3] = {cards: [], name: ""};
           // this.players = message.data;
           this.players = message.data;
           // updateVueObj(this.players, message.data);
@@ -399,6 +403,10 @@ window.onbeforeunload = function(){
         winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
       }
     }
+    else if (message.type == "jokerAlert") {
+      if (message.data) alert("The game will be played with jokers!");
+      else alert("The game will be played without jokers!");
+    }
     else {
       app.processMessage(message);
     }
@@ -407,5 +415,12 @@ window.onbeforeunload = function(){
     for (const key of Object.keys(newObj)) {
       vueObj[key] = newObj[key];
     }
+  }
+  function voting() {
+    room.send({
+        "type": "useJokers",
+        data: jokerPlay.checked,
+    });
+    votingDiv.style.display = "none";
   }
 </script>
