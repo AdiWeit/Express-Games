@@ -239,10 +239,17 @@ function getCards(playerI, amount=1) {
   pullCards();
 }
 // TODO: delay of displaying opponten's cards in first round
-function pullCards(playerI) {
+function pullCards(showOpponentCards) {
   for (let playerI = 0; playerI < players.length; playerI++) {
     var inkoPlayers = JSON.parse(JSON.stringify(players));
     for (let i = 0; i < players.length; i++) {
+      if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && i != playerI && !showOpponentCards) {
+        setTimeout(() => {
+          pullCards(true);
+        }, 7777);
+        inkoPlayers[i].cards = [];
+        continue;
+      }
       for (let i1 = 0; i1 < players[i].cards.length; i1++) {
         const card = players[i].cards[i1];
         if (!card.visible && i != playerI && inkoPlayers[i].cards[i1] != undefined) inkoPlayers[i].cards[i1].nr = "";
