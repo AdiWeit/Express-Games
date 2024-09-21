@@ -31,11 +31,6 @@ var cards = [
   {nr: 11,color:  "white", visible: false, state: "normal"},
 ]
 var playerNow;
-  // shuffle cards
-  for (let i = cards.length - 1; i >= 0; i--) {
-      const j = Math.round(Math.random() * (i + 1));
-      [cards[i], cards[j]] = [cards[j], cards[i]];
-  }
 var pThis;
 class davincicode {
   constructor(broadcastReceiver, sendReceiver) {
@@ -81,12 +76,22 @@ class davincicode {
         if (playWithJoker) {
           addJokers();
         }
-        setTimeout(() => {
+        shuffleCards()
+        useJokers = playWithJoker;
+        if (playWithJoker) {
+          setTimeout(() => {
+            pThis.broadcast({
+              type: "jokerAlert",
+              data: true,
+            });
+          }, 8000);
+        } 
+        else {
           pThis.broadcast({
             type: "jokerAlert",
-            data: playWithJoker,
+            data: false,
           });
-        }, 8000);
+        }
         this.beginGame();
       }
     }
@@ -179,6 +184,12 @@ function addJokers() {
   cards.push({nr: "-",color:  "black", visible: false, state: "normal"});
   cards.push({nr: "-",color:  "white", visible: false, state: "normal"});
 }
+function shuffleCards() {
+  for (let i = cards.length - 1; i >= 0; i--) {
+    const j = Math.round(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+}
 function getCards(playerI, amount=1) {
   for (let i = 0; i < amount; i++) {
     if (cards.length > 0) {
@@ -241,12 +252,13 @@ function getCards(playerI, amount=1) {
   }
   pullCards();
 }
+var useJokers = false;
 // TODO: delay of displaying opponten's cards in first round
 function pullCards(showOpponentCards) {
   for (let playerI = 0; playerI < players.length; playerI++) {
     var inkoPlayers = JSON.parse(JSON.stringify(players));
     for (let i = 0; i < players.length; i++) {
-      if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && i != playerI && !showOpponentCards) {
+      if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && i != playerI && !showOpponentCards && useJokers) {
         setTimeout(() => {
           pullCards(true);
         }, 7777);

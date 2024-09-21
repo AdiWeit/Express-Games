@@ -31,7 +31,8 @@
   margin-top: 7px;
   margin-bottom: 7px;
   float: left;
-  cursor: pointer;
+  /* cursor: pointer; */
+  cursor: var(--pCursor);
 
   /* background-color: white;
   color: black; */
@@ -70,7 +71,8 @@
   }
 }
 :root {
-  --pHeight: 15%
+  --pHeight: 15%;
+  --pCursor: pointer;
 }
 .cardDeck {
   box-shadow: 2px 2px 10px #855d5d;
@@ -97,6 +99,21 @@
   padding: 5px;
   font-size: 20px;
   font-weight: bold;
+}
+.notransition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
+  animation: none !important;
+  cursor: alias;
+}
+.moveCard {
+  /* cursor: var(--pCursor); */
+  cursor: col-resize
+}
+.pGrabbing {
+  cursor: grabbing;
 }
 </style>
 
@@ -151,8 +168,8 @@
 <div id="app" >
   <div v-for="(player, i) in players">
     <div class="nameTag">{{ player.name}}</div>
-    <div class="cardDeck">
-      <div class="card" v-for="(card, i1) in player.cards" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
+    <div :class="getDeckClasses()">
+      <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
         <a>{{ card.nr }}</a>
       </div>
     </div>
@@ -244,6 +261,8 @@ window.onbeforeunload = function(){
   var app = new Vue({
     el: '#app',
     data: {
+      playerI: 0,
+      state: {},
       players: [
     {
       cards: [
@@ -276,11 +295,31 @@ window.onbeforeunload = function(){
       shadows: {new: "orange 0px 0px 20px 6px", normal: "2px 2px 10px #855d5d", visible: "red 0px 0px 20px 6px", guessMark: "blue 0px 0px 20px 6px"}
     },
     methods: {
+      getDeckClasses() {
+        return {
+          'cardDeck': true,
+          'pGrabbing': this.state.state == "moving"
+        }
+      },
+      getClasses(playerI, cardI, card) {
+        // TODO: extend
+        // TODO: move joker only OK before card reveal (?) 
+        var cards = this.players[playerI].cards;
+        var pMoveCard = (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5) && card.nr == "-") || (card.state == "new" && playerNow == playerI && [cards[cardI + 1]?.nr, cards[cardI - 1]?.nr].includes("-"));
+        return {
+          'card': true,
+          'moveCard': pMoveCard && this.state.state != "moving",
+          'notransition': (this.playerI == playerI || card.visible || playerNow != this.playerI) && (this.playerI != playerI || !pMoveCard)
+        }
+      },
       cardClicked(pPlayerI, cardI) {
         if (pPlayerI == playerI || playerI != playerNow || this.players[pPlayerI].cards[cardI].visible) return; 
         console.log("card " + cardI + " of player " + playerI + " clicked");
         while (!guess || guess != "-" && !(guess <= 11 && guess >= 0)) {
           var guess = prompt('What is you guess? The numbers range from 0 to 11. Please enter "-" for the joker. ');
+          if (guess == undefined) {
+            return;
+          }
         }
         room.send({
           "type": "guess",
@@ -295,27 +334,30 @@ window.onbeforeunload = function(){
         if (pPlayerI == playerI) {
           // moving joker in first round, directly after getting it
           if (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5) && card.nr == "-") {
-            state = {state: "moving", cardI, initialI: cardI};
+            document.querySelector(':root').style.setProperty('--pCursor', 'grabbing');
+            this.state = {state: "moving", cardI, initialI: cardI};
           }
           // moving joker if a new card is directly next to it
           if (card.state == "new" && playerNow == playerI && [cards[cardI + 1]?.nr, cards[cardI - 1]?.nr].includes("-")) {
-            state = {state: "moving", cardI, initialI: cardI, neighbour: true};
+            this.state = {state: "moving", cardI, initialI: cardI, neighbour: true};
+            document.querySelector(':root').style.setProperty('--pCursor', 'grabbing');
           }
         }
       },
       mouseOver(pPlayerI, cardI) {
         var cards = this.players[playerI].cards;
-        if (state.state == "moving" && (!state.neighbour || cards[cardI].nr == "-")) {
-          // [ cards[cardI], cards[state.cardI] ] = [ cards[state.cardI], cards[cardI] ]
-          cards[state.cardI] = cards.splice(cardI, 1, cards[state.cardI])[0];
-          state.cardI = cardI;
-          // [this.players[playerI].cards[cardI], this.players[playerI].cards[state.cardI]] = [this.players[playerI].cards[state.cardI], this.players[playerI].cards[cardI]];
+        if (this.state.state == "moving" && (!this.state.neighbour || cards[cardI].nr == "-")) {
+          // [ cards[cardI], cards[this.state.cardI] ] = [ cards[this.state.cardI], cards[cardI] ]
+          cards[this.state.cardI] = cards.splice(cardI, 1, cards[this.state.cardI])[0];
+          this.state.cardI = cardI;
+          // [this.players[playerI].cards[cardI], this.players[playerI].cards[this.state.cardI]] = [this.players[playerI].cards[this.state.cardI], this.players[playerI].cards[cardI]];
         }
       },
       mouseUp(pPlayerI, cardI) {
-        // TODO: use state.cardI instead of cardI param + call mouseUp on cardDeck
+        // TODO: use this.state.cardI instead of cardI param + call mouseUp on cardDeck
         console.log("mouseUp");
-        if (state.state == "moving") {
+        if (this.state.state == "moving") {
+          document.querySelector(':root').style.setProperty('--pCursor', 'grab');
           var cards = this.players[pPlayerI].cards;
           var card = cards[cardI];
           if (card.color == "white" && cards[cardI + 1] && cards[cardI + 1].nr == "-" && card.nr == "-") {
@@ -326,10 +368,10 @@ window.onbeforeunload = function(){
             alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
             cards[cardI] = cards.splice(cardI - 1, 1, cards[cardI])[0];
           }
-          state.state = "done";
+          this.state.state = "done";
           room.send({
             "type": "jokerMoved",
-            from: state.initialI,
+            from: this.state.initialI,
             to: cardI,
             playerI: pPlayerI
           });
@@ -368,7 +410,7 @@ window.onbeforeunload = function(){
                 continue: confirm("Would you like to continue guessing?"),
               });
               }
-            }, 500);
+            }, 1500);
           }
           // card.visible = true;
           // card.nr = message.data;
@@ -388,6 +430,7 @@ window.onbeforeunload = function(){
   room.setOnMessageListener(function(message) {
     if (message.type == "playerNr") {
       playerI = message.data;
+      app._data.playerI = message.data;
       var name = localStorage.getItem("nameOnlineGames");
       if (name == undefined) {
         name = prompt("Wie wollen Sie heißen? Der Name wird für die Mitspieler sichtbar sein. ");
