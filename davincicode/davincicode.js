@@ -186,7 +186,7 @@ function addJokers() {
 }
 function shuffleCards() {
   for (let i = cards.length - 1; i >= 0; i--) {
-    const j = Math.round(Math.random() * (i + 1));
+    const j = Math.floor(Math.random() * (i + 1));
     [cards[i], cards[j]] = [cards[j], cards[i]];
   }
 }
