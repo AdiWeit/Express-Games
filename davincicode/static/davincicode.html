@@ -169,7 +169,7 @@
   <div v-for="(player, i) in players">
     <div class="nameTag">{{ player.name}}</div>
     <div :class="getDeckClasses()">
-      <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
+      <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @touchstart="mouseDown(i, i1)" @touchmove="mouseOver(i, i1, $event)" @touchend="mouseUp(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
         <a>{{ card.nr }}</a>
       </div>
     </div>
@@ -344,7 +344,19 @@ window.onbeforeunload = function(){
           }
         }
       },
-      mouseOver(pPlayerI, cardI) {
+      mouseOver(pPlayerI, cardI, event) {
+        if (event.touches[0].clientX != undefined) {
+          // get card element the finger is over
+          var card = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].clientY).filter(x => (x.className.includes("card") && !x.className.includes("cardDeck")))[0];
+          // ignore touchover if card is not detected (finger on cardDeck?)
+          if (card == undefined) return;
+          // get cardI for following code
+          this.players[playerI].cards.forEach((pCard, i) => {
+            if (pCard.nr == card.innerText && pCard.color == card.style.backgroundColor) {
+              cardI = i;
+            }
+          });
+        }
         var cards = this.players[playerI].cards;
         if (this.state.state == "moving" && (!this.state.neighbour || cards[cardI].nr == "-")) {
           // [ cards[cardI], cards[this.state.cardI] ] = [ cards[this.state.cardI], cards[cardI] ]
