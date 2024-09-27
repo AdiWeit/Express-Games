@@ -196,9 +196,9 @@ window.onbeforeunload = function(){
     return content;
   }
 
-  let oldId = localStorage.getItem('CLIENTIDDavincicode');
-  const clientId = oldId ? oldId : makeid(10);
-  localStorage.setItem('CLIENTIDDavincicode', clientId);
+  // let oldId = localStorage.getItem('CLIENTIDDavincicode');
+  const clientId = /*oldId ? oldId : */makeid(10);
+  // localStorage.setItem('CLIENTIDDavincicode', clientId);
 
   var messageListener = null;
 

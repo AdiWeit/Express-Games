@@ -50,6 +50,7 @@ class davincicode {
       data: players.length - 1,
     });
   // }
+  console.log(JSON.stringify(players.map(x => x.id)));
 }
   beginGame() {
     // if (players.length > 1) {
@@ -71,7 +72,7 @@ class davincicode {
     if (data.type == "useJokers" && !voted.includes(client)) {
       voting[data.data]++;
       voted.push(client);
-      if (voted.length == players.length) {
+      if (voted.length >= players.length) {
         var playWithJoker = voting[true] > voting[false] || (voting[true] == voting[false] && Math.round(Math.random() * 1) == 0);
         if (playWithJoker) {
           addJokers();
@@ -172,8 +173,11 @@ class davincicode {
     // this.broadcast(data.message);
   }
   onLeave(client) {
+    voted.pop();
+    voting = {true: 0, false: 0};
     players.forEach((player, i) => {
       if (player.id == client.sessionId) players.splice(i, 1);
+      console.log(JSON.stringify(players.map(x => x.id)));
     });
   }
 }
