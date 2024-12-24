@@ -345,7 +345,7 @@ window.onbeforeunload = function(){
         }
       },
       mouseOver(pPlayerI, cardI, event) {
-        if (event.touches[0].clientX != undefined) {
+        if (event != undefined && event.touches[0].clientX != undefined) {
           // get card element the finger is over
           var card = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].clientY).filter(x => (x.className.includes("card") && !x.className.includes("cardDeck")))[0];
           // ignore touchover if card is not detected (finger on cardDeck?)
