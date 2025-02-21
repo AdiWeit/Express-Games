@@ -305,7 +305,7 @@ window.onbeforeunload = function(){
         // TODO: extend
         // TODO: move joker only OK before card reveal (?) 
         var cards = this.players[playerI].cards;
-        var pMoveCard = (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5) && card.nr == "-") || (card.state == "new" && playerNow == playerI && [cards[cardI + 1]?.nr, cards[cardI - 1]?.nr].includes("-"));
+        var pMoveCard = (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5 && /*opponents cards not revealed*/ this.players[(playerI + 1) % this.players.length].cards.length == 0) && card.nr == "-") || (card.state == "new" && playerNow == playerI && [cards[cardI + 1]?.nr, cards[cardI - 1]?.nr].includes("-"));
         return {
           'card': true,
           'moveCard': pMoveCard && this.state.state != "moving",
@@ -333,7 +333,7 @@ window.onbeforeunload = function(){
         var card = cards[cardI];
         if (pPlayerI == playerI) {
           // moving joker in first round, directly after getting it
-          if (((card.state == "new" && playerNow == playerI) || this.players[playerI].cards.length <= 5) && card.nr == "-") {
+          if (((card.state == "new" && playerNow == playerI) || (this.players[playerI].cards.length <= 5 && /*opponents cards not revealed*/ this.players[(playerI + 1) % this.players.length].cards.length == 0)) && card.nr == "-") {
             document.querySelector(':root').style.setProperty('--pCursor', 'grabbing');
             this.state = {state: "moving", cardI, initialI: cardI};
           }
@@ -469,6 +469,11 @@ window.onbeforeunload = function(){
       document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "green 0px 0px 20px 6px";
       document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "green";
       document.getElementsByClassName("nameTag")[playerNow].style.color = "white";
+      // lock joker movement before cards are revealed
+      setTimeout(() => {
+        app.mouseUp(/*playerI, app.state.cardI*/);
+        app.players[playerI + 1 % app.players.length].cards.length = 2;
+      }, 7333);
     }
     else if (message.type == "playerLost") {
       if (playerI == message.data) {
