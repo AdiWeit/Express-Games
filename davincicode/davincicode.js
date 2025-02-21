@@ -76,7 +76,7 @@ class davincicode {
     if (data.type == "useJokers" && !voted.includes(client)) {
       voting[data.data]++;
       voted.push(client);
-      if (voted.length >= players.length) {
+      if (voted.length >= players.length && players.length >= 2) {
         var playWithJoker = voting[true] > voting[false] || (voting[true] == voting[false] && Math.round(Math.random() * 1) == 0);
         if (playWithJoker) {
           addJokers();
@@ -262,15 +262,16 @@ function getCards(playerI, amount=1) {
   pullCards();
 }
 var useJokers = false;
-// TODO: delay of displaying opponten's cards in first round
 function pullCards(showOpponentCards) {
+  if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && !showOpponentCards && useJokers) {
+    setTimeout(() => {
+      pullCards(true);
+    }, 7777);
+  }
   for (let playerI = 0; playerI < players.length; playerI++) {
     var inkoPlayers = JSON.parse(JSON.stringify(players));
     for (let i = 0; i < players.length; i++) {
       if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && i != playerI && !showOpponentCards && useJokers) {
-        setTimeout(() => {
-          pullCards(true);
-        }, 7777);
         inkoPlayers[i].cards = [];
         continue;
       }

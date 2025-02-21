@@ -501,10 +501,12 @@ window.onbeforeunload = function(){
     }
   }
   function voting() {
-    room.send({
-        "type": "useJokers",
-        data: jokerPlay.checked,
-    });
-    votingDiv.style.display = "none";
+    if (app.players.length == 4 || confirm('Do you want to play with ' + app.players.length + ' people? If so, click OK, otherwise click cancel and wait until they joined. ')) {
+      room.send({
+          "type": "useJokers",
+          data: jokerPlay.checked,
+      });
+      votingDiv.style.display = "none";
+    }
   }
 </script>
