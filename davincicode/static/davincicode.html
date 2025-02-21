@@ -168,8 +168,8 @@
 <div id="app" >
   <div v-for="(player, i) in players">
     <div class="nameTag">{{ player.name}}</div>
-    <div :class="getDeckClasses()">
-      <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @touchstart="mouseDown(i, i1)" @touchmove="mouseOver(i, i1, $event)" @touchend="mouseUp(i, i1)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
+    <div :class="getDeckClasses()" @touchend="mouseUp()" @mouseup="mouseUp()">
+      <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @touchstart="mouseDown(i, i1)" @touchmove="mouseOver(i, i1, $event)" @mouseover="mouseOver(i, i1)" @mouseup="mouseUp()" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
         <a>{{ card.nr }}</a>
       </div>
     </div>
@@ -365,12 +365,13 @@ window.onbeforeunload = function(){
           // [this.players[playerI].cards[cardI], this.players[playerI].cards[this.state.cardI]] = [this.players[playerI].cards[this.state.cardI], this.players[playerI].cards[cardI]];
         }
       },
-      mouseUp(pPlayerI, cardI) {
+      mouseUp() {
+        cardI = this.state.cardI;
         // TODO: use this.state.cardI instead of cardI param + call mouseUp on cardDeck
         console.log("mouseUp");
         if (this.state.state == "moving") {
           document.querySelector(':root').style.setProperty('--pCursor', 'grab');
-          var cards = this.players[pPlayerI].cards;
+          var cards = this.players[playerI].cards;
           var card = cards[cardI];
           if (card.color == "white" && cards[cardI + 1] && cards[cardI + 1].nr == "-" && card.nr == "-") {
             alert("The black joker has to be on the left side of the white joker if you want to place them next to each other. ");
@@ -385,7 +386,7 @@ window.onbeforeunload = function(){
             "type": "jokerMoved",
             from: this.state.initialI,
             to: cardI,
-            playerI: pPlayerI
+            playerI: playerI
           });
         }
       },
