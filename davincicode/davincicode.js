@@ -119,11 +119,12 @@ class davincicode {
         // card.state = "guessMark";
         // realNr = JSON.parse(JSON.stringify(card.nr));
         // card.nr = guess.data;
-        pThis.send(players[data.playerI].client, {
+        pThis.broadcast({
           "type": "showGuess",
           data: data.data,
           cardI: data.cardI,
-        });
+          "playerI": data.playerI
+        })
         // card.nr = ;
         setTimeout(() => {
           spielerwechsel();

@@ -432,8 +432,8 @@ window.onbeforeunload = function(){
           // card.nr = message.data;
           // updateVueObj(this.players[message.playerI].cards[message.cardI], message.data);
         }
-        if (message.type == "showGuess") {
-          var card = this.players[playerI].cards[message.cardI];
+        if (message.type == "showGuess" && playerI != playerNow) {
+          var card = this.players[message.playerI].cards[message.cardI];
           card.nr = message.data;
           card.state = "guessMark";
         }
