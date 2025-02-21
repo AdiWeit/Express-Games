@@ -138,7 +138,6 @@ class davincicode {
               cardI: i
             });
             card.visible = true;
-            card.state = "visible";
           }
         });
       }
