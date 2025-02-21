@@ -391,6 +391,9 @@ window.onbeforeunload = function(){
         }
       },
       processMessage(message) {
+        if (message.type == "getNames") {
+          this.players = message.data;
+        }
         if (message.type == "getCard") {
           if (!this.players[playerI]) this.players[playerI] = {cards: [], name: "player " + playerI}
           this.players[playerI].cards.push(message.data);

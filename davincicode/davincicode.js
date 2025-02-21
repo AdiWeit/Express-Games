@@ -49,6 +49,10 @@ class davincicode {
       "type": "playerNr",
       data: players.length - 1,
     });
+    pThis.broadcast({
+      "type": "getNames",
+      data: players,
+    });
   // }
   console.log(JSON.stringify(players.map(x => x.id)));
 }
