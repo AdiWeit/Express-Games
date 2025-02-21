@@ -333,7 +333,7 @@ window.onbeforeunload = function(){
         var card = cards[cardI];
         if (pPlayerI == playerI) {
           // moving joker in first round, directly after getting it
-          if (((card.state == "new" && playerNow == playerI) || (this.players[playerI].cards.length <= 5 && /*opponents cards not revealed*/ this.players[(playerI + 1) % this.players.length].cards.length == 0)) && card.nr == "-") {
+          if (((card.state == "new" && playerNow == playerI) || (this.players[playerI].cards.length <= 5 && /*opponents cards not revealed*/ this.players[(playerI + 1) % this.players.length].cards.length == 0 && this.state.state != "locked")) && card.nr == "-") {
             document.querySelector(':root').style.setProperty('--pCursor', 'grabbing');
             this.state = {state: "moving", cardI, initialI: cardI};
           }
@@ -472,7 +472,7 @@ window.onbeforeunload = function(){
       // lock joker movement before cards are revealed
       setTimeout(() => {
         app.mouseUp(/*playerI, app.state.cardI*/);
-        app.players[playerI + 1 % app.players.length].cards.length = 2;
+        app.state.state = "locked";
       }, 7333);
     }
     else if (message.type == "playerLost") {
