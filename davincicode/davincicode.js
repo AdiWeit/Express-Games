@@ -158,6 +158,7 @@ class davincicode {
               type: "playerLost",
               data: playerI,
             });
+            pullCards(true, true);
             reset();
           }
         }
@@ -274,7 +275,7 @@ function getCards(playerI, amount=1) {
   pullCards();
 }
 var useJokers = false;
-function pullCards(showOpponentCards) {
+function pullCards(showOpponentCards, reveal) {
   if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && !showOpponentCards && useJokers) {
     setTimeout(() => {
       pullCards(true);
@@ -295,10 +296,13 @@ function pullCards(showOpponentCards) {
         }
         if (i != playerI && inkoCard != undefined) {
           if (!inkoCard.visible) {
-            inkoCard.nr = "";
+            if (reveal) {
+              inkoCard.state = "reveal";
+            }
+            else inkoCard.nr = "";
           }
           // dont't show new card to oppontens before the round is over (because if it is a joker, changing it's position would be obvious)
-          if (i == playerNow && inkoCard.state == "new") {
+          if (i == playerNow && inkoCard.state == "new" && !reveal) {
             inkoCards.splice(i1, 1);
             i1--;
           }
