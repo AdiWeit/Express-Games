@@ -178,10 +178,10 @@
 <script>
 // online stuff: 
 window.onbeforeunload = function(){
-    console.log("Leave Website");
-      sendJson('/Davincicode/logout', {clientId});
-      return 'Are you sure you want to leave?';
-  };
+  sendJson('/Davincicode/logout', {clientId});
+  console.log("Leave Website");
+  return 'Are you sure you want to leave?';
+};
 
   async function sendJson(url = "/", body = {}) {
     const rawResponse = await fetch(url, {

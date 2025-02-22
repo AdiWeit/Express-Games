@@ -4,33 +4,38 @@ var j;
 var x;
 var i;
 var players = []
-var cards = [    
-  {nr: 0, color: "black", visible: false, state: "normal"},
-  {nr: 0, color: "white", visible: false, state: "normal"},
-  {nr: 1, color: "black", visible: false, state: "normal"},
-  {nr: 1, color: "white", visible: false, state: "normal"},
-  {nr: 2, color: "black", visible: false, state: "normal"},
-  {nr: 2, color: "white", visible: false, state: "normal"},
-  {nr: 3, color: "black", visible: false, state: "normal"},
-  {nr: 3, color: "white", visible: false, state: "normal"},
-  {nr: 4, color: "black", visible: false, state: "normal"},
-  {nr: 4, color: "white", visible: false, state: "normal"},
-  {nr: 5, color: "black", visible: false, state: "normal"},
-  {nr: 5, color: "white", visible: false, state: "normal"},
-  {nr: 6, color: "black", visible: false, state: "normal"},
-  {nr: 6, color: "white", visible: false, state: "normal"},
-  {nr: 7, color: "black", visible: false, state: "normal"},
-  {nr: 7, color: "white", visible: false, state: "normal"},
-  {nr: 8, color: "black", visible: false, state: "normal"},
-  {nr: 8, color: "white", visible: false, state: "normal"},
-  {nr: 9, color: "black", visible: false, state: "normal"},
-  {nr: 9, color: "white", visible: false, state: "normal"},
-  {nr: 10,color:  "black", visible: false, state: "normal"},
-  {nr: 10,color:  "white", visible: false, state: "normal"},
-  {nr: 11,color:  "black", visible: false, state: "normal"},
-  {nr: 11,color:  "white", visible: false, state: "normal"},
-]
+var cards;
 var playerNow;
+reset();
+function reset() {
+  cards = [
+    {nr: 0, color: "black", visible: false, state: "normal"},
+    {nr: 0, color: "white", visible: false, state: "normal"},
+    {nr: 1, color: "black", visible: false, state: "normal"},
+    {nr: 1, color: "white", visible: false, state: "normal"},
+    {nr: 2, color: "black", visible: false, state: "normal"},
+    {nr: 2, color: "white", visible: false, state: "normal"},
+    {nr: 3, color: "black", visible: false, state: "normal"},
+    {nr: 3, color: "white", visible: false, state: "normal"},
+    {nr: 4, color: "black", visible: false, state: "normal"},
+    {nr: 4, color: "white", visible: false, state: "normal"},
+    {nr: 5, color: "black", visible: false, state: "normal"},
+    {nr: 5, color: "white", visible: false, state: "normal"},
+    {nr: 6, color: "black", visible: false, state: "normal"},
+    {nr: 6, color: "white", visible: false, state: "normal"},
+    {nr: 7, color: "black", visible: false, state: "normal"},
+    {nr: 7, color: "white", visible: false, state: "normal"},
+    {nr: 8, color: "black", visible: false, state: "normal"},
+    {nr: 8, color: "white", visible: false, state: "normal"},
+    {nr: 9, color: "black", visible: false, state: "normal"},
+    {nr: 9, color: "white", visible: false, state: "normal"},
+    {nr: 10,color:  "black", visible: false, state: "normal"},
+    {nr: 10,color:  "white", visible: false, state: "normal"},
+    {nr: 11,color:  "black", visible: false, state: "normal"},
+    {nr: 11,color:  "white", visible: false, state: "normal"},
+  ]
+  players = [];
+}
 var pThis;
 class davincicode {
   constructor(broadcastReceiver, sendReceiver) {
@@ -125,7 +130,6 @@ class davincicode {
           cardI: data.cardI,
           "playerI": data.playerI
         })
-        // card.nr = ;
         setTimeout(() => {
           spielerwechsel();
         }, 3777);
@@ -143,10 +147,18 @@ class davincicode {
       }
       for (let playerI = 0; playerI < players.length; playerI++) {
         if (playerI >= 0 && !players[playerI].cards.map(x => x.visible).includes(false)) {
-          pThis.broadcast({
-            type: "playerLost",
-            data: playerI,
-          });
+          if (players.filter(player => !player.cards.map(x => x.visible).includes(false)).length > 1) {
+            // depthmatch continuing
+            // TODO: 
+            console.log("waiting for death match...");
+          }
+          else {
+            pThis.broadcast({
+              type: "playerLost",
+              data: playerI,
+            });
+            reset();
+          }
         }
       }
     }
@@ -177,7 +189,7 @@ class davincicode {
     // this.broadcast(data.message);
   }
   onLeave(client) {
-    voted.pop();
+    voted = [];
     voting = {true: 0, false: 0};
     players.forEach((player, i) => {
       if (player.id == client.sessionId) players.splice(i, 1);
