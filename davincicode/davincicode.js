@@ -147,10 +147,11 @@ class davincicode {
       }
       for (let playerI = 0; playerI < players.length; playerI++) {
         if (playerI >= 0 && !players[playerI].cards.map(x => x.visible).includes(false)) {
-          if (players.filter(player => !player.cards.map(x => x.visible).includes(false)).length > 1) {
+          if (players.filter(player => player.cards.map(x => x.visible).includes(false)).length > 1) {
             // depthmatch continuing
             // TODO: 
             console.log("waiting for death match...");
+            players[playerI].lost = true;
           }
           else {
             pThis.broadcast({
@@ -315,6 +316,7 @@ function spielerwechsel() {
   if (playerNow >= players.length) {
     playerNow = 0;
   }
+  while(players[playerNow].lost) playerNow = (playerNow + 1) % players.length
   for (const card of players[playerNow].cards) {
     if (card.state == "new") {
       card.state = "normal";
