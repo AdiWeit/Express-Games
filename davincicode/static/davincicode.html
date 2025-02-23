@@ -91,6 +91,9 @@
   display: flex;
   white-space: nowrap;
 }
+.no-scroll {
+  overflow-x: hidden;
+}
 .nameTag {
   width: fit-content;
   height: auto;
@@ -302,7 +305,8 @@ window.onbeforeunload = function(){
       getDeckClasses() {
         return {
           'cardDeck': true,
-          'pGrabbing': this.state.state == "moving"
+          'pGrabbing': this.state.state == "moving",
+          'no-scroll': this.state.state == "moving"
         }
       },
       getClasses(playerI, cardI, card) {
