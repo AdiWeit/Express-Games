@@ -36,6 +36,8 @@ function reset() {
     {nr: 11,color:  "white", visible: false, state: "normal"},
   ]
   players = [];
+  voted = [];
+  voting = {true: 0, false: 0};
 }
 var pThis;
 class davincicode {
@@ -44,7 +46,25 @@ class davincicode {
     this.broadcast = broadcastReceiver;
     this.send = sendReceiver;
   }
+  pushData(client) {
+    for (var playerI = 0; playerI < players.length; playerI++) {
+      if (players[playerI].client.id == client.id) break;
+    }
+    pullCards(true, false, playerI);
+    pThis.send(players[playerI].client, {
+      "type": "playerNr",
+      data: playerI,
+    });
+    pThis.broadcast({
+      type: "playerNow",
+      data: playerNow,
+    });
+  }
   onJoin(client) {
+    if ([players[0], players[1], players[2], players[3]].some(p => p && p.id && (p.id == client.sessionId))) {
+      this.pushData(client);
+      return;
+    }
   //  console.log(`${client.sessionId} joined.`);
     if (!players[0]) players[0] = {id: client.sessionId, client, cards: [], name: "player 1"};
     else if (!players[1]) players[1] = {id: client.sessionId, client, cards: [], name: "player 2"};
@@ -81,6 +101,15 @@ class davincicode {
       });
   }
   onMessage(client, data) {
+    if (data.type == "reset") {
+      reset();
+      pThis.broadcast({
+        type: "reset",
+      });
+    }
+    if (data.type == "getAllData") {
+      this.pushData(client);
+    }
     if (data.type == "useJokers" && !voted.includes(client)) {
       voting[data.data]++;
       voted.push(client);
@@ -207,12 +236,11 @@ class davincicode {
     // this.broadcast(data.message);
   }
   onLeave(client) {
-    voted = [];
-    voting = {true: 0, false: 0};
-    players.forEach((player, i) => {
-      if (player.id == client.sessionId) players.splice(i, 1);
-      console.log(JSON.stringify(players.map(x => x.id)));
-    });
+    console.log(client + " leaving");
+    // players.forEach((player, i) => {
+    //   if (player.id == client.sessionId) players.splice(i, 1);
+    //   console.log(JSON.stringify(players.map(x => x.id)));
+    // });
   }
 }
 var voting = {true: 0, false: 0};
@@ -291,7 +319,7 @@ function getCards(playerI, amount=1) {
   pullCards();
 }
 var useJokers = false;
-function pullCards(showOpponentCards, reveal) {
+function pullCards(showOpponentCards, reveal, rejoinI) {
   if (players[0].cards.length <= 5 && (!players[1] || players[1].cards.length <= 4) && !showOpponentCards && useJokers) {
     setTimeout(() => {
       pullCards(true);
@@ -325,10 +353,22 @@ function pullCards(showOpponentCards, reveal) {
         }
       };
     }
-    pThis.send(players[playerI].client, {
-      "type": "pullingCards",
-      data: inkoPlayers,
-    });
+    console.log("checking " + playerI + " == " +  rejoinI);
+    if (rejoinI == undefined) {
+      console.log("regular pull without rejoin");
+      pThis.send(players[playerI].client, {
+        "type": "pullingCards",
+        data: inkoPlayers
+      });
+    }
+    else if (playerI == rejoinI) {
+      console.log("sending rejoin-cards");
+      pThis.send(players[playerI].client, {
+        "type": "pullingCards",
+        data: inkoPlayers,
+        rejoin: true
+      });
+    }
   }
 }
 function spielerwechsel() {

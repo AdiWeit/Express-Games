@@ -223,9 +223,9 @@ window.onbeforeunload = function(){
     return content;
   }
 
-  // let oldId = localStorage.getItem('CLIENTIDDavincicode');
-  const clientId = /*oldId ? oldId : */makeid(10);
-  // localStorage.setItem('CLIENTIDDavincicode', clientId);
+  let oldId = localStorage.getItem('CLIENTIDDavincicode');
+  const clientId = oldId ? oldId : makeid(10);
+  localStorage.setItem('CLIENTIDDavincicode', clientId);
 
   var messageListener = null;
 
@@ -451,6 +451,14 @@ window.onbeforeunload = function(){
           this.players = message.data;
           document.querySelector(':root').style.setProperty('--pHeight', (100/(this.players.length) - 10)/*(document.getElementsByClassName("nameTag")[0].getBoundingClientRect().height*this.players.length*2)/screen.height)*/ + '%')
           // updateVueObj(this.players, message.data);
+          if (message.rejoin) {
+            votingDiv.style.display = "none";
+            if (!confirm("It seems like you didn't finish the last round. Would you like to continue playing?")) {
+              room.send({
+              "type": "reset",
+            });
+            }
+          }
         }
         if (message.type == "revealNr") {
           // var card = this.players[message.playerI].cards[message.cardI];
@@ -482,6 +490,7 @@ window.onbeforeunload = function(){
   var playerI;
   var playerNow = 0;
   room.setOnMessageListener(function(message) {
+    if (message.type == "reset") alert("Somebody does not want to continue playing. Please reload the page to begin another round. ")
     if (message.type == "playerNr") {
       playerI = message.data;
       app._data.playerI = message.data;
