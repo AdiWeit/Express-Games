@@ -153,23 +153,31 @@ class davincicode {
             // depthmatch continuing
             // TODO: 
             console.log("waiting for death match...");
-            players[playerI].lost = true;
+            console.log(players.filter(player => !player.cards.map(x => x.visible).includes(false)).length + " of " + players.length + " players defeated");
+            if (!players[playerI].place) players[playerI].place = players.length - (players.filter(player => !player.cards.map(x => x.visible).includes(false)).length - 1);
+            pThis.broadcast({
+              "type": "getPlace",
+              playerI,
+              data: players[playerI].place,
+            });
           }
           else {
-            pThis.broadcast({
-              type: "playerLost",
-              data: playerI,
-            });
-            pullCards(true, true);
-            reset();
+            // TODO: winning screen
+            console.log("checking if player " + (playerI+1) + " has place aleardy");
+            if (!players[playerI].place) {
+              players[playerI].place = 2;
+              players.filter(player => !player.place)[0].place = 1;
+              pThis.broadcast({
+                type: "gameOver",
+                data: playerI,
+              });
+              pullCards(true, true);
+              reset();
+            }
           }
         }
       }
     }
-    if (data.type == "continueDecision" && guessedCorrectly) {
-      if (!data.continue) {
-        spielerwechsel();
-      }
     }
     if (data.type == "namePlayer") {
       players[data.playerI].name = data.data;

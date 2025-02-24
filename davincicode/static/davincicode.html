@@ -190,6 +190,7 @@
   <button style="font-size: 50px;" onclick="guessingDecision(false);">end turn</button>
   <button style="font-size: 50px;" onclick="guessingDecision(true);">continue guessing</button>
 </div>
+<h1 id="finalPlace"></h1>
 <img id="winningState">
 <div id="app" >
   <div v-for="(player, i) in players">
@@ -429,6 +430,10 @@ window.onbeforeunload = function(){
         if (message.type == "getNames") {
           this.players = message.data;
         }
+        if (message.type == "getPlace") {
+          this.players[message.playerI].place = message.data;
+          if (message.playerI == playerI) finalPlace.innerText = message.data + ".";
+        }
         if (message.type == "getCard") {
           if (!this.players[playerI]) this.players[playerI] = {cards: [], name: "player " + playerI}
           this.players[playerI].cards.push(message.data);
@@ -496,16 +501,21 @@ window.onbeforeunload = function(){
         app.state.state = "locked";
       }, 7333);
     }
-    else if (message.type == "playerLost") {
-      if (playerI == message.data) {
-        new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
-        winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg";
-      }
-      else {
+    else if (message.type == "gameOver") {
+      app.players[message.data].place = 2;
+      finalPlace.innerText = app.players[playerI].place + ".";
+      guessingChooser.style.display = "none";
+      if (!app.players[playerI].place) {
+        app.players[playerI].place = 1;
+        finalPlace.innerText = "1.";
         var audio = new Audio("https://adi.nicolaiweitkemper.de/Sounds/longEpicVictorySound.mp3");
         audio.currentTime = 9.0;
         audio.play();
         winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Gewinnerbildschirm.jpeg";
+      }
+      else {
+        new Audio("https://adi.nicolaiweitkemper.de/Sounds/FAIL%20SOUND%20EFFECT.mp3").play();
+        winningState.src = "https://adi.nicolaiweitkemper.de/Bilder/Verloren%20Bildschirm.jpg";
       }
     }
     else if (message.type == "jokerAlert") {
