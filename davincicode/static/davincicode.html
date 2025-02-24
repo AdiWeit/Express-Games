@@ -352,8 +352,8 @@ window.onbeforeunload = function(){
         if (pPlayerI == playerI || playerI != playerNow || this.players[pPlayerI].cards[cardI].visible) return; 
         console.log("card " + cardI + " of player " + playerI + " clicked");
         while (!guess || guess != "-" && !(guess <= 11 && guess >= 0)) {
-          var guess = prompt('What is you guess? The numbers range from 0 to 11. Please enter "-" for the joker. ');
-          if (guess == undefined) {
+          var guess = prompt('What is you guess? The numbers range from 0 to 11. Please enter "-" for the joker. To cancel, you can click OK without typing anything. ');
+          if ([null, ""].includes(guess)) {
             return;
           }
         }
@@ -427,7 +427,7 @@ window.onbeforeunload = function(){
         }
       },
       processMessage(message) {
-        if (message.type == "getNames") {
+        if (message.type == "getPlayers") {
           this.players = message.data;
         }
         if (message.type == "getPlace") {
@@ -461,10 +461,11 @@ window.onbeforeunload = function(){
           }
         }
         if (message.type == "revealNr") {
-          // var card = this.players[message.playerI].cards[message.cardI];
+          var card = this.players[message.playerI].cards[message.cardI];
           // if (playerI == message.playerI) {
           //   card.state = "visible";
           // }
+          card.visible = true;
           if (playerI == playerNow && message.correctGuess) {
             this.players[message.playerI].cards[message.cardI].nr = message.data;
               if (winningState.src == "") {

@@ -77,7 +77,7 @@ class davincicode {
     });
     setTimeout(() => {
       pThis.broadcast({
-        "type": "getNames",
+        "type": "getPlayers",
         data: players,
       });
     }, 1111);
@@ -118,7 +118,7 @@ class davincicode {
         if (playWithJoker) {
           addJokers();
         }
-        shuffleCards()
+        shuffleCards();
         useJokers = playWithJoker;
         if (playWithJoker) {
           setTimeout(() => {
@@ -376,7 +376,7 @@ function spielerwechsel() {
   if (playerNow >= players.length) {
     playerNow = 0;
   }
-  while(players[playerNow].lost) playerNow = (playerNow + 1) % players.length
+  while(players[playerNow].place != undefined) playerNow = (playerNow + 1) % players.length
   for (const card of players[playerNow].cards) {
     if (card.state == "new") {
       card.state = "normal";
