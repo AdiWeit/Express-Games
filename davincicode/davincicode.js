@@ -6,6 +6,7 @@ var i;
 var players = []
 var cards;
 var playerNow;
+var guessFailed = false;
 reset();
 function reset() {
   cards = [
@@ -132,6 +133,7 @@ class davincicode {
           cardI: data.cardI,
           "playerI": data.playerI
         })
+        guessFailed = true;
         setTimeout(() => {
           spielerwechsel();
         }, 3777);
@@ -178,6 +180,10 @@ class davincicode {
         }
       }
     }
+    if (data.type == "endTurn" && guessedCorrectly && players[playerNow].id == client && !guessFailed) {
+      // if (!data.continue) {
+      spielerwechsel();
+      // }
     }
     if (data.type == "namePlayer") {
       players[data.playerI].name = data.data;
@@ -341,5 +347,6 @@ function spielerwechsel() {
     type: "playerNow",
     data: playerNow,
   });
+  guessFailed = false;
 }
 module.exports = davincicode;

@@ -187,8 +187,8 @@
 <button onclick="voting();" style="font-size: 50px;">confirm</button>
 </div>
 <div id="guessingChooser" style="display: none;">
-  <button style="font-size: 50px;" onclick="guessingDecision(false);">end turn</button>
-  <button style="font-size: 50px;" onclick="guessingDecision(true);">continue guessing</button>
+  <button style="font-size: 50px;" onclick="endTurn();">end turn</button>
+  <!-- <button style="font-size: 50px;" onclick="guessingDecision(true);">continue guessing</button> -->
 </div>
 <h1 id="finalPlace"></h1>
 <img id="winningState">
@@ -467,10 +467,13 @@ window.onbeforeunload = function(){
           // card.nr = message.data;
           // updateVueObj(this.players[message.playerI].cards[message.cardI], message.data);
         }
-        if (message.type == "showGuess" && playerI != playerNow) {
-          var card = this.players[message.playerI].cards[message.cardI];
-          card.nr = message.data;
-          card.state = "guessMark";
+        if (message.type == "showGuess") {
+          guessingChooser.style.display = "none";
+          if (playerI != playerNow) {
+            var card = this.players[message.playerI].cards[message.cardI];
+            card.nr = message.data;
+            card.state = "guessMark";
+          }
         }
       }
     }
@@ -540,11 +543,10 @@ window.onbeforeunload = function(){
       votingDiv.style.display = "none";
     }
   }
-  function guessingDecision(bool) {
+  function endTurn() {
     guessingChooser.style.display = "none";
     room.send({
-      "type": "continueDecision",
-      continue: bool,
+      "type": "endTurn",
     });
   }
 </script>
