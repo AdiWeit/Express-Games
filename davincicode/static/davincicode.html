@@ -102,6 +102,8 @@
   padding: 5px;
   font-size: 20px;
   font-weight: bold;
+  background-color: white;
+  color: black;
 }
 .notransition {
   -webkit-transition: none !important;
@@ -117,6 +119,23 @@
 }
 .pGrabbing {
   cursor: grabbing;
+}
+/* name tag states */
+
+.your-turn {
+  background-color: green;
+  color: white;
+  box-shadow: green 0px 0px 20px 6px;
+}
+.this-is-you {
+  background-color: blue;
+  color: white;
+  box-shadow: 2px 2px 10px blue;
+}
+.you-lost {
+  background-color: red;
+  color: white;
+  box-shadow: 2px 2px 20px 3px red
 }
 </style>
 
@@ -174,7 +193,7 @@
 <img id="winningState">
 <div id="app" >
   <div v-for="(player, i) in players">
-    <div class="nameTag">{{ player.name}}</div>
+    <div :class="getNameTagClasses(i)">{{ player.name}}</div>
     <div :class="getDeckClasses()" @touchend="mouseUp()" @mouseup="mouseUp()">
       <div v-for="(card, i1) in player.cards" :class="getClasses(i, i1, card)" @click="cardClicked(i, i1)" @mousedown="mouseDown(i, i1)" @touchstart="mouseDown(i, i1)" @touchmove="mouseOver(i, i1, $event)" @mouseover="mouseOver(i, i1)" v-bind:style="{ 'background-color': card.color, 'color': fontColor[card.color], 'box-shadow': shadows[card.state] }">
         <a>{{ card.nr }}</a>
@@ -302,6 +321,14 @@ window.onbeforeunload = function(){
       shadows: {new: "orange 0px 0px 20px 6px", normal: "2px 2px 10px #855d5d", visible: "red 0px 0px 20px 6px", guessMark: "blue 0px 0px 20px 6px", reveal: "#df00ff 0px 0px 20px 6px"}
     },
     methods: {
+      getNameTagClasses(pPlayerI) {
+        return {
+          "nameTag": true,
+          "this-is-you": pPlayerI == playerI && pPlayerI != playerNow,
+          "your-turn": pPlayerI == playerNow,
+          "you-lost": this.players[pPlayerI].place != undefined && pPlayerI != playerI,
+        }
+      },
       getDeckClasses() {
         return {
           'cardDeck': true,
@@ -462,16 +489,7 @@ window.onbeforeunload = function(){
         });
     }
     else if (message.type == "playerNow") {
-      document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "2px 2px 10px #855d5d";
-      document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "white";
-      document.getElementsByClassName("nameTag")[playerNow].style.color = "black";
-      document.getElementsByClassName("nameTag")[playerI].style.backgroundColor = "blue";
-      document.getElementsByClassName("nameTag")[playerI].style.color = "white";
-      document.getElementsByClassName("nameTag")[playerI].style.boxShadow = "2px 2px 10px blue";
       playerNow = message.data;
-      document.getElementsByClassName("nameTag")[playerNow].style.boxShadow = "green 0px 0px 20px 6px";
-      document.getElementsByClassName("nameTag")[playerNow].style.backgroundColor = "green";
-      document.getElementsByClassName("nameTag")[playerNow].style.color = "white";
       // lock joker movement before cards are revealed
       setTimeout(() => {
         app.mouseUp(/*playerI, app.state.cardI*/);
