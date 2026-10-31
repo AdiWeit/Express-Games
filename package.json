@@ -4,7 +4,7 @@
     "cheerio": "^1.0.0-rc.10",
     "express": "^5.2.1",
     "mongoose": "^8.24.1",
-    "puppeteer": "^23.6.0"
+    "puppeteer": "^25.16.0"
   },
   "scripts": {
     "start": "node index.js"
